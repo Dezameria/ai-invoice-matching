@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIVA Web Portal v4.4 — RBAC + DMS (Standard v6.6)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0D274D;--navy2:#16345E;--teal:#00B5AF;--teald:#00857F;--paper:#F4F7F9;--line:#E2E8EC;--ink:#1A1A1A;--mut:#5A6A75;
+--red:#C0392B;--redl:#FBE3E3;--amb:#B8860B;--ambl:#FFF6DC;--grn:#1E8A5F;--grnl:#E3F4E8;--blu:#1E6FB2;--blul:#E8F1FB;--gry:#8A97A0;--gryl:#EEF1F3;--pur:#7A4A9E;--purl:#F2E9F8;--org:#C2410C;--orgl:#FFE8D6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
+.mono{font-family:'JetBrains Mono',monospace}
+header{background:var(--navy);color:#fff;height:56px;display:flex;align-items:center;gap:14px;padding:0 20px;position:sticky;top:0;z-index:20}
+.logo{display:flex;gap:10px;align-items:center;font-weight:700}
+.logo i{width:28px;height:28px;border-radius:7px;background:var(--teal);color:var(--navy);display:grid;place-items:center;font-style:normal;font-size:12px}
+.logo small{display:block;font-weight:400;font-size:10.5px;color:#9EABB2}
+nav{display:flex;gap:4px;margin-left:14px}
+nav a{color:#C9D3DA;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:500;font-size:13px}
+nav a.on{background:var(--navy2);color:#fff}nav a.dis{opacity:.35;cursor:not-allowed}
+.sp{flex:1}
+select.u{background:var(--navy2);color:#fff;border:1px solid #2c4b75;border-radius:7px;padding:6px 10px;font-family:inherit;max-width:380px}
+.role{font-size:11px;padding:3px 9px;border-radius:12px;font-weight:600}
+.scope{max-width:1700px;margin:12px auto 0;padding:0 16px}
+.scope div{background:#fff;border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:8px;padding:9px 14px;font-size:12.5px;color:var(--mut);display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.scope b{color:var(--ink)}
+.chip{display:inline-block;padding:3px 10px;border-radius:14px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--mut);margin-right:4px}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:12px 16px 0;max-width:1700px;margin:0 auto}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;border-top:3px solid transparent}
+.kpi.on{border-top-color:var(--teal)}.kpi b{font-size:22px;display:block}.kpi span{font-size:11.5px;color:var(--mut)}
+.wrap{display:grid;grid-template-columns:370px 1fr;gap:16px;padding:16px;max-width:1700px;margin:0 auto;align-items:start}
+.full{padding:16px;max-width:1700px;margin:0 auto}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.ph{padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600;font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;background:#FAFCFD}
+.srch{padding:10px 12px;border-bottom:1px solid var(--line)}
+.srch input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:inherit}
+.q{max-height:calc(100vh - 300px);overflow:auto}
+.qi{padding:11px 13px;border-bottom:1px solid #F0F4F6;cursor:pointer;border-left:3px solid transparent}
+.qi:hover{background:#F8FBFC}.qi.on{background:#EEF8F8;border-left-color:var(--teal)}
+.r1{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.qi .inv{font-weight:700}.qi .v{font-size:12px;color:var(--mut);margin:2px 0}
+.qi .r2{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut)}
+.b{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.s-Auto-pass{background:var(--grnl);color:var(--grn)}.s-Review{background:var(--ambl);color:var(--amb)}.s-Hold{background:var(--redl);color:var(--red)}
+.s-Manual{background:var(--purl);color:var(--pur)}.s-Duplicate{background:var(--orgl);color:var(--org)}.s-Confirmed{background:var(--blul);color:var(--blu)}
+.s-Posted{background:var(--navy);color:#fff}.s-Rejected{background:var(--gryl);color:var(--gry)}
+.co{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--paper);border:1px solid var(--line);color:var(--navy)}
+.code{font-family:'JetBrains Mono';font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:3px}
+.High{background:var(--redl);color:var(--red)}.Medium{background:var(--ambl);color:var(--amb)}.Low{background:var(--grnl);color:var(--grn)}
+.doc{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px}
+.dh h2{font-size:19px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12.5px;color:var(--mut);margin-top:6px}.meta b{color:var(--ink)}
+.flow{display:flex;gap:6px;padding:12px 20px;background:#FAFCFD;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.st{padding:5px 11px;border-radius:7px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600}
+.st.ok{background:var(--grnl);border-color:#BFE4CE;color:var(--grn)}.st.bad{background:var(--redl);border-color:#F0C0BA;color:var(--red)}
+.st.skip{background:var(--gryl);color:var(--gry)}.st.warn{background:var(--ambl);border-color:#F3DFA0;color:var(--amb)}
+.tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:11px 14px;cursor:pointer;color:var(--mut);border-bottom:2px solid transparent;font-weight:500}
+.tab.on{color:var(--navy);border-bottom-color:var(--teal);font-weight:700}
+.pane{display:none;padding:18px 20px}.pane.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--navy);color:#fff;text-align:left;padding:7px 9px;font-size:11px}
+td{padding:7px 9px;border-bottom:1px solid #EDF1F3;vertical-align:top}
+td.n{text-align:right;font-family:'JetBrains Mono';font-size:12px}
+.ok{color:var(--grn);font-weight:700}.bad{color:var(--red);font-weight:700}.na{color:var(--gry)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+.card h4{font-size:12.5px;color:var(--navy);margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dashed #EEF2F4;font-size:12.5px}
+.kv:last-child{border:0}.kv span{color:var(--mut)}
+.ex{border:1px solid var(--line);border-left:4px solid;border-radius:8px;padding:11px 13px;margin-bottom:9px}
+.ex.High{border-left-color:var(--red);background:#FFFAFA}.ex.Medium{border-left-color:#E0A800;background:#FFFDF5}
+.ex p{font-size:12.5px;color:var(--mut);margin-top:3px}.ex .ev{font-size:12px;margin-top:6px;padding:6px 9px;border:1px dashed var(--line);border-radius:6px;background:#fff;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.who{font-size:11px;font-weight:600;color:var(--blu);float:right}
+.dmsl{font-size:11.5px;color:var(--blu);cursor:pointer;font-weight:600;white-space:nowrap}
+.dmsl:hover{text-decoration:underline}
+.note{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:12.5px}
+.note.i{background:var(--blul);color:#174f80}.note.w{background:var(--ambl);color:#7a5b00}.note.d{background:var(--orgl);color:#9A3412}
+.bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 20px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.bar .hint{flex:1;font-size:12.5px;color:var(--mut);min-width:240px}
+button{font-family:inherit;font-weight:600;font-size:13px;padding:8px 15px;border-radius:7px;border:1px solid transparent;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.bp{background:var(--grn);color:#fff}.bb{background:var(--blu);color:#fff}.bt{background:var(--teald);color:#fff}.bn{background:var(--navy);color:#fff}
+.bw{background:#fff;color:var(--org);border-color:var(--org)}.br{background:#fff;color:var(--red);border-color:var(--red)}.bg{background:#fff;color:var(--mut);border-color:var(--line)}
+.bsm{padding:5px 10px;font-size:12px}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:16px}
+.tle{position:relative;padding:7px 0}.tle:before{content:'';position:absolute;left:-22px;top:12px;width:10px;height:10px;border-radius:50%;background:var(--gry)}
+.tle.h:before{background:var(--blu)}.tle.c:before{background:var(--red)}.tle.g:before{background:var(--grn)}.tle.v:before{background:var(--teal)}
+.tle .t{font-family:'JetBrains Mono';font-size:11px;color:var(--mut)}.tle .a{font-weight:600;font-size:12.5px}.tle .d{font-size:12px;color:var(--mut)}
+.ov{position:fixed;inset:0;background:rgba(13,39,77,.45);display:none;place-items:center;z-index:50}.ov.on{display:grid}
+.modal{background:#fff;border-radius:12px;width:min(560px,94vw);overflow:hidden}.modal.wide{width:min(900px,96vw)}
+.mh{padding:15px 20px;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.mb{padding:16px 20px}
+.mf{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:#FAFCFD}
+.mb label{display:block;font-weight:600;font-size:12.5px;margin:10px 0 5px}.mb label:first-child{margin-top:0}
+.mb select,.mb textarea,.mb input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:13px}
+.mb textarea{min-height:70px}
+.viewer{display:grid;grid-template-columns:120px 1fr;gap:12px;height:460px}
+.thumbs{overflow:auto;border-right:1px solid var(--line);padding-right:8px}
+.thumb{border:2px solid var(--line);border-radius:6px;height:120px;margin-bottom:8px;display:grid;place-items:center;font-size:11px;color:var(--mut);cursor:pointer;background:#fafafa}
+.thumb.on{border-color:var(--teal)}
+.page{border:1px solid var(--line);border-radius:6px;background:#fff;padding:22px 26px;overflow:auto;font-size:12px;position:relative}
+.page h3{font-size:15px;margin-bottom:6px}.page .sig{margin-top:18px;display:flex;gap:40px}
+.page .sig div{border-top:1px solid #999;width:170px;padding-top:4px;text-align:center;color:var(--mut)}
+.hl{outline:3px solid #F5B301;outline-offset:3px;border-radius:3px}
+.wm{position:absolute;right:14px;bottom:10px;font-size:10px;color:#B0B8BE}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:9px;display:none;z-index:60}.toast.on{display:block}.toast.e{background:var(--red)}
+.empty{padding:40px;text-align:center;color:var(--mut)}.rnd{font-size:11px;color:var(--mut)}
+.yes{color:var(--grn);font-weight:700;text-align:center}.no{color:#C8D0D5;text-align:center}
+.rule{font-size:12.5px;padding:8px 0;border-bottom:1px dashed var(--line)}.rule b{color:var(--navy)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>AI</i><div>AIVA Web Portal<small>v4.4 · RBAC + DMS · Standard v6.6</small></div></div>
+  <nav id="nav"></nav>
+  <div class="sp"></div>
+  <span class="role" id="rolebadge"></span>
+  <select class="u" id="user" onchange="switchUser()"></select>
+</header>
+<div id="app"></div>
+<div class="ov" id="ov"><div class="modal" id="modal"><div class="mh" id="mh"></div><div class="mb" id="mb"></div>
+<div class="mf" id="mf"><button class="bg" onclick="closeM()">ยกเลิก</button><button class="bp" id="mok" onclick="doAct()">ยืนยัน</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= Master data ================= */
+const COMPANY={ /* บริษัท = นิติบุคคล (Tax ID) ตามตารางที่ 4 */
+ AH:{name:"อาปิโก ไฮเทค (มหาชน)",tax:"0107545000179",orgs:[103,222]},
+ AHT:{name:"อาปิโก ไฮเทค ทูลลิ่ง",tax:"0145548001557",orgs:[352,196]},
+ AHP:{name:"อาปิโก ไฮเทค พาร์ทส์",tax:"0145548001549",orgs:[175]},
+ AM:{name:"เอเบิล มอเตอร์ส",tax:"0135546008643",orgs:[376]},
+ "?":{name:"ไม่ระบุบริษัท (ORG_ID ยังไม่ทราบ)",tax:"—",orgs:[556]}};
+const ORG={103:"APD",222:"AHR",352:"AHD",196:"AHT",175:"AHP",376:"AM",556:"MGP"};
+const companyOfOrg=o=>Object.keys(COMPANY).find(k=>COMPANY[k].orgs.includes(o));
+const companyOfTax=t=>Object.keys(COMPANY).find(k=>COMPANY[k].tax===t)||"?";
+
+const PERM={VIEW_OWN:"ดูเอกสารที่ตนเป็น Receiver",VIEW_CO:"ดูเอกสารทั้งบริษัทที่ได้รับมอบหมาย",DMS:"เปิดเอกสารจาก DMS",RERUN:"สั่ง AIVA ตรวจซ้ำ (เอกสารไม่มี Receiver)",
+ RESUBMIT:"แก้ไขและส่งตรวจซ้ำ",EXPLAIN:"ชี้แจง",CONFIRM:"ยืนยัน / Hold / ปฏิเสธ / ส่งกลับ",POST:"ส่งเข้า AP Interface",MAP:"จัดการการเชื่อมบัญชีและสิทธิ์",AUDIT:"ดูบันทึกการเข้าถึง"};
+const ROLES={
+ EU:{n:"ผู้ใช้งาน (Receiver)",c:"#C2410C",bg:"#FFF1E3",p:["VIEW_OWN","DMS","RESUBMIT","EXPLAIN"],scope:"receiver"},
+ ACC:{n:"เจ้าหน้าที่บัญชี",c:"#1E8A5F",bg:"#E3F4E8",p:["VIEW_CO","DMS","CONFIRM","RERUN"],scope:"company"},
+ APR:{n:"หัวหน้าฝ่ายบัญชี",c:"#1E6FB2",bg:"#E8F1FB",p:["VIEW_CO","DMS","CONFIRM","RERUN","POST","AUDIT"],scope:"company"},
+ ADM:{n:"ผู้ดูแลระบบ (IT)",c:"#7A4A9E",bg:"#F2E9F8",p:["MAP","AUDIT"],scope:"none"}};
+/* Portal user ↔ Entra ID ↔ Receiver ใน Oracle (RCV_VRC_HDS_V.RECEIVER จาก EMPLOYEE_ID ของหัวใบรับ) ↔ companies */
+const USERS=[
+ {id:"u1",n:"สมศักดิ์ ใจดี",email:"somsak.j@aapico.com",role:"EU",rcvName:"SOMSAK JAIDEE",emp:10231,co:["AH"],unit:"คลังวัตถุดิบ"},
+ {id:"u2",n:"วิไลวรรณ ศรีสุข",email:"wilaiwan.s@aapico.com",role:"EU",rcvName:"WILAIWAN SRISUK",emp:20417,co:["AHT"],unit:"ฝ่ายซ่อมบำรุง"},
+ {id:"u3",n:"ธนากร มั่นคง",email:"thanakorn.m@aapico.com",role:"EU",rcvName:"THANAKORN MANKONG",emp:30552,co:["AM"],unit:"คลังอะไหล่"},
+ {id:"u4",n:"ปณิดา รักงาน",email:"panida.r@aapico.com",role:"ACC",rcvName:"—",emp:11020,co:["AH","AHT"],unit:"ฝ่ายบัญชี AH/AHT"},
+ {id:"u5",n:"กมลวรรณ ใจงาม",email:"kamonwan.j@aapico.com",role:"ACC",rcvName:"—",emp:31005,co:["AM","AHP"],unit:"ฝ่ายบัญชี AM/AHP"},
+ {id:"u6",n:"สมชาย วงศ์ทอง",email:"somchai.w@aapico.com",role:"APR",rcvName:"—",emp:11001,co:["AH","AHT","AHP","AM","?"],unit:"หัวหน้าฝ่ายบัญชี"},
+ {id:"u7",n:"อนุชา ไอที",email:"anucha.i@aapico.com",role:"ADM",rcvName:"—",emp:null,co:[],unit:"IT"}];
+let ME=USERS[0];
+const can=p=>ROLES[ME.role].p.includes(p);
+
+/* ================= Standard v6.6 reference (Exception code E01–E15) ================= */
+const EXC={E01:["Missing Field","eu"],
+E02:["Arithmetic Inconsistency","acc"],
+E03:["Total Mismatch","acc"],
+E04:["Rounding","acc"],
+E05:["Receipt Not Found","eu"],
+E06:["Multiple Receipts","eu"],
+E07:["Customer Mismatch","acc"],
+E08:["Signature Missing","eu"],
+E09:["Price Variance","acc"],
+E10:["UOM Mismatch","eu"],
+E11:["Line Resolved by Description","acc"],
+E12:["Price Variance Within Tolerance","acc"],
+E13:["Line Not Identified","acc"],
+E14:["Over Quantity","eu"],
+E15:["Quantity Below Receipt","eu"]};
+const EUCODES=new Set(Object.keys(EXC).filter(k=>EXC[k][1]==="eu"));
+const RULES=["V-01 ฟิลด์บังคับ","V-02 เลขคณิตรายบรรทัด","V-03 ยอดรวมในใบแจ้งหนี้","V-04 พบใบรับ","V-05 ลูกค้าตรงกับตารางที่ 4","V-06 ลายเซ็น","V-07 จับคู่รายบรรทัดและราคา","V-08 จำนวนเท่ากับใบรับ","V-09 ยอดรวมเท่ากับใบรับ"];
+const RSTEP={"V-01":1,"V-02":1,"V-03":1,"V-06":1,"V-04":2,"V-05":2,"V-07":3,"V-08":3,"V-09":3};
+const P="pass",F="fail",N="not_evaluated",M="manual_review";
+const R=o=>RULES.map(r=>{const id=r.slice(0,4);return Object.assign({rule_id:id,result:P},o[id]||{})});
+const DMS_BASE="https://dms.aapico.com/viewer";
+
+/* ================= Documents (JSON from AIVA + receiver + DMS) ================= */
+const DOCS=[
+{doc:"DMS-2026-000123",release:null,inv:"IV6909245",po:"42052823",vendor:"ABC Supply Co., Ltd.",org:103,tax:"0107545000179",pages:2,rcv:"530340001",receiver:"SOMSAK JAIDEE",upl:"SOMSAK.J",
+ date:"2026-09-24",sub:2910,vat:203.7,total:3113.7,sig:[1,1],custOn:"head_office_th",
+ lines:[["HSS CENTRE DRILL A225 BS4 5/16\"",3,"PCS",130,390,1,3,130,"M1"],["CASTER WHEEL URETHANE-3\" (FIXED)",4,"PCS",310,1240,2,4,310,"M1"],["CASTER WHEEL URETHANE-3\" (SWIVEL)",4,"PCS",320,1280,3,4,320,"M1"]],
+ rtotal:2910,rules:R({}),codes:[],status:"Auto-pass"},
+{doc:"DMS-2026-000131",release:"3",inv:"A631577",po:"40100303",vendor:"Thai Steel Service Co., Ltd.",org:103,tax:"0107545000179",pages:2,rcv:"530340112",receiver:"SOMSAK JAIDEE",upl:"SOMSAK.J",
+ date:"2026-09-26",sub:18054,vat:1263.78,total:19317.78,sig:[1,0],custOn:"head_office_th",
+ lines:[["SPH270C-OD 2.0 x 225 x COIL",590,"KG",30.6,18054,1,590,30.6,"M1"]],rtotal:18054,
+ rules:R({"V-06":{result:F,exception_code:"E08",severity:"High",evidence:"ไม่พบลายเซ็นหรือตราในช่องผู้รับของ",page:1}}),codes:["E08"],status:"Hold"},
+{doc:"DMS-2026-000140",release:null,inv:"INV-2609-0088",po:"40121082",vendor:"Precision Tools (Thailand) Co., Ltd.",org:352,tax:"0145548001557",pages:1,rcv:"540112231",receiver:"WILAIWAN SRISUK",upl:"WILAIWAN.S",
+ date:"2026-09-25",sub:11040,vat:772.8,total:11812.8,sig:[1,1],custOn:"head_office_th",
+ lines:[["Carbide End Mill D10 x 75L",12,"PCS",920,11040,1,10,920,"M1"]],rtotal:9200,
+ rules:R({"V-08":{result:F,exception_code:"E14",severity:"High",evidence:"บรรทัด 1 วางบิล 12 PCS > ใบรับ 10 PCS",page:1},"V-09":{result:F,exception_code:"E03",severity:"High",evidence:"ใบแจ้งหนี้ 11,040.00 vs ใบรับ 9,200.00",page:1}}),codes:["E14","E03"],status:"Hold"},
+{doc:"DMS-2026-000152",release:null,inv:"SR6909-1142",po:"40120973",vendor:"S R Y Engineering & Trading",org:null,tax:"0107545000179",pages:1,rcv:"—",receiver:null,upl:"SOMSAK.J",
+ date:"2026-09-27",sub:560,vat:39.2,total:599.2,sig:[1,1],custOn:null,
+ lines:[["ก๊าซ CO2 ขนาด 25 กก.",2,"CYL",280,520,null,null,null,"—"]],rtotal:null,halted:true,
+ rules:R({"V-02":{result:F,exception_code:"E02",severity:"High",evidence:"บรรทัด 1: 2 × 280.00 = 560.00 แต่ระบุ 520.00",page:1},"V-04":{result:N,halted_by:"V-02"},"V-05":{result:N,halted_by:"V-02"},"V-07":{result:N,halted_by:"V-02"},"V-08":{result:N,halted_by:"V-02"},"V-09":{result:N,halted_by:"V-02"}}),codes:["E02"],status:"Hold"},
+{doc:"DMS-2026-000158",release:"12",inv:"AM-2609-0412",po:"45008812",vendor:"Siam Auto Parts Co., Ltd.",org:376,tax:"0135546008643",pages:2,rcv:"560020415",receiver:"THANAKORN MANKONG",upl:"THANAKORN.M",
+ date:"2026-09-27",sub:42600,vat:2982,total:45582,sig:[1,1],custOn:"branch 00004",
+ lines:[["Brake Pad Set Front",60,"SET",710,42600,1,60,712.5,"M5"]],rtotal:42750,
+ rules:R({"V-07":{result:F,exception_code:"E12",severity:"Medium",evidence:"ราคา 710.00 vs ใบรับ 712.50 ต่าง 0.35% (ในกรอบ)",page:1},"V-09":{result:F,exception_code:"E03",severity:"High",evidence:"ใบแจ้งหนี้ 42,600.00 vs ใบรับ 42,750.00",page:1}}),codes:["E12","E03"],status:"Hold"},
+{doc:"DMS-2026-000161",release:null,inv:"TK-2609-0120",po:"40121210",vendor:"Sanwa Precision Tools Co., Ltd.",org:null,tax:"0145548001557",pages:1,rcv:"—",receiver:null,upl:"WILAIWAN.S",
+ date:"2026-09-28",sub:18400,vat:1288,total:19688,sig:[1,1],custOn:null,
+ lines:[["Carbide Drill D8",20,"PCS",920,18400,null,null,null,"—"]],rtotal:null,
+ rules:R({"V-04":{result:F,exception_code:"E05",severity:"High",evidence:"SQL ไม่คืนแถว: SHIPMENT_NUM = TK-2609-0120, PO = 40121210"},"V-05":{result:N,halted_by:"V-04"},"V-07":{result:N,halted_by:"V-04"},"V-08":{result:N,halted_by:"V-04"},"V-09":{result:N,halted_by:"V-04"}}),codes:["E05"],status:"Hold"},
+{doc:"DMS-2026-000163",release:null,inv:"PL-2609-0055",po:"43042811",vendor:"NX Shoji (Thailand) Co., Ltd.",org:103,tax:"0107545000179",pages:3,rcv:"530340201",receiver:"PRAPHAN KAEWKLA",upl:"PRAPHAN.K",
+ date:"2026-09-28",sub:31000,vat:2170,total:33170,sig:[1,1],custOn:"head_office_en",
+ lines:[["Plastic Pallet 1100x1100",50,"PCS",620,31000,1,50,620,"M1"]],rtotal:31000,rules:R({}),codes:[],status:"Duplicate",dup:"DMS-2026-000163-A"},
+{doc:"DMS-2026-000170",release:null,inv:"MG-2609-0009",po:"48000121",vendor:"Metro Supply Co., Ltd.",org:556,tax:"—",pages:1,rcv:"580001120",receiver:"NARONG PHOLSRI",upl:"NARONG.P",
+ date:"2026-09-29",sub:5400,vat:378,total:5778,sig:[1,1],custOn:null,
+ lines:[["Service Kit",3,"SET",1800,5400,1,3,1800,"M1"]],rtotal:5400,
+ rules:R({"V-05":{result:M,evidence:"ORG_ID 556 สถานะยังไม่ทราบในตารางที่ 4"}}),codes:[],status:"Manual Review"}];
+const AUDIT=[];
+function setOwner(d){d.owner=d.receiver||null;d.ownerSrc=d.receiver?"RECEIVER จากใบรับ (RCV_VRC_HDS_V)":"ไม่มี Receiver (ยังไม่พบใบรับ)";
+ d.receiverActive=!d.receiver||USERS.some(u=>u.role==="EU"&&u.rcvName===d.receiver)}
+DOCS.forEach((d,i)=>{d.round=1;d.company=d.org?companyOfOrg(d.org):companyOfTax(d.tax);
+ setOwner(d);
+ d.assigned=(!d.receiver||d.status==="Manual Review"||d.status==="Duplicate"||d.status==="Auto-pass")?"acc":(d.codes.some(c=>EUCODES.has(c))?"eu":"acc");
+ d.hist=[{t:"08:0"+i+":10",a:"AIVA ตรวจรอบที่ 1",d:"ผล "+(d.dup?"Auto-pass":d.status)+(d.codes.length?" · "+d.codes.join(", "):""),k:"s"}];
+ if(d.dup)d.hist.push({t:"08:0"+i+":40",a:"Portal ตรวจเอกสารซ้ำ",d:"ผู้ขาย + เลขที่ใบแจ้งหนี้ซ้ำกับ "+d.dup+" · ระงับ",k:"c"});});
+
+/* ================= RBAC ================= */
+function scopeCheck(d,u=ME){const r=ROLES[u.role];
+ if(r.scope==="none")return {ok:false,why:"บทบาทนี้ไม่เข้าถึงเนื้อหาเอกสาร"};
+ if(!u.co.includes(d.company))return {ok:false,why:"เอกสารอยู่นอกบริษัทที่ได้รับมอบหมาย ("+d.company+")"};
+ if(r.scope==="receiver"&&!d.receiver)return {ok:false,why:"เอกสารยังไม่มี Receiver ในใบรับ · ฝ่ายบัญชีดำเนินการ"};
+ if(r.scope==="receiver"&&d.receiver!==u.rcvName)return {ok:false,why:"ไม่ได้เป็น Receiver ของใบรับนี้ (Receiver = "+d.receiver+")"};
+ return {ok:true}}
+const visible=()=>DOCS.filter(d=>scopeCheck(d).ok);
+let page="queue",sel=null,tab="sum",filt="all",coF=new Set();
+
+/* ================= Shell ================= */
+const B=n=>n==null?"—":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const now=()=>new Date().toTimeString().slice(0,8);
+function init(){document.getElementById("user").innerHTML=USERS.map(u=>`<option value="${u.id}">${u.n} — ${ROLES[u.role].n}</option>`).join("");document.getElementById("user").value=ME.id;switchUser(true)}
+function switchUser(first){ME=USERS.find(u=>u.id===document.getElementById("user").value);
+ const r=ROLES[ME.role],rb=document.getElementById("rolebadge");rb.textContent=r.n;rb.style.background=r.bg;rb.style.color=r.c;
+ page=ME.role==="ADM"?"rbac":"queue";filt=ME.role==="EU"?"mine":"all";coF=new Set();tab="sum";sel=(visible().filter(listFilter)[0]||{}).doc;
+ log("เข้าสู่ระบบ","—","Entra ID "+ME.email+(ME.rcvName!=="—"?" · Receiver "+ME.rcvName:""));render();if(!first)toast("สลับเป็น "+ME.n)}
+function nav(){const items=[["queue",ME.role==="EU"?"งานของฉัน":"คิวตรวจสอบ",ME.role!=="ADM"],["rbac","สิทธิ์และการเชื่อมบัญชี",true],["audit","บันทึกการเข้าถึง",can("AUDIT")]];
+ document.getElementById("nav").innerHTML=items.map(([k,l,ok])=>`<a class="${page===k?'on':''} ${ok?'':'dis'}" onclick="${ok?`page='${k}';render()`:`toast('ไม่มีสิทธิ์',1)`}">${l}</a>`).join("")}
+function render(){nav();const a=document.getElementById("app");if(page==="rbac")a.innerHTML=rbacPage();else if(page==="audit")a.innerHTML=auditPage();else{a.innerHTML=queueShell();drawList();drawDetail()}}
+function log(act,doc,detail){AUDIT.unshift({t:now(),who:ME.n,role:ROLES[ME.role].n,act,doc,detail})}
+
+/* ================= Queue ================= */
+function match(k,d){if(k==="all")return true;if(k==="mine")return d.assigned==="eu"&&!["Posted","Rejected","Confirmed"].includes(d.status);return d.status===k}
+function listFilter(d){return match(filt,d)&&(coF.size===0||coF.has(d.company))}
+function queueShell(){const v=visible();const r=ROLES[ME.role];
+ const kd=ME.role==="EU"?[["mine","รอฉันแก้ไข"],["all","ใบรับของฉัน"],["Hold","Hold"],["Review","Review"],["Confirmed","ยืนยันแล้ว"],["Posted","ตั้งหนี้แล้ว"]]
+  :[["all","ทั้งหมด"],["Auto-pass","Auto-pass"],["Review","Review"],["Hold","Hold"],["Manual Review","Manual Review"],["Duplicate","ซ้ำ (Portal)"]];
+ const scope=r.scope==="receiver"
+  ?`<span>ขอบเขต: <b>เฉพาะใบรับที่ RECEIVER = ${ME.rcvName}</b></span><span>บริษัท: <b>${ME.co.join(", ")}</b></span><span>เอกสารที่ยังไม่มีใบรับ ฝ่ายบัญชีเป็นผู้ดำเนินการ</span>`
+  :`<span>ขอบเขต: <b>รายบริษัท</b></span><span>บริษัท: ${ME.co.map(c=>`<span class="chip ${coF.has(c)?'on':''}" onclick="togCo('${c}')">${c} ${v.filter(d=>d.company===c).length}</span>`).join("")}${coF.size?`<span class="chip" onclick="coF=new Set();render()">✕ ทุกบริษัท</span>`:''}</span>`;
+ return `<div class="scope"><div>${scope}</div></div><div class="kpis">${kd.map(([k,l])=>`<div class="kpi ${filt===k?'on':''}" onclick="filt='${k}';render()"><b>${v.filter(d=>match(k,d)&&(coF.size===0||coF.has(d.company))).length}</b><span>${l}</span></div>`).join("")}</div>
+ <div class="wrap"><div class="panel" style="margin:0"><div class="ph"><span>${ME.role==="EU"?"ใบรับของฉัน":"คิวตรวจสอบ"}</span><span id="qn"></span></div>
+ <div class="srch"><input id="q" placeholder="ค้นหาเลขที่ใบแจ้งหนี้ / PO / ผู้ขาย" oninput="drawList()"></div><div class="q" id="list"></div></div><div id="detail"></div></div>`}
+function togCo(c){coF.has(c)?coF.delete(c):coF.add(c);render()}
+function drawList(){const el=document.getElementById("list");if(!el)return;const q=(document.getElementById("q").value||"").toLowerCase();
+ const L=visible().filter(listFilter).filter(d=>(d.inv+d.po+(d.release||"")+d.vendor).toLowerCase().includes(q));document.getElementById("qn").textContent=L.length+" ฉบับ";
+ if(!L.find(d=>d.doc===sel))sel=(L[0]||{}).doc;
+ el.innerHTML=L.length?L.map(d=>`<div class="qi ${d.doc===sel?'on':''}" onclick="pick('${d.doc}')"><div class="r1"><span class="inv">${d.inv} <span class="co">${d.company}</span></span>${badge(d.status)}</div>
+ <div class="v">${d.vendor}</div><div class="r2"><span>PO ${d.po}${d.release?"-"+d.release:""} · ${d.owner?"Receiver "+d.owner:"<b style=\"color:var(--org)\">ไม่มี Receiver</b>"}${d.owner&&!d.receiverActive?" <b style=\"color:var(--org)\">(ยังไม่เชื่อมบัญชี)</b>":""}</span><span class="mono">${B(d.total)}</span></div>
+ <div style="margin-top:4px">${d.codes.map(c=>`<span class="code ${sevOf(d,c)}">${c}</span>`).join("")}<span class="rnd">${d.assigned==="eu"?"→ ผู้ใช้งาน":"→ ฝ่ายบัญชี"} · รอบ ${d.round}</span></div></div>`).join(""):`<div class="empty">ไม่มีเอกสารในขอบเขตสิทธิ์ของคุณ</div>`}
+function pick(id){sel=id;tab="sum";drawList();drawDetail()}
+const badge=s=>`<span class="b s-${s.split(" ")[0]}">${s}</span>`;
+function sevOf(d,c){const r=d.rules.find(x=>x.exception_code===c);return r&&r.severity||"High"}
+
+/* ================= Detail ================= */
+function drawDetail(){const el=document.getElementById("detail");if(!el)return;const d=DOCS.find(x=>x.doc===sel);
+ if(!d){el.innerHTML=`<div class="doc"><div class="empty">เลือกเอกสารจากคิว</div></div>`;return}
+ if(!scopeCheck(d).ok){el.innerHTML=`<div class="doc"><div class="empty">🔒 ${scopeCheck(d).why}</div></div>`;return}
+ const st=[1,2,3].map(s=>{const rs=d.rules.filter(r=>RSTEP[r.rule_id]===s);if(rs.every(r=>r.result===N))return["skip","ไม่ได้ประเมิน"];if(rs.some(r=>r.result===F&&r.severity==="High"))return["bad","พบ High"];if(rs.some(r=>r.result===F||r.result===M))return["warn","ต้องตรวจ"];return["ok","ผ่าน"]});
+ const names=["STEP 1 สกัดและตรวจเอกสาร","STEP 2 ค้นใบรับและลูกค้า","STEP 3 เทียบกับใบรับ"];
+ el.innerHTML=`<div class="doc"><div class="dh"><div><h2>${d.inv} ${badge(d.status)} <span class="co">${d.company}</span></h2>
+ <div class="meta"><div>ผู้ขาย <b>${d.vendor}</b></div><div>PO <b>${d.po}</b></div><div>Release <b>${d.release??"—"}</b> <span class="rnd">(จากเอกสาร · ไม่ตรวจ)</span></div><div>ใบรับ <b>${d.rcv}</b></div><div>ORG_ID <b>${d.org?d.org+" "+ORG[d.org]:"— (ยังไม่เรียก Oracle)"}</b></div>
+ <div>Receiver <b>${d.owner||"— ไม่มี"}</b></div><div>ยอดรวม <b>${B(d.total)} ฿</b></div><div>รอบตรวจ <b>${d.round}</b></div></div></div>
+ <div style="text-align:right"><button class="bn" onclick="openDMS('${d.doc}',1)" ${can("DMS")?'':'disabled'}>📄 เปิดเอกสารจาก DMS</button><div class="rnd" style="margin-top:6px">${d.doc} · ${d.pages} หน้า</div></div></div>
+ <div class="flow">${names.map((n,i)=>`<span class="st ${st[i][0]}">${n} · ${st[i][1]}</span>`).join("")}<span class="st ${d.status==="Duplicate"?"bad":"ok"}">Portal ตรวจซ้ำ · ${d.status==="Duplicate"?"พบซ้ำ":"ไม่ซ้ำ"}</span></div>
+ <div class="tabs">${[["sum","สรุปผล"],["lines","รายบรรทัด"],["rules","กฎ 9 ข้อ"],["own","ผู้รับผิดชอบและสิทธิ์"],["json","JSON"],["log","ประวัติ"]].map(([k,l])=>`<div class="tab ${tab===k?'on':''}" onclick="tab='${k}';drawDetail()">${l}</div>`).join("")}</div>
+ ${pane("sum",sumPane(d))}${pane("lines",linesPane(d))}${pane("rules",rulesPane(d))}${pane("own",ownPane(d))}
+ ${pane("json",`<pre class="mono" style="font-size:11.5px;background:#F2F5F7;padding:12px;border-radius:8px;overflow:auto;max-height:460px">${esc(JSON.stringify(toJSON(d),null,2))}</pre>`)}
+ ${pane("log",`<div class="tl">${d.hist.map(h=>`<div class="tle ${h.k}"><div class="t">${h.t}</div><div class="a">${h.a}</div><div class="d">${h.d||""}</div></div>`).join("")}</div>`)}
+ <div class="bar">${actions(d)}</div></div>`}
+const pane=(k,h)=>`<div class="pane ${tab===k?'on':''}">${h}</div>`;
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function sumPane(d){const fails=d.rules.filter(r=>r.result===F);
+ let h=fails.length?fails.map(r=>`<div class="ex ${r.severity}"><span class="code ${r.severity}">${r.exception_code}</span><b>${EXC[r.exception_code][0]}</b><span class="who">${EXC[r.exception_code][1]==="eu"?"ผู้ใช้งานแก้":"ฝ่ายบัญชีตัดสิน"}</span>
+ <p>${RULES.find(x=>x.startsWith(r.rule_id))}</p><div class="ev"><span>${r.evidence||""}</span>${r.page&&can("DMS")?`<span class="dmsl" onclick="openDMS('${d.doc}',${r.page},'${r.rule_id}')">ดูหน้า ${r.page} ใน DMS ↗</span>`:""}</div></div>`).join(""):`<div class="note i">✓ ไม่พบรหัสข้อผิดพลาดจาก AIVA</div>`;
+ if(d.rules.some(r=>r.result===M))h+=`<div class="note w">⚠ Manual Review: ${d.rules.find(r=>r.result===M).evidence}</div>`;
+ if(d.halted)h+=`<div class="note w">ระบบหยุดที่ STEP 1 (V-02) ไม่เรียก Oracle</div>`;
+ if(!d.receiver)h+=`<div class="note w">ไม่มี Receiver เพราะยังไม่พบใบรับ · ผู้ใช้งานมองไม่เห็นเอกสารนี้ ฝ่ายบัญชีต้องติดต่อผู้สแกน (${d.upl}) นอกระบบ แล้วกด “สั่ง AIVA ตรวจซ้ำ” · บริษัทกำหนดจาก Tax ID ลูกค้าบนใบแจ้งหนี้</div>`;
+ else if(!d.receiverActive)h+=`<div class="note w">Receiver ${d.receiver} ยังไม่เชื่อมบัญชีในพอร์ทัล · เอกสารจะไม่ปรากฏในคิวผู้ใช้งาน แจ้ง IT เชื่อมบัญชี</div>`;
+ if(d.status==="Duplicate")h+=`<div class="note d">Portal พบเอกสารซ้ำกับ ${d.dup} · ห้ามส่งเข้า AP Interface จนกว่าฝ่ายบัญชีตัดสิน <span class="dmsl" onclick="openDMS('${d.dup}',1)">เปิดฉบับที่ซ้ำ ↗</span></div>`;
+ return h}
+function linesPane(d){return `<div class="note i" style="margin:0 0 10px">PO ${d.po} · Release ${d.release??"— (Standard PO หรืออ่านไม่ได้)"} · Release แสดงผลเท่านั้น ไม่ใช้ในการตรวจ (มาตรฐาน v6.6 ตารางที่ 3 ฟิลด์ 9)</div><table><thead><tr><th>#</th><th>รายการ</th><th style="text-align:right">จำนวน</th><th>หน่วย</th><th style="text-align:right">ราคา</th><th style="text-align:right">ราคารวม</th><th>บรรทัดใบรับ</th><th style="text-align:right">จำนวนรับ</th><th style="text-align:right">ราคาใบรับ</th><th>ชั้น</th></tr></thead><tbody>
+ ${d.lines.map((l,i)=>{const nq=l[5]==null;return `<tr><td>${i+1}</td><td>${l[0]}</td><td class="n">${l[1]}</td><td>${l[2]}</td><td class="n">${B(l[3])}</td><td class="n">${B(l[4])}</td><td>${nq?'<span class="na">—</span>':l[5]}</td>
+ <td class="n ${nq?'na':l[6]===l[1]?'ok':'bad'}">${nq?'ไม่ได้ประเมิน':l[6]}</td><td class="n ${nq?'na':l[7]===l[3]?'ok':'bad'}">${nq?'—':B(l[7])}</td><td>${l[8]}</td></tr>`}).join("")}</tbody></table>
+ <div class="grid2" style="margin-top:14px"><div class="card"><h4>ยอดบนใบแจ้งหนี้ (V-03)</h4><div class="kv"><span>ยอดก่อนภาษี</span><b class="mono">${B(d.sub)}</b></div><div class="kv"><span>VAT</span><b class="mono">${B(d.vat)}</b></div><div class="kv"><span>ยอดรวมสุทธิ</span><b class="mono">${B(d.total)}</b></div></div>
+ <div class="card"><h4>เทียบกับใบรับ (V-09)</h4><div class="kv"><span>ใบแจ้งหนี้</span><b class="mono">${B(d.sub)}</b></div><div class="kv"><span>ใบรับ (QTY &gt; 0)</span><b class="mono">${B(d.rtotal)}</b></div><div class="kv"><span>ผล</span><b class="${d.rtotal==null?'na':Math.abs(d.sub-d.rtotal)<=.5?'ok':'bad'}">${d.rtotal==null?'ไม่ได้ประเมิน':Math.abs(d.sub-d.rtotal)<=.5?'ตรงกัน':'ไม่ตรง (E03)'}</b></div></div></div>`}
+function rulesPane(d){return `<table><thead><tr><th>กฎ</th><th>STEP</th><th>ผล</th><th>Exception code</th><th>หลักฐาน</th></tr></thead><tbody>${d.rules.map(r=>`<tr><td>${RULES.find(x=>x.startsWith(r.rule_id))}</td><td>${RSTEP[r.rule_id]}</td>
+ <td class="${r.result===P?'ok':r.result===F?'bad':'na'}">${r.result}${r.halted_by?' ('+r.halted_by+')':''}</td><td>${r.exception_code?`<span class="code ${r.severity}">${r.exception_code}</span>`:'—'}</td><td style="font-size:12px">${r.evidence||''}</td></tr>`).join("")}</tbody></table>`}
+function ownPane(d){const who=USERS.filter(u=>scopeCheck(d,u).ok);
+ return `<div class="grid2"><div class="card"><h4>ผู้รับผิดชอบเอกสาร</h4>
+ <div class="kv"><span>บริษัท</span><b>${d.company} · ${COMPANY[d.company].name}</b></div><div class="kv"><span>ที่มาของบริษัท</span><b>${d.org?"ORG_ID "+d.org+" จากใบรับ":"Tax ID ลูกค้าบนใบแจ้งหนี้"}</b></div>
+ <div class="kv"><span>Receiver (RCV_VRC_HDS_V.RECEIVER)</span><b class="mono">${d.owner||"— ไม่มี"}</b></div><div class="kv"><span>สถานะการเชื่อมบัญชี</span><b>${!d.receiver?"—":d.receiverActive?"เชื่อมแล้ว":"ยังไม่เชื่อม"}</b></div>
+ <div class="kv"><span>ที่มาของ Receiver</span><b>${d.ownerSrc}</b></div><div class="kv"><span>Release No. (สกัดจากเอกสาร)</span><b class="mono">${d.release??"— ไม่มี / อ่านไม่ได้"}</b></div><div class="kv"><span>ผู้สแกนเข้า DMS</span><b class="mono">${d.upl}</b></div></div>
+ <div class="card"><h4>ผู้ที่มองเห็นเอกสารนี้ในพอร์ทัล</h4>${who.map(u=>`<div class="kv"><span>${u.n}</span><b>${ROLES[u.role].n}</b></div>`).join("")||'<div class="kv"><span>ไม่มีผู้ใช้งานที่เชื่อมบัญชี</span></div>'}
+ ${!USERS.some(u=>u.role==="EU"&&scopeCheck(d,u).ok)?`<div class="note w">${d.receiver?"Receiver "+d.receiver+" ยังไม่เชื่อมบัญชีในพอร์ทัล":"ไม่มี Receiver"} · ผู้ใช้งานไม่เห็นเอกสารนี้ ฝ่ายบัญชีเป็นผู้ดำเนินการ</div>`:''}</div></div>`}
+function toJSON(d){return {schema_version:"1.5",doc_id:d.doc,validation_round:d.round,standard_version:"6.6",
+ dms:{doc_id:d.doc,url:`${DMS_BASE}?doc=${d.doc}`,pages:d.pages,uploaded_by:d.upl},
+ invoice:{invoice_num:d.inv,po_number:d.po,release_num:d.release??null,supplier_name:d.vendor,customer_tax_id:d.tax,sub_total:d.sub,vat:d.vat,grand_total:d.total},
+ receipt:{found:d.rcv!=="—",receipt_num:d.rcv==="—"?null:d.rcv,org_id:d.org,receiver:d.receiver,receipt_total:d.rtotal},
+ access:{company:d.company,receiver:d.receiver,owner_source:d.receiver?"receipt":"none"},
+ rules:d.rules,decision:{status:d.status,assigned_to:d.assigned==="eu"?"End user":"Accounting",exception_codes:d.codes}}}
+
+/* ================= DMS viewer ================= */
+function openDMS(docId,pg,rule){const d=DOCS.find(x=>x.doc===docId)||DOCS.find(x=>docId.startsWith(x.doc));
+ if(!can("DMS")){toast("ไม่มีสิทธิ์เปิดเอกสาร DMS",1);return}
+ if(d&&!scopeCheck(d).ok){log("ถูกปฏิเสธการเปิด DMS",docId,scopeCheck(d).why);toast("🔒 "+scopeCheck(d).why,1);return}
+ const pages=d?d.pages:1;const token=Math.random().toString(36).slice(2,10);
+ log("เปิดเอกสาร DMS",docId,"หน้า "+pg+(rule?" · หลักฐาน "+rule:""));if(d)d.hist.push({t:now(),a:"เปิดเอกสาร DMS",d:ME.n+" · หน้า "+pg,k:"v"});
+ const m=document.getElementById("modal");m.classList.add("wide");document.getElementById("mf").style.display="none";
+ document.getElementById("mh").innerHTML=`<span>📄 ${docId} · DMS Viewer</span><span class="dmsl" onclick="closeM()">ปิด ✕</span>`;
+ const page=p=>`<div class="page"><h3>${p===1?"ใบแจ้งหนี้ / ใบกำกับภาษี":"เอกสารแนบหน้า "+p}</h3>
+ <div style="color:var(--mut)">${d?d.vendor:""} · เลขที่ ${d?d.inv:docId} · PO ${d?d.po:""}</div>
+ <div style="margin-top:14px;height:170px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--gry)">[ภาพสแกนเอกสารจาก DMS]</div>
+ ${p===1?`<div class="sig"><div>ผู้ส่งของ</div><div class="${rule==="V-06"?"hl":""}">ผู้รับของ${d&&!d.sig[1]?" (ว่าง)":""}</div></div>`:""}
+ <div class="wm">ดูผ่าน AIVA Portal · ${ME.email} · ${new Date().toISOString().slice(0,16)} · token ${token}</div></div>`;
+ document.getElementById("mb").innerHTML=`<div class="rnd" style="margin-bottom:8px">URL (ลิงก์ชั่วคราว 10 นาที ออกโดย Portal หลังตรวจสิทธิ์): <span class="mono">${DMS_BASE}?doc=${docId}&page=${pg}&t=${token}</span></div>
+ <div class="viewer"><div class="thumbs">${Array.from({length:pages},(_,i)=>`<div class="thumb ${i+1===pg?'on':''}" onclick="openDMS('${docId}',${i+1})">หน้า ${i+1}</div>`).join("")}</div>${page(pg)}</div>`;
+ document.getElementById("ov").classList.add("on")}
+
+/* ================= Actions ================= */
+function actions(d){if(["Posted","Rejected"].includes(d.status))return `<div class="hint">เอกสารปิดแล้ว (${d.status})</div>`;
+ if(ME.role==="EU"){const mine=d.assigned==="eu";return `<div class="hint">${mine?"ต้องแก้: "+d.codes.filter(c=>EUCODES.has(c)).join(", "):"เอกสารอยู่ที่ฝ่ายบัญชี · ดูได้อย่างเดียว"}</div>
+  <button class="bg" ${mine&&can("EXPLAIN")?'':'disabled'} onclick="openM('explain')">ชี้แจง</button><button class="bt" ${mine&&can("RESUBMIT")?'':'disabled'} onclick="openM('resubmit')">แก้ไขแล้ว ส่งตรวจซ้ำ</button>`}
+ const euP=d.assigned==="eu",high=d.rules.some(r=>r.result===F&&r.severity==="High");
+ const noRcv=!d.receiver&&d.codes.some(c=>EUCODES.has(c));
+ return `<div class="hint">${noRcv?"ไม่มี Receiver · ติดต่อผู้สแกน "+d.upl+" แล้วสั่งตรวจซ้ำ":euP?"รอผู้ใช้งาน ("+d.owner+") แก้ไข":d.status==="Confirmed"?"ยืนยันแล้ว · รอส่งเข้า AP Interface":high?"พบรหัส High · อนุมัติได้พร้อมเหตุผล":"พร้อมยืนยัน"}</div>
+ ${noRcv?`<button class="bt" onclick="openM('rerun')" ${can("RERUN")?'':'disabled'}>สั่ง AIVA ตรวจซ้ำ</button>`:`<button class="bg" onclick="openM('return')" ${euP||!d.receiver||!d.receiverActive?'disabled':''} title="${d.receiver?'':'ไม่มี Receiver'}">ส่งกลับผู้ใช้งาน</button>`}<button class="br" onclick="openM('reject')">ปฏิเสธ</button>
+ <button class="bw" onclick="openM('hold')" ${d.status==="Hold"?'disabled':''}>Hold</button>
+ <button class="bp" onclick="openM('confirm')" ${!euP&&!["Duplicate","Confirmed"].includes(d.status)?'':'disabled'}>${high?"อนุมัติพร้อมเหตุผล":"ยืนยัน"}</button>
+ <button class="bb" onclick="openM('post')" ${d.status==="Confirmed"&&can("POST")?'':'disabled'} title="${can("POST")?"":"เฉพาะหัวหน้าฝ่ายบัญชี"}">ส่งเข้า AP Interface${can("POST")?"":" 🔒"}</button>`}
+let act=null;
+const CFG={explain:["ชี้แจง","ส่งคำชี้แจง","bp"],resubmit:["แก้ไขแล้ว ส่งตรวจซ้ำ","ส่งตรวจซ้ำ","bt"],rerun:["สั่ง AIVA ตรวจซ้ำ","ตรวจซ้ำ","bt"],return:["ส่งกลับผู้ใช้งาน","ส่งกลับ","bg"],reject:["ปฏิเสธ","ปฏิเสธ","br"],hold:["Hold","Hold","bw"],confirm:["ยืนยันผลตรวจ","ยืนยัน","bp"],post:["ส่งเข้า AP Interface","ส่ง","bb"]};
+const REASON={explain:["เอกสารถูกต้อง ระบบอ่านผิด","ผู้ขายจะส่งใบลดหนี้"],resubmit:["ขอลายเซ็นผู้รับของแล้ว สแกนใหม่","ยกเลิกแล้วทำรับใหม่ใน Oracle","สแกนใหม่ครบทุกหน้า"],rerun:["ผู้ใช้งานทำรับใน Oracle แล้ว","ผู้ใช้งานสแกนใหม่แล้ว"],
+ return:["ต้องแก้ใบรับใน Oracle","ต้องขอลายเซ็นผู้รับของ"],reject:["เอกสารซ้ำ","ผู้ขายออกใบแจ้งหนี้ผิด"],hold:["รอเอกสารจากผู้ขาย","รอตรวจสอบราคา"],confirm:["ตรวจแล้วถูกต้อง","ผลต่างยอมรับได้"],post:["ยืนยันส่ง"]};
+function openM(a){const d=DOCS.find(x=>x.doc===sel);const need={explain:"EXPLAIN",resubmit:"RESUBMIT",rerun:"RERUN",post:"POST"}[a]||"CONFIRM";
+ if(!can(need)||!scopeCheck(d).ok){act=null;log("ถูกปฏิเสธการดำเนินการ",d.doc,a);return toast("ไม่มีสิทธิ์ดำเนินการ",1)}
+ act=a;document.getElementById("modal").classList.remove("wide");document.getElementById("mf").style.display="flex";
+ document.getElementById("mh").textContent=CFG[a][0]+" · "+d.inv;
+ document.getElementById("mb").innerHTML=`<label>เหตุผล</label><select id="rs">${REASON[a].map(r=>`<option>${r}</option>`).join("")}</select><label>หมายเหตุ</label><textarea id="nt"></textarea>${a==="resubmit"||a==="rerun"?'<label>เลขที่ใบรับใหม่ (ถ้ามี)</label><input id="nr">':''}`;
+ const b=document.getElementById("mok");b.textContent=CFG[a][1];b.className=CFG[a][2];document.getElementById("ov").classList.add("on")}
+function closeM(){document.getElementById("ov").classList.remove("on")}
+function doAct(){const d=DOCS.find(x=>x.doc===sel);
+ const need2={explain:"EXPLAIN",resubmit:"RESUBMIT",rerun:"RERUN",post:"POST"}[act]||"CONFIRM";
+ if(!act||!d||!can(need2)||!scopeCheck(d).ok){closeM();act=null;return toast("ไม่มีสิทธิ์ดำเนินการ (ตรวจซ้ำก่อนบันทึก)",1)}
+ if(act==="confirm"&&(d.status==="Duplicate"||d.assigned==="eu"||d.status==="Confirmed")){closeM();act=null;return toast("ยืนยันไม่ได้: เอกสารซ้ำ หรือรอผู้ใช้งานแก้ไข",1)}const rs=document.getElementById("rs").value,nt=document.getElementById("nt").value.trim();
+ const high=d.rules.some(r=>r.result===F&&r.severity==="High");if(act==="confirm"&&high&&!nt)return toast("กรุณาระบุหมายเหตุ",1);
+ const who=ME.n+" ("+ROLES[ME.role].n+")";let msg="",k="h";
+ if(act==="resubmit"||act==="rerun"){d.round++;d.rules.forEach(r=>{if(r.exception_code&&EUCODES.has(r.exception_code)){r.result=P;r.evidence="แก้ไขแล้วรอบ "+d.round;delete r.exception_code;delete r.severity}});
+  if(d.codes.includes("E08"))d.sig=[1,1];
+  if(d.codes.includes("E05")){d.rcv=(document.getElementById("nr")||{}).value||"540112300";d.org=d.company==="AHT"?352:103;d.receiver=d.company==="AHT"?"WILAIWAN SRISUK":"SOMSAK JAIDEE";setOwner(d);d.company=companyOfOrg(d.org);
+   d.rules.forEach(r=>{if(r.result===N){r.result=P;delete r.halted_by}});d.lines=d.lines.map(l=>[l[0],l[1],l[2],l[3],l[4],1,l[1],l[3],"M1"]);d.rtotal=d.sub}
+  if(d.codes.includes("E14"))d.lines=d.lines.map(l=>[l[0],l[1],l[2],l[3],l[4],l[5],l[1],l[7],l[8]]);
+  d.codes=d.codes.filter(c=>!EUCODES.has(c));const rem=d.rules.filter(r=>r.result===F);d.status=rem.some(r=>r.severity==="High")?"Hold":rem.length?"Review":"Auto-pass";d.assigned="acc";
+  d.hist.push({t:now(),a:"ส่งตรวจซ้ำ",d:who+" · "+rs,k:"h"},{t:now(),a:"AIVA ตรวจรอบที่ "+d.round,d:"ผล "+d.status,k:"s"});msg="ส่งตรวจซ้ำแล้ว · ผล "+d.status}
+ else if(act==="explain"){d.assigned="acc";msg="ส่งคำชี้แจงแล้ว"}
+ else if(act==="return"){d.assigned="eu";msg="ส่งกลับ "+d.owner+" แล้ว"}
+ else if(act==="reject"){d.status="Rejected";k="c";msg="ปฏิเสธแล้ว"}
+ else if(act==="hold"){d.status="Hold";k="c";msg="Hold แล้ว"}
+ else if(act==="confirm"){d.status="Confirmed";d.confirmedBy=ME.id;k="g";msg="ยืนยันแล้ว"}
+ else if(act==="post"){if(d.confirmedBy===ME.id){closeM();return toast("ผู้ยืนยันต้องไม่ใช่ผู้ส่งเข้า AP Interface",1)}
+  d.hist.push({t:now(),a:"Portal ตรวจเอกสารซ้ำก่อนส่ง",d:"ไม่พบซ้ำ",k:"s"});d.status="Posted";k="g";msg="ส่งเข้า AP Interface แล้ว"}
+ if(act!=="resubmit"&&act!=="rerun")d.hist.push({t:now(),a:CFG[act][0],d:who+" · "+rs+(nt?" · "+nt:""),k});
+ log(CFG[act][0],d.doc,rs);closeM();toast(msg);render()}
+function toast(m,e){const t=document.getElementById("toast");t.textContent=m;t.className="toast on"+(e?" e":"");clearTimeout(t._);t._=setTimeout(()=>t.className="toast",3000)}
+
+/* ================= RBAC page ================= */
+function rbacPage(){const pk=Object.keys(PERM),rk=Object.keys(ROLES);
+ const unmapped=[...new Set(DOCS.map(d=>d.receiver).filter(Boolean))].filter(o=>!USERS.some(u=>u.rcvName===o));
+ return `<div class="full">
+ <div class="panel"><div class="ph"><span>กฎการมองเห็นเอกสาร (Visibility)</span></div><div style="padding:6px 16px 12px">
+  <div class="rule"><b>ผู้ใช้งาน (Receiver)</b> เห็น<b>เฉพาะใบรับของตนเอง</b>: <span class="mono">RECEIVER ของใบรับ = Receiver ที่เชื่อมกับบัญชีผู้ใช้</span> <b>และ</b> บริษัทของเอกสารอยู่ในบริษัทที่ได้รับมอบหมาย · ไม่มีการมอบหมายแทน ไม่เห็นทั้งหน่วยงาน</div>
+  <div class="rule"><b>เอกสารที่ยังไม่มีใบรับ</b> (E02 ไม่เรียก Oracle · E05 ไม่พบใบรับ) ไม่มี Receiver → ผู้ใช้งานไม่เห็น · ฝ่ายบัญชีของบริษัทตาม Tax ID ลูกค้าบนใบแจ้งหนี้ (ตารางที่ 4) ดำเนินการ ติดต่อผู้สแกนนอกระบบ แล้วสั่ง AIVA ตรวจซ้ำ</div>
+  <div class="rule"><b>Receiver ยังไม่เชื่อมบัญชีหรือลาออก</b> เอกสารไม่ปรากฏในคิวผู้ใช้งาน · ฝ่ายบัญชียังเห็นและดำเนินการได้ · หน้าจอแสดงป้าย “ยังไม่เชื่อมบัญชี”</div>
+  <div class="rule"><b>เจ้าหน้าที่บัญชี / หัวหน้าฝ่ายบัญชี</b> เห็นเอกสารรายบริษัท · บริษัท = นิติบุคคลตาม Tax ID ครอบคลุมทุก ORG_ID ของบริษัทนั้น (เช่น AH = 103 + 222 · AHT = 352 + 196)</div>
+  <div class="rule"><b>ORG_ID ยังไม่ทราบ</b> อยู่ในบริษัท “?” เห็นเฉพาะผู้ที่ได้รับมอบหมายบริษัท “?” (หัวหน้าฝ่ายบัญชี)</div>
+  <div class="rule"><b>ผู้ดูแลระบบ</b> จัดการการเชื่อมบัญชีและสิทธิ์ แต่ไม่เห็นเนื้อหาเอกสาร · <b>ผู้ยืนยัน ≠ ผู้ส่งเข้า AP Interface</b></div>
+  <div class="rule"><b>ลิงก์ DMS</b> ออกโดย Portal หลังตรวจสิทธิ์ทุกครั้ง อายุ 10 นาที ใส่ลายน้ำชื่อผู้ดู และบันทึกทุกการเปิด ห้ามเปิด DMS ตรงจาก doc_id</div></div></div>
+
+ <div class="panel"><div class="ph"><span>ข้อมูล Receiver จาก Oracle (SQL RCV-V01 · ยืนยันแล้ว)</span></div><div style="padding:6px 16px 14px">
+ <div class="rule">คอลัมน์ <span class="mono">v.RECEIVER AS RECEIVER</span> จาก <span class="mono">APPS.RCV_VRC_HDS_V</span> = ผู้รับตาม <span class="mono">EMPLOYEE_ID</span> ของหัวใบรับ · บันทึกลง JSON <span class="mono">receipt.receiver</span></div>
+ <pre class="mono" style="font-size:11.5px;background:#F2F5F7;padding:10px;border-radius:8px;overflow:auto">SELECT ph.ORG_ID AS ORG_ID,
+       h.RECEIPT_NUM AS RECEIPT_NUM,
+       v.RECEIVER AS RECEIVER,
+       ...
+JOIN APPS.RCV_VRC_HDS_V v ON v.SHIPMENT_HEADER_ID = h.SHIPMENT_HEADER_ID</pre>
+ <div class="rule">การเชื่อมบัญชี: ผู้ดูแลระบบบันทึกค่า RECEIVER ของผู้ใช้แต่ละคนคู่กับ Entra ID · <b>RECEIVER เป็นชื่อ ไม่ใช่รหัส</b> ถ้ามีชื่อซ้ำหรือเปลี่ยนชื่อจะจับคู่ผิด ควรเพิ่ม <span class="mono">h.EMPLOYEE_ID</span> เป็นกุญแจหลักในอนาคต</div></div></div>
+ <div class="panel"><div class="ph"><span>ตารางสิทธิ์ (Role × Permission)</span></div><div style="padding:0 16px 14px"><table><thead><tr><th>สิทธิ์</th>${rk.map(k=>`<th>${ROLES[k].n}</th>`).join("")}</tr></thead>
+  <tbody>${pk.map(p=>`<tr><td><b>${PERM[p]}</b> <span class="rnd mono">${p}</span></td>${rk.map(k=>ROLES[k].p.includes(p)?'<td class="yes">✓</td>':'<td class="no">—</td>').join("")}</tr>`).join("")}</tbody></table></div></div>
+ <div class="panel"><div class="ph"><span>การเชื่อมบัญชี: Portal (Entra ID) ↔ RECEIVER ใน Oracle ↔ บริษัท</span>${can("MAP")?'<button class="bt bsm" onclick="toast(\'mockup: เพิ่มการเชื่อมบัญชี\')">+ เชื่อมบัญชี</button>':''}</div>
+  <div style="padding:0 16px 14px"><table><thead><tr><th>ผู้ใช้</th><th>Entra ID</th><th>บทบาท</th><th>RECEIVER (Oracle)</th><th>บริษัท</th><th style="text-align:right">เอกสารที่เห็น</th></tr></thead>
+  <tbody>${USERS.map(u=>`<tr><td><b>${u.n}</b><div class="rnd">${u.unit}</div></td><td class="mono" style="font-size:11.5px">${u.email}</td><td>${ROLES[u.role].n}</td><td class="mono">${u.rcvName}</td>
+  <td>${u.co.map(c=>`<span class="co">${c}</span>`).join(" ")||"—"}</td><td class="n">${DOCS.filter(d=>scopeCheck(d,u).ok).length}</td></tr>`).join("")}</tbody></table>
+  ${unmapped.length?`<div class="note w">Receiver ที่ยังไม่เชื่อมบัญชีในพอร์ทัล: <b class="mono">${unmapped.join(", ")}</b> · เอกสารของ Receiver เหล่านี้จะไม่ปรากฏในคิวผู้ใช้งาน</div>`:''}</div></div>
+ <div class="panel"><div class="ph"><span>บริษัทและ ORG_ID (จากตารางที่ 4)</span></div><div style="padding:0 16px 14px"><table><thead><tr><th>บริษัท</th><th>ชื่อ</th><th>Tax ID</th><th>ORG_ID</th><th>ผู้ใช้งาน</th><th>ฝ่ายบัญชี</th></tr></thead>
+  <tbody>${Object.entries(COMPANY).map(([k,c])=>`<tr><td><span class="co">${k}</span></td><td>${c.name}</td><td class="mono">${c.tax}</td><td class="mono">${c.orgs.map(o=>o+" "+ORG[o]).join(", ")}</td>
+  <td>${USERS.filter(u=>u.role==="EU"&&u.co.includes(k)).map(u=>u.n).join(", ")||"—"}</td><td>${USERS.filter(u=>["ACC","APR"].includes(u.role)&&u.co.includes(k)).map(u=>u.n).join(", ")||"—"}</td></tr>`).join("")}</tbody></table></div></div></div>`}
+function auditPage(){return `<div class="full"><div class="panel"><div class="ph"><span>บันทึกการเข้าถึงและการดำเนินการ</span><span>${AUDIT.length} รายการ</span></div><div style="padding:0 16px 14px">
+ <table><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>บทบาท</th><th>การดำเนินการ</th><th>เอกสาร</th><th>รายละเอียด</th></tr></thead><tbody>${AUDIT.map(a=>`<tr><td class="mono">${a.t}</td><td>${a.who}</td><td>${a.role}</td><td>${a.act}</td><td class="mono">${a.doc}</td><td>${a.detail}</td></tr>`).join("")}</tbody></table></div></div></div>`}
+init();
+</script>
+</body>
+</html>
