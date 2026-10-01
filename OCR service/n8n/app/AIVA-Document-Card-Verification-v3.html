@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIVA Document Verification v6.2</title>
+<style>
+:root{
+  --navy:#0d274d;--navy2:#17385f;--teal:#00aaa4;--teal-dark:#008b86;
+  --bg:#f2f6f8;--line:#dce6eb;--ink:#17222c;--mut:#667681;
+  --green:#187c53;--greenbg:#e4f6eb;--red:#bc352b;--redbg:#fde9e7;
+  --blue:#176baa;--bluebg:#e8f2fc;--amber:#986400;--amberbg:#fff3d5;
+  --gray:#edf1f3;--white:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Sarabun",sans-serif;font-size:14px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+header{
+  height:58px;background:var(--navy);color:white;display:flex;align-items:center;
+  gap:12px;padding:0 20px;position:sticky;top:0;z-index:30;box-shadow:0 2px 8px #0002;
+}
+.logo{
+  width:32px;height:32px;border-radius:8px;background:var(--teal);color:var(--navy);
+  display:grid;place-items:center;font-weight:900;font-size:15px;letter-spacing:-0.5px;
+}
+.title{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+.v-badge{font-size:10px;font-weight:800;background:var(--teal);color:var(--navy);padding:2px 6px;border-radius:4px}
+.subtitle{font-size:11px;color:#bdcad4}
+.sp{flex:1}
+.header-actions{display:flex;align-items:center;gap:9px}
+.mode-btn{
+  display:flex;align-items:center;gap:7px;font-size:11px;font-weight:750;
+  padding:6px 12px;border-radius:18px;border:1px solid #ffffff33;background:#17385f;
+  color:white;cursor:pointer;transition:all .2s;
+}
+.mode-btn:hover{background:#1f4877}
+.mode-btn.live{background:#0e4a36;border-color:#1db37f}
+.mode-dot{width:8px;height:8px;border-radius:50%;background:#ffb020;transition:.2s}
+.mode-btn.live .mode-dot{background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
+
+.filters{
+  background:white;border-bottom:1px solid var(--line);padding:12px 18px;
+  position:sticky;top:58px;z-index:20;
+}
+.filtergrid{
+  display:grid;grid-template-columns:2fr repeat(5,minmax(120px,1fr)) auto;
+  gap:8px;align-items:end;
+}
+.field label{display:block;font-size:10.5px;color:var(--mut);font-weight:750;margin-bottom:4px}
+.field input,.field select{
+  height:38px;width:100%;border:1px solid #bdcbd3;border-radius:7px;
+  background:white;padding:0 9px;
+}
+.btn{
+  height:38px;padding:0 13px;border-radius:7px;border:1px solid transparent;
+  font-weight:750;display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;transition:.15s;
+}
+.primary{background:var(--teal);color:#052e31}
+.primary:hover{background:var(--teal-dark);color:white}
+.navy{background:var(--navy);color:white}
+.navy:hover{background:var(--navy2)}
+.outline{background:white;color:var(--navy);border-color:#bdcbd3}
+.outline:hover{background:#f8fafb;border-color:#99aab3}
+.danger{background:var(--red);color:white}
+.danger:hover{background:#a32b22}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.small{height:31px;padding:0 10px;font-size:11px}
+.hintrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.hint{font-size:10.5px;color:var(--mut);background:var(--gray);padding:4px 8px;border-radius:12px}
+
+main{max-width:1750px;margin:auto;padding:16px}
+.summary{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.summary h2{font-size:19px;margin:0}
+.count{font-size:12px;color:var(--mut)}
+.bulk{margin-left:auto;display:flex;align-items:center;gap:8px}
+.selected-count{font-size:12px;color:var(--blue);font-weight:800}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.doc-card{
+  position:relative;background:white;border:2px solid transparent;border-radius:12px;
+  padding:14px;box-shadow:0 1px 3px #10284010;transition:all .15s;cursor:pointer;
+}
+.doc-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px #10284018}
+.doc-card.selected{border-color:var(--blue);background:#f7fbff}
+.doc-card.success{background:var(--greenbg);border-color:#addbc0}
+.doc-card.error{background:var(--redbg);border-color:#ebb2ad}
+.doc-card.running{border-color:#9bc9e7;background:#f9fcff}
+.check{position:absolute;right:12px;top:12px;width:20px;height:20px;cursor:pointer;accent-color:var(--blue)}
+.card-head{display:flex;gap:8px;align-items:center;padding-right:28px}
+.doc-id{font-size:15px;font-weight:900}
+.status{
+  font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:12px;
+  background:var(--gray);color:var(--mut);display:inline-flex;align-items:center;gap:4px;
+}
+.status.success{background:#c9ecd7;color:var(--green)}
+.status.error{background:#f5c7c3;color:var(--red)}
+.status.running{background:var(--bluebg);color:var(--blue)}
+.filename{
+  font:650 12.5px ui-monospace,SFMono-Regular,Consolas,monospace;
+  margin:11px 0 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.meta-row{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--mut);margin-top:6px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:10.5px;padding:3px 7px;border-radius:11px;background:var(--bluebg);color:var(--blue)}
+.card-foot{
+  display:flex;align-items:center;gap:7px;border-top:1px solid #dfe8e6;
+  margin-top:12px;padding-top:10px;
+}
+.message{font-size:10.5px;color:var(--mut);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spin{
+  display:inline-block;width:11px;height:11px;border:2px solid #b3d5eb;
+  border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.detail{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column}
+.detail.open{display:flex}
+.detail-header{height:58px;background:var(--navy);color:white;display:flex;align-items:center;gap:11px;padding:0 16px}
+.back{background:#ffffff18;color:white;border-color:#ffffff35}
+.back:hover{background:#ffffff28}
+.detail-name{font-weight:800;font-size:15px}
+.detail-sub{font-size:11px;color:#bdcad4}
+.detail-grid{
+  flex:1;min-height:0;display:grid;
+  grid-template-columns:minmax(480px,46%) minmax(520px,54%);gap:10px;padding:10px;
+}
+.panel{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:0}
+.result-panel{display:flex;flex-direction:column;overflow:auto}
+.panel-head{
+  padding:10px 13px;border-bottom:1px solid var(--line);background:#fbfcfd;
+  display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:11.5px;
+}
+
+/* Stepper for live SSE */
+.stepper-box{padding:14px;background:#fbfcfd;border-bottom:1px solid var(--line)}
+.stepper-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.stepper-title{font-size:12px;font-weight:800;color:var(--navy)}
+.progress-bar-container{height:6px;background:#e2ebf0;border-radius:3px;overflow:hidden;margin-bottom:12px}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width .3s}
+.stepper{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.s-step{
+  text-align:center;padding:7px 3px;border-radius:6px;border:1px solid var(--line);
+  background:white;font-size:9.5px;font-weight:750;color:var(--mut);transition:.2s;
+}
+.s-step.active{border-color:var(--blue);background:var(--bluebg);color:var(--blue);box-shadow:0 0 6px #176baa33}
+.s-step.done{border-color:#b9e0c8;background:var(--greenbg);color:var(--green)}
+.s-step.fail{border-color:#efbdb8;background:var(--redbg);color:var(--red)}
+.s-step-num{display:block;font-size:11px;font-weight:900;margin-bottom:2px}
+
+/* Live stream console */
+.live-console{
+  background:#141f2b;color:#e1e9f0;border-radius:8px;padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;
+  max-height:220px;overflow-y:auto;margin:12px;
+}
+.console-row{display:flex;gap:8px;margin-bottom:4px;line-height:1.4}
+.console-time{color:#6c8a9e;flex-shrink:0}
+.console-msg{flex:1;word-break:break-word}
+.console-row.error .console-msg{color:#ff8080}
+.console-row.success .console-msg{color:#54e09e}
+.console-row.highlight .console-msg{color:#52c5ff;font-weight:700}
+
+.center-state{flex:1;min-height:430px;display:grid;place-items:center;text-align:center;padding:30px}
+.state-icon{
+  width:70px;height:70px;border-radius:50%;display:grid;place-items:center;
+  background:var(--bluebg);color:var(--blue);font-size:26px;font-weight:900;margin:0 auto 14px;
+}
+.center-state h2{margin:0 0 7px;font-size:19px}
+.center-state p{max-width:440px;color:var(--mut);font-size:12.5px;margin:0 auto 18px;line-height:1.5}
+.big-spin{
+  width:44px;height:44px;border:5px solid #d9eaf6;border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;
+}
+
+.doc-head{padding:14px 16px;border-bottom:1px solid var(--line)}
+.doc-head h2{margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:18px}
+.doc-meta{display:flex;gap:5px 14px;flex-wrap:wrap;color:var(--mut);font-size:11.5px;margin-top:6px}
+.doc-meta b{color:var(--ink)}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;background:#fbfcfd;border-bottom:1px solid var(--line)}
+.step{text-align:center;padding:6px 5px;border:1px solid var(--line);border-radius:7px;font-size:10.5px;font-weight:800}
+.step.ok{background:var(--greenbg);color:var(--green);border-color:#b9e0c8}
+.step.bad{background:var(--redbg);color:var(--red);border-color:#efbdb8}
+.step.skip{background:var(--gray);color:var(--mut)}
+
+.tabs{display:flex;overflow:auto;border-bottom:1px solid var(--line);padding:0 12px;background:white}
+.tab{border:0;background:white;padding:10px 12px;color:var(--mut);border-bottom:2px solid transparent;white-space:nowrap;font-size:12px}
+.tab.on{font-weight:800;color:var(--navy);border-bottom-color:var(--teal)}
+.pane{display:none;padding:14px}
+.pane.on{display:block}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fbfcfd}
+.stat span{font-size:10.5px;color:var(--mut)}
+.stat b{font-size:16px;display:block;margin-top:3px}
+.good{color:var(--green);font-weight:800}
+.badtext{color:var(--red);font-weight:800}
+.note{padding:10px 12px;border-radius:8px;margin-top:9px;font-size:12px}
+.note.ok{background:var(--greenbg);color:#146444}
+.note.warn{background:var(--amberbg);color:#75500a}
+.exception{
+  margin-top:9px;border:1px solid var(--line);border-left:4px solid var(--red);
+  border-radius:8px;padding:10px 12px;font-size:12px;background:#fffaf9;
+}
+.exception p{margin:5px 0 0;color:var(--mut);font-size:11.5px}
+.code{font:700 10.5px ui-monospace,monospace;background:var(--redbg);color:var(--red);padding:2px 6px;border-radius:4px;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--navy);color:white;text-align:left;padding:7px 9px}
+td{padding:7px 9px;border-bottom:1px solid #edf1f3;vertical-align:top}
+.num{text-align:right;font-family:ui-monospace,monospace}
+pre{
+  margin:0;background:#151e28;color:#d5e2eb;padding:12px;border-radius:8px;
+  overflow:auto;max-height:430px;font-size:11px;font-family:ui-monospace,monospace;
+}
+.muted{color:var(--mut)}
+
+.viewer{display:flex;flex-direction:column}
+.viewer-head{
+  height:46px;display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:#fbfcfd;border-bottom:1px solid var(--line);
+}
+.viewer-body{flex:1;min-height:0;background:#555e67;position:relative}
+.viewer-body iframe{width:100%;height:100%;border:0;background:white}
+.pdf-mock{position:absolute;inset:18px;background:white;box-shadow:0 3px 20px #0004;padding:42px 48px;overflow:auto}
+.pdf-top{display:flex;justify-content:space-between}
+.invoice-word{font-size:28px;font-weight:900}
+.pdf-line{height:1px;background:#bcc7cc;margin:18px 0}
+.pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px}
+.pdf-mock table{margin-top:22px}
+.pdf-mock th{background:#e9eef1;color:#283842}
+.pdf-total{width:280px;margin:20px 0 0 auto;font-size:12px}
+
+.progress{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  background:white;border:1px solid var(--line);box-shadow:0 8px 25px #0002;
+  border-radius:9px;padding:10px 16px;font-size:12px;display:none;z-index:55;font-weight:700;
+}
+.progress.on{display:flex;align-items:center;gap:8px}
+.toast{
+  position:fixed;right:18px;bottom:18px;background:var(--navy);color:white;
+  padding:11px 16px;border-radius:8px;display:none;z-index:60;box-shadow:0 4px 14px #0003;font-size:12.5px;
+}
+.toast.on{display:block}
+.empty{text-align:center;color:var(--mut);padding:60px}
+
+@media(max-width:1200px){
+  .filtergrid{grid-template-columns:repeat(3,1fr)}
+  .search-field{grid-column:span 2}
+}
+@media(max-width:1000px){
+  .detail{overflow:auto}
+  .detail-grid{grid-template-columns:1fr;flex:none}
+  .result-panel{min-height:620px}
+  .viewer{min-height:600px}
+  .steps{grid-template-columns:1fr 1fr}
+  .stepper{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:700px){
+  .filtergrid{grid-template-columns:1fr 1fr}
+  .search-field{grid-column:span 2}
+  .summary{align-items:flex-start;flex-wrap:wrap}
+  .bulk{width:100%;margin-left:0;flex-wrap:wrap}
+  .cards{grid-template-columns:1fr}
+  .detail-grid{padding:6px}
+  .pdf-mock{inset:7px;padding:22px}
+  .stats{grid-template-columns:1fr}
+  .stepper{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI</div>
+  <div>
+    <div class="title">
+      AIVA Document Verification
+      <span class="v-badge">v6.2</span>
+    </div>
+    <div class="subtitle">Paperless-ngx gallery · Real-time SSE Verification · Dual Circuit Engine</div>
+  </div>
+  <div class="sp"></div>
+  <div class="header-actions">
+    <input id="uploadInput" type="file" accept=".pdf" style="display:none" onchange="handleFileUpload(event)">
+    <button class="btn primary small" onclick="$('uploadInput').click()" title="Verify any custom PDF directly via SSE">
+      <span>+ Upload PDF</span>
+    </button>
+    <button class="btn outline small" style="color:white;border-color:#ffffff44" onclick="loadDocuments()" title="Reload from Paperless-ngx">
+      <span>↻ Refresh</span>
+    </button>
+    <button id="modeToggle" class="mode-btn live" onclick="toggleMode()" title="Toggle Live API / Mock Demo">
+      <span class="mode-dot"></span>
+      <span id="modeText">Live API (SSE)</span>
+    </button>
+  </div>
+</header>
+
+<section class="filters">
+  <div class="filtergrid">
+    <div class="field search-field">
+      <label>Search / ค้นหา</label>
+      <input id="search" placeholder="Doc ID or original filename" oninput="renderCards()">
+    </div>
+    <div class="field">
+      <label>Tag / แท็ก</label>
+      <select id="tagFilter" onchange="renderCards()"></select>
+    </div>
+    <div class="field">
+      <label>File type / ชนิดไฟล์</label>
+      <select id="typeFilter" onchange="renderCards()">
+        <option value="">All types</option>
+        <option>PDF</option>
+        <option>JPG</option>
+        <option>PNG</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>From / วันที่เริ่ม</label>
+      <input id="fromDate" type="date" onchange="renderCards()">
+    </div>
+    <div class="field">
+      <label>To / วันที่สิ้นสุด</label>
+      <input id="toDate" type="date" onchange="renderCards()">
+    </div>
+    <div class="field">
+      <label>AI status / สถานะ</label>
+      <select id="statusFilter" onchange="renderCards()">
+        <option value="">All status</option>
+        <option value="waiting">Not processed</option>
+        <option value="running">Processing</option>
+        <option value="success">Processed</option>
+        <option value="error">Error</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Sort / เรียง</label>
+      <select id="sort" onchange="renderCards()">
+        <option value="new">Newest added</option>
+        <option value="old">Oldest added</option>
+        <option value="id-desc">Doc ID high-low</option>
+        <option value="id-asc">Doc ID low-high</option>
+        <option value="name">Filename A-Z</option>
+      </select>
+    </div>
+    <button class="btn outline" onclick="resetFilters()">Reset</button>
+  </div>
+  <div class="hintrow">
+    <span class="hint">Click card or View detail to open / กด Card เพื่อเปิดรายละเอียด</span>
+    <span class="hint">Checkbox is only for batch processing / Checkbox ใช้เลือกหลายเอกสาร</span>
+    <span class="hint">⚡ Real-time SSE streaming enabled</span>
+  </div>
+</section>
+
+<main>
+  <div class="summary">
+    <div>
+      <h2 id="galleryTitle">Paperless documents</h2>
+      <div class="count" id="count">Loading...</div>
+    </div>
+    <div class="bulk">
+      <span class="selected-count" id="selectedCount">Selected 0</span>
+      <button class="btn outline" onclick="selectVisible(true)">Select visible</button>
+      <button class="btn outline" onclick="selectVisible(false)">Clear</button>
+      <button id="processBtn" class="btn navy" onclick="processSelected()" disabled>Process selected with AI</button>
+    </div>
+  </div>
+  <div id="cards" class="cards"></div>
+</main>
+
+<section id="detail" class="detail">
+  <div class="detail-header">
+    <button class="btn back" onclick="closeDetail()">← Back / กลับ</button>
+    <div>
+      <div id="detailName" class="detail-name"></div>
+      <div id="detailSub" class="detail-sub"></div>
+    </div>
+    <div class="sp"></div>
+    <span id="detailStatus" class="status"></span>
+  </div>
+  <div class="detail-grid">
+    <section class="panel result-panel">
+      <div class="panel-head">
+        <span>Verification result / ผลการตรวจ</span>
+        <span id="detailInfo"></span>
+      </div>
+      <div id="resultBody"></div>
+    </section>
+    <section class="panel viewer">
+      <div class="viewer-head">
+        <b>Original document</b>
+        <span id="pdfBadge" class="status"></span>
+        <div class="sp"></div>
+        <button class="btn outline small" onclick="setPdfZoom('width')" title="Fit width / พอดีความกว้าง">↔ Fit Width</button>
+        <button class="btn outline small" onclick="setPdfZoom('page')" title="Fit whole page / พอดีทั้งหน้า">⤢ Fit Page</button>
+        <button class="btn outline small" onclick="openPdf()" title="Open PDF in new tab">Open ↗</button>
+      </div>
+      <div class="viewer-body">
+        <iframe id="pdfFrame" style="display:none"></iframe>
+        <div id="pdfMock" class="pdf-mock"></div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<div id="progress" class="progress"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// =============================================================================
+// Configuration & Constants
+// =============================================================================
+let MOCK_MODE = false;
+const MAX_CONCURRENCY = 3;
+const API_BASE = '';
+
+const API = {
+  documents: '/fe/documents',
+  verify: id => `/fe/verify/${id}`,
+  pdf: id => `/fe/documents/${id}/pdf`,
+  thumb: id => `/fe/documents/${id}/thumb`,
+  upload: '/fe/verify/upload',
+};
+
+const RULE_NAMES = {
+  'V-01': 'Required fields',
+  'V-02': 'Line arithmetic',
+  'V-03': 'Invoice total',
+  'V-04': 'Receipt found',
+  'V-05': 'Customer match',
+  'V-06': 'Signatures',
+  'V-07': 'Line and price match',
+  'V-08': 'Quantity match',
+  'V-09': 'Receipt total match'
+};
+
+const STEP_DEFINITIONS = [
+  { id: 1, name: 'Metadata', desc: 'Paperless Metadata' },
+  { id: 2, name: 'PDF Fetch', desc: 'Download Document' },
+  { id: 3, name: 'Vision LLM', desc: 'Vision Extraction' },
+  { id: 4, name: 'Step 1 Rules', desc: 'Document Rules' },
+  { id: 5, name: 'Oracle EBS', desc: 'Receipts Query' },
+  { id: 6, name: 'Step 2&3 Rules', desc: '3-Way Matching' },
+  { id: 7, name: 'Decision', desc: 'Table 9 Assembly' }
+];
+
+const MOCK_DOCUMENTS = [
+  {id:128,original_file_name:'AHT_PO42053410_INV-0926.pdf',added:'2026-10-01T08:05:12+07:00',tags:['Invoice','AHT'],pages:2,status:'waiting'},
+  {id:127,original_file_name:'TaxInvoice_IV6909245.pdf',added:'2026-10-01T07:54:31+07:00',tags:['Invoice','APD'],pages:1,status:'waiting'},
+  {id:126,original_file_name:'delivery_note_530340112.pdf',added:'2026-09-30T16:42:09+07:00',tags:['Delivery order','APD'],pages:1,status:'waiting'},
+  {id:125,original_file_name:'invoice_A631577_scan.jpg',added:'2026-09-30T15:20:44+07:00',tags:['Invoice','Needs review'],pages:1,status:'waiting'},
+  {id:124,original_file_name:'PO40121082_INV-2609-0088.pdf',added:'2026-09-30T13:14:28+07:00',tags:['Invoice','AHD'],pages:3,status:'waiting'},
+  {id:123,original_file_name:'receipt_540112231.png',added:'2026-09-29T11:08:52+07:00',tags:['Receipt'],pages:1,status:'waiting'},
+  {id:122,original_file_name:'SR6909-1142.pdf',added:'2026-09-29T09:22:16+07:00',tags:['Invoice','AHR'],pages:1,status:'waiting'},
+  {id:121,original_file_name:'TK-2609-0120.pdf',added:'2026-09-28T17:40:03+07:00',tags:['Invoice','AHT'],pages:1,status:'waiting'}
+];
+
+let documents = [];
+let selectedDetail = null;
+
+// =============================================================================
+// DOM Helpers
+// =============================================================================
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ext(n) { return (String(n).split('.').pop() || '').toUpperCase(); }
+function dateFmt(s) {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(s));
+  } catch {
+    return s || '—';
+  }
+}
+function statusText(s) {
+  return { waiting: 'Not processed', running: 'Processing', success: 'Processed', error: 'Error', done: 'Done' }[s] || s;
+}
+function money(n) {
+  return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function toast(m) {
+  $('toast').textContent = m;
+  $('toast').className = 'toast on';
+  clearTimeout($('toast').timer);
+  $('toast').timer = setTimeout(() => $('toast').className = 'toast', 3000);
+}
+
+// =============================================================================
+// Mode Toggle (Live API vs Mock)
+// =============================================================================
+function toggleMode() {
+  setMockMode(!MOCK_MODE);
+  loadDocuments();
+}
+
+function setMockMode(val) {
+  MOCK_MODE = val;
+  const btn = $('modeToggle');
+  const txt = $('modeText');
+  if (MOCK_MODE) {
+    btn.className = 'mode-btn';
+    txt.textContent = 'Demo (Mock)';
+    $('galleryTitle').textContent = 'Demo documents (Mock)';
+  } else {
+    btn.className = 'mode-btn live';
+    txt.textContent = 'Live API (SSE)';
+    $('galleryTitle').textContent = 'Paperless documents (Live)';
+  }
+}
+
+// =============================================================================
+// Document Loading
+// =============================================================================
+async function loadDocuments() {
+  if (MOCK_MODE) {
+    documents = MOCK_DOCUMENTS.map(d => ({
+      ...d, selected: false, message: 'Ready for selection', attempts: 0, result: null, stepLogs: []
+    }));
+    initTags();
+    renderCards();
+    return;
+  }
+
+  $('count').textContent = 'Loading documents from Paperless-ngx...';
+  try {
+    const res = await fetch(API_BASE + API.documents + '?page_size=50', {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: Paperless service unavailable`);
+    }
+    const data = await res.json();
+    if (data.results && data.results.length > 0) {
+      documents = data.results.map(d => ({
+        id: d.id,
+        original_file_name: d.original_file_name || `DOC_${d.id}.pdf`,
+        added: d.added || new Date().toISOString(),
+        tags: d.tags || [],
+        pages: d.pages || 1,
+        status: 'waiting',
+        selected: false,
+        message: 'Ready for verification',
+        attempts: 0,
+        result: null,
+        stepLogs: [],
+      }));
+      toast(`Loaded ${documents.length} documents from Paperless-ngx`);
+    } else {
+      toast('No documents found in Paperless-ngx. Loading mock sample.');
+      setMockMode(true);
+      return;
+    }
+  } catch (err) {
+    console.warn('Live API error, falling back to mock mode:', err);
+    toast('Paperless-ngx unreachable. Switched to Mock mode.');
+    setMockMode(true);
+    return;
+  }
+  initTags();
+  renderCards();
+}
+
+// =============================================================================
+// Filtering & Card Rendering
+// =============================================================================
+function getFiltered() {
+  let a = [...documents];
+  const q = $('search').value.trim().toLowerCase();
+  const tag = $('tagFilter').value;
+  const type = $('typeFilter').value;
+  const status = $('statusFilter').value;
+  const from = $('fromDate').value;
+  const to = $('toDate').value;
+
+  if (q) a = a.filter(d => String(d.id).includes(q) || String(d.original_file_name).toLowerCase().includes(q));
+  if (tag) a = a.filter(d => (d.tags || []).includes(tag));
+  if (type) a = a.filter(d => ext(d.original_file_name) === type);
+  if (status) a = a.filter(d => d.status === status);
+  if (from) a = a.filter(d => String(d.added).slice(0, 10) >= from);
+  if (to) a = a.filter(d => String(d.added).slice(0, 10) <= to);
+
+  const s = $('sort').value;
+  a.sort((x, y) => {
+    if (s === 'new') return new Date(y.added) - new Date(x.added);
+    if (s === 'old') return new Date(x.added) - new Date(y.added);
+    if (s === 'id-desc') return (parseInt(y.id) || 0) - (parseInt(x.id) || 0);
+    if (s === 'id-asc') return (parseInt(x.id) || 0) - (parseInt(y.id) || 0);
+    return String(x.original_file_name).localeCompare(String(y.original_file_name));
+  });
+  return a;
+}
+
+function renderCards() {
+  const a = getFiltered();
+  const chosen = documents.filter(d => d.selected).length;
+  $('count').textContent = `Showing ${a.length} of ${documents.length} documents`;
+  $('selectedCount').textContent = `Selected ${chosen}`;
+  $('processBtn').disabled = chosen === 0;
+
+  $('cards').innerHTML = a.length ? a.map(d => `
+    <article class="doc-card ${d.selected ? 'selected' : ''} ${d.status}" onclick="openDetail('${d.id}')">
+      <input class="check" type="checkbox" ${d.selected ? 'checked' : ''} ${d.status === 'running' ? 'disabled' : ''} onclick="event.stopPropagation();toggleSelect('${d.id}')">
+      <div class="card-head">
+        <span class="doc-id">DOC ${esc(d.id)}</span>
+        <span class="status ${d.status}">
+          ${d.status === 'running' ? '<span class="spin"></span>' : ''}
+          ${statusText(d.status)}
+        </span>
+      </div>
+      <div class="filename" title="${esc(d.original_file_name)}">${esc(d.original_file_name)}</div>
+      <div class="meta-row">
+        <span>Date added</span><b>${dateFmt(d.added)}</b>
+      </div>
+      <div class="meta-row">
+        <span>File type</span><b>${ext(d.original_file_name)}</b>
+      </div>
+      <div class="tags">
+        ${(d.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
+      </div>
+      <div class="card-foot">
+        <span class="message" title="${esc(d.message)}">${esc(d.message)}</span>
+        <button class="btn outline small" onclick="event.stopPropagation();openDetail('${d.id}')">View detail</button>
+        ${['success', 'error'].includes(d.status) ? `<button class="btn ${d.status === 'error' ? 'danger' : 'outline'} small" onclick="event.stopPropagation();retry('${d.id}')">Retry</button>` : ''}
+      </div>
+    </article>
+  `).join('') : '<div class="empty">No documents match the current filters.</div>';
+}
+
+function toggleSelect(id) {
+  const d = documents.find(x => String(x.id) === String(id));
+  if (!d || d.status === 'running') return;
+  d.selected = !d.selected;
+  renderCards();
+}
+
+function selectVisible(v) {
+  getFiltered().forEach(d => { if (d.status !== 'running') d.selected = v; });
+  renderCards();
+}
+
+// =============================================================================
+// Detail View & PDF Preview
+// =============================================================================
+function isCurrentDetail(id) {
+  return selectedDetail != null && String(selectedDetail) === String(id);
+}
+
+function openDetail(id) {
+  selectedDetail = String(id);
+  const d = documents.find(x => String(x.id) === String(id));
+  if (!d) return;
+  $('detail').classList.add('open');
+  $('detailName').textContent = `DOC ${d.id}`;
+  $('detailSub').textContent = d.original_file_name;
+  renderDetail();
+  showPdf(d);
+}
+
+function closeDetail() {
+  $('detail').classList.remove('open');
+  selectedDetail = null;
+}
+
+function renderDetail() {
+  if (selectedDetail == null) return;
+  const d = documents.find(x => String(x.id) === String(selectedDetail));
+  if (!d) return;
+
+  $('detailStatus').className = `status ${d.status}`;
+  $('detailStatus').textContent = statusText(d.status);
+  $('detailInfo').textContent = `Added ${dateFmt(d.added)}`;
+
+  if (d.status === 'waiting') {
+    $('resultBody').innerHTML = `
+      <div class="center-state">
+        <div>
+          <div class="state-icon">AI</div>
+          <h2>Ready for Verification / พร้อมตรวจสอบ</h2>
+          <p>The PDF document is displayed on the right. Click the button below to start the real-time SSE verification pipeline.</p>
+          <button class="btn primary" onclick="processOneById('${d.id}')">
+            <span>⚡ Start AI Verification / เริ่มตรวจสอบ</span>
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (d.status === 'running') {
+    const curStep = d.currentStep || 1;
+    const totalSteps = d.totalSteps || 7;
+    const percent = Math.min(100, Math.round((curStep / totalSteps) * 100));
+
+    const stepperHtml = STEP_DEFINITIONS.map(s => {
+      let cls = '';
+      if (s.id < curStep) cls = 'done';
+      else if (s.id === curStep) cls = 'active';
+      return `
+        <div class="s-step ${cls}">
+          <span class="s-step-num">${s.id < curStep ? '✓' : s.id}</span>
+          ${esc(s.name)}
+        </div>
+      `;
+    }).join('');
+
+    const logsHtml = (d.stepLogs || []).map(l => {
+      let rCls = '';
+      if (l.text.includes('ผ่าน') || l.text.includes('สำเร็จ')) rCls = 'success';
+      else if (l.text.includes('ข้อผิดพลาด') || l.text.includes('Error')) rCls = 'error';
+      else if (l.text.includes('STEP')) rCls = 'highlight';
+      return `
+        <div class="console-row ${rCls}">
+          <span class="console-time">${esc(l.time)}</span>
+          <span class="console-msg">${esc(l.text)}</span>
+        </div>
+      `;
+    }).join('');
+
+    $('resultBody').innerHTML = `
+      <div class="stepper-box">
+        <div class="stepper-header">
+          <span class="stepper-title">Real-Time Verification Pipeline</span>
+          <span style="font-size:11.5px;color:var(--blue);font-weight:800">
+            <span class="spin"></span> Step ${curStep} / ${totalSteps} (${percent}%)
+          </span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" style="width: ${percent}%"></div>
+        </div>
+        <div class="stepper">
+          ${stepperHtml}
+        </div>
+      </div>
+      <div style="padding:14px 14px 4px">
+        <b style="font-size:12px;color:var(--navy)">Live SSE Activity Log:</b>
+      </div>
+      <div class="live-console" id="liveConsole">
+        ${logsHtml || '<div class="console-row"><span class="console-msg">Connecting to verification stream...</span></div>'}
+      </div>
+      <div style="padding:0 14px 14px;text-align:right">
+        <button class="btn outline small" onclick="closeDetail()">Back to gallery</button>
+      </div>
+    `;
+
+    // Auto-scroll console
+    const con = $('liveConsole');
+    if (con) con.scrollTop = con.scrollHeight;
+    return;
+  }
+
+  if (d.status === 'error') {
+    $('resultBody').innerHTML = `
+      <div class="center-state">
+        <div>
+          <div class="state-icon" style="background:var(--redbg);color:var(--red)">!</div>
+          <h2>Verification Error</h2>
+          <p>${esc(d.message)}</p>
+          ${(d.stepLogs && d.stepLogs.length) ? `
+            <div class="live-console" style="text-align:left;max-width:500px;margin:0 auto 16px">
+              ${d.stepLogs.map(l => `<div class="console-row error"><span class="console-time">${esc(l.time)}</span><span class="console-msg">${esc(l.text)}</span></div>`).join('')}
+            </div>
+          ` : ''}
+          <button class="btn danger" onclick="retry('${d.id}')">Retry / ลองอีกครั้ง</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  renderVerification(d);
+}
+
+function showPdf(d) {
+  $('pdfBadge').textContent = `DOC ${d.id} · ${d.pages || 1} page(s)`;
+
+  // If local file object (direct upload)
+  if (d.fileObj) {
+    $('pdfMock').style.display = 'none';
+    $('pdfFrame').style.display = 'block';
+    $('pdfFrame').src = URL.createObjectURL(d.fileObj) + '#view=FitH';
+    return;
+  }
+
+  if (!MOCK_MODE) {
+    $('pdfMock').style.display = 'none';
+    $('pdfFrame').style.display = 'block';
+    $('pdfFrame').src = API_BASE + API.pdf(d.id) + '#view=FitH';
+    return;
+  }
+
+  $('pdfFrame').style.display = 'none';
+  $('pdfMock').style.display = 'block';
+  $('pdfMock').innerHTML = `
+    <div class="pdf-top">
+      <b style="font-size:22px;color:var(--navy)">AIVA SAMPLE</b>
+      <div class="invoice-word">INVOICE</div>
+    </div>
+    <div class="pdf-line"></div>
+    <div class="pdf-grid">
+      <div>
+        <b>Original filename</b><br>${esc(d.original_file_name)}<br><br>
+        <b>Tags</b><br>${(d.tags || []).map(esc).join(', ')}
+      </div>
+      <div>
+        <b>Document ID</b> ${esc(d.id)}<br>
+        <b>Date added</b> ${dateFmt(d.added)}<br>
+        <b>File type</b> ${ext(d.original_file_name)}
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Description</th><th>Qty</th><th>UOM</th><th>Unit price</th><th>Amount</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Sample item from Paperless document</td><td>3</td><td>PCS</td><td class="num">130.00</td><td class="num">390.00</td></tr>
+        <tr><td>Second sample item</td><td>4</td><td>PCS</td><td class="num">310.00</td><td class="num">1,240.00</td></tr>
+      </tbody>
+    </table>
+    <div class="pdf-total">
+      <div class="meta-row"><span>Subtotal</span><b>2,910.00</b></div>
+      <div class="meta-row"><span>VAT 7%</span><b>203.70</b></div>
+      <div class="pdf-line"></div>
+      <div class="meta-row"><b>Grand total</b><b>3,113.70 THB</b></div>
+    </div>
+  `;
+}
+
+function setPdfZoom(mode) {
+  if (selectedDetail == null) return;
+  const d = documents.find(x => String(x.id) === String(selectedDetail));
+  if (!d) return;
+  const base = d.fileObj ? URL.createObjectURL(d.fileObj) : (API_BASE + API.pdf(d.id));
+  let hash = '#view=FitH';
+  if (mode === 'page') hash = '#view=Fit';
+  else if (mode === '100') hash = '#zoom=100';
+  $('pdfFrame').src = base + hash;
+}
+
+function openPdf() {
+  if (selectedDetail == null) return;
+  const d = documents.find(x => String(x.id) === String(selectedDetail));
+  if (!d) return;
+  if (d.fileObj) {
+    window.open(URL.createObjectURL(d.fileObj) + '#view=FitH', '_blank');
+    return;
+  }
+  if (MOCK_MODE) return toast('Demo uses a mock PDF preview.');
+  window.open(API_BASE + API.pdf(selectedDetail) + '#view=FitH', '_blank');
+}
+
+// =============================================================================
+// Real-Time SSE Processing & Verification Execution
+// =============================================================================
+async function processOneById(id) {
+  const d = documents.find(x => String(x.id) === String(id));
+  if (d) await processOne(d);
+}
+
+function retry(id) {
+  processOneById(id);
+}
+
+async function processOne(d) {
+  if (d.status === 'running') return;
+  d.status = 'running';
+  d.selected = false;
+  d.attempts++;
+  d.currentStep = 1;
+  d.totalSteps = 7;
+  d.stepLogs = [{ time: new Date().toLocaleTimeString(), text: 'Starting verification pipeline...' }];
+  d.message = 'Initializing verification...';
+  renderCards();
+  if (isCurrentDetail(d.id)) renderDetail();
+
+  try {
+    if (MOCK_MODE) {
+      await simulateMockSSE(d);
+    } else {
+      const resp = await fetch(API_BASE + API.verify(d.id), {
+        method: 'POST',
+        headers: { 'Accept': 'text/event-stream' }
+      });
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${errText}`);
+      }
+      await consumeSSEStream(resp, d);
+    }
+  } catch (err) {
+    d.status = 'error';
+    d.message = err.message || 'Processing failed';
+    if (!d.stepLogs) d.stepLogs = [];
+    d.stepLogs.push({ time: new Date().toLocaleTimeString(), text: `Error: ${d.message}` });
+  }
+
+  renderCards();
+  if (isCurrentDetail(d.id)) renderDetail();
+}
+
+async function consumeSSEStream(resp, d) {
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let eventName = 'message';
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // keep remainder
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) {
+        eventName = 'message';
+        continue;
+      }
+      if (line.startsWith('event:')) {
+        eventName = line.substring(6).trim();
+      } else if (line.startsWith('data:')) {
+        const dataStr = line.substring(5).trim();
+        try {
+          const data = JSON.parse(dataStr);
+          handleSSEEvent(d, eventName, data);
+        } catch (e) {
+          console.warn('SSE parse error:', e, dataStr);
+        }
+      }
+    }
+  }
+}
+
+function handleSSEEvent(d, eventName, data) {
+  const timeStr = new Date().toLocaleTimeString();
+  if (!d.stepLogs) d.stepLogs = [];
+
+  if (eventName === 'step') {
+    d.currentStep = data.step_index || d.currentStep;
+    d.totalSteps = data.total_steps || d.totalSteps || 7;
+    d.message = data.message || d.message;
+    d.stepLogs.push({ time: timeStr, text: data.message, step: data.step_name });
+  } else if (eventName === 'extraction') {
+    d.extracted = data.invoice;
+    d.linesCount = data.lines_count;
+    d.message = data.message || d.message;
+    d.stepLogs.push({ time: timeStr, text: data.message });
+  } else if (eventName === 'oracle') {
+    d.oracleData = data;
+    d.message = data.message || d.message;
+    d.stepLogs.push({ time: timeStr, text: data.message });
+  } else if (eventName === 'rules') {
+    d.message = data.message || d.message;
+    d.stepLogs.push({ time: timeStr, text: data.message });
+  } else if (eventName === 'result') {
+    d.result = data;
+    d.status = 'success';
+    d.message = `Completed: ${data.decision.status} (${data.elapsed_seconds || 0}s)`;
+    d.stepLogs.push({ time: timeStr, text: `Verification completed: ${data.decision.status}` });
+  } else if (eventName === 'error') {
+    d.status = 'error';
+    d.message = data.message || 'Verification failed';
+    d.stepLogs.push({ time: timeStr, text: `Error: ${d.message}` });
+  } else if (eventName === 'done') {
+    if (d.status === 'running') {
+      d.status = d.result ? 'success' : 'done';
+    }
+  }
+
+  renderCards();
+  if (isCurrentDetail(d.id)) renderDetail();
+}
+
+// =============================================================================
+// File Upload Support via SSE
+// =============================================================================
+async function handleFileUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  event.target.value = '';
+
+  const tempId = 'U' + Math.floor(1000 + Math.random() * 9000);
+  const tempDoc = {
+    id: tempId,
+    original_file_name: file.name,
+    added: new Date().toISOString(),
+    tags: ['Direct Upload', 'Custom'],
+    pages: 1,
+    status: 'running',
+    selected: false,
+    message: 'Uploading and verifying...',
+    attempts: 1,
+    result: null,
+    isUploaded: true,
+    fileObj: file,
+    currentStep: 1,
+    totalSteps: 5,
+    stepLogs: [{ time: new Date().toLocaleTimeString(), text: `Uploaded file: ${file.name}` }]
+  };
+
+  documents.unshift(tempDoc);
+  renderCards();
+  openDetail(tempId);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const resp = await fetch(API_BASE + API.upload, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'text/event-stream' }
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`HTTP ${resp.status}: ${errText}`);
+    }
+
+    await consumeSSEStream(resp, tempDoc);
+  } catch (err) {
+    tempDoc.status = 'error';
+    tempDoc.message = err.message || 'Upload verification failed';
+    if (!tempDoc.stepLogs) tempDoc.stepLogs = [];
+    tempDoc.stepLogs.push({ time: new Date().toLocaleTimeString(), text: 'Error: ' + tempDoc.message });
+  }
+
+  renderCards();
+  if (isCurrentDetail(tempId)) renderDetail();
+}
+
+// =============================================================================
+// Mock Mode SSE Simulation
+// =============================================================================
+async function simulateMockSSE(d) {
+  const steps = [
+    { idx: 1, name: 'Metadata', msg: `กำลังดึงข้อมูลเอกสาร DOC ${d.id}...` },
+    { idx: 2, name: 'PDF Download', msg: 'กำลังดาวน์โหลด PDF...' },
+    { idx: 3, name: 'Vision LLM', msg: 'กำลังแปลงรูปภาพและส่ง Vision LLM สกัดข้อมูล...' },
+    { idx: 4, name: 'Step 1 Rules', msg: 'กำลังตรวจ Step 1 กฎเอกสาร (V-01, V-02, V-03, V-06)...' },
+    { idx: 5, name: 'Oracle EBS', msg: 'กำลังค้นหาใบรับสินค้าจาก Oracle EBS...' },
+    { idx: 6, name: 'Step 2&3 Rules', msg: 'กำลังตรวจ Step 2 & 3 Line Matching...' },
+    { idx: 7, name: 'Decision', msg: 'กำลังสร้าง Decision Matrix และ Table 9...' },
+  ];
+
+  for (const s of steps) {
+    await new Promise(r => setTimeout(r, 350 + Math.random() * 400));
+    handleSSEEvent(d, 'step', {
+      step_index: s.idx,
+      total_steps: 7,
+      step_name: s.name,
+      message: s.msg
+    });
+  }
+
+  if (d.id === 121 && d.attempts === 1) {
+    handleSSEEvent(d, 'error', { message: 'AI vision extraction timeout. Please retry.' });
+    return;
+  }
+
+  const result = mockResult(d);
+  handleSSEEvent(d, 'result', result);
+  handleSSEEvent(d, 'done', { message: 'Done' });
+}
+
+function mockResult(d) {
+  const failures = d.id === 125
+    ? [{ rule_id: 'V-06', result: 'fail', exception_code: 'E26', severity: 'High', evidence: 'Receiver signature was not detected.' }]
+    : d.id === 124
+    ? [{ rule_id: 'V-08', result: 'fail', exception_code: 'E06', severity: 'High', evidence: 'Invoice quantity is greater than received quantity.' }]
+    : [];
+
+  const rules = Object.keys(RULE_NAMES).map(id => ({ rule_id: id, result: 'pass' }));
+  failures.forEach(f => Object.assign(rules.find(r => r.rule_id === f.rule_id), f));
+
+  return {
+    schema_version: '1.1',
+    doc_id: String(d.id),
+    validation_round: (d.result?.validation_round || 0) + 1,
+    standard_version: '6.2',
+    invoice: {
+      invoice_num: 'INV-' + d.id,
+      po_number: 'PO-' + (42000000 + (parseInt(d.id) || 100)),
+      supplier_name: 'AAPICO Amata Co., Ltd.',
+      supplier_tax_id: '0105539001234',
+      customer_name: 'AAPICO Hitech Public Company Limited',
+      customer_tax_id: '0107545000139',
+      sub_total: 2910,
+      vat: 203.7,
+      grand_total: 3113.7
+    },
+    receipt: {
+      found: true,
+      receipt_num: 'RCV-' + d.id,
+      org_id: 103,
+      receipt_total: 2910
+    },
+    lines: [
+      { description: 'Precision stamping part A-102', invoice_qty: 3, uom: 'PCS', invoice_price: 130, invoice_amount: 390, receipt_qty: d.id === 124 ? 2 : 3, receipt_price: 130, match_level: 'M1' },
+      { description: 'CNC machined bracket B-405', invoice_qty: 4, uom: 'PCS', invoice_price: 630, invoice_amount: 2520, receipt_qty: 4, receipt_price: 630, match_level: 'M1' }
+    ],
+    rules,
+    exceptions: failures.map(x => ({
+      code: x.exception_code,
+      severity: x.severity,
+      rule_id: x.rule_id,
+      message: x.evidence
+    })),
+    decision: {
+      status: failures.length ? 'Hold' : 'Auto-pass',
+      assigned_to: failures.length ? 'accounting' : null,
+      halted_by: failures.length ? failures[0].rule_id : null,
+      manual_review: false,
+      exception_codes: failures.map(x => x.exception_code),
+      oracle_called: true,
+      processing_ms: 2400 + Math.floor(Math.random() * 1000)
+    },
+    elapsed_seconds: 2.8
+  };
+}
+
+// =============================================================================
+// Batch Processing
+// =============================================================================
+async function processSelected() {
+  const q = documents.filter(d => d.selected && d.status !== 'running');
+  if (!q.length) return;
+
+  let finished = 0, total = q.length;
+  $('progress').className = 'progress on';
+  $('progress').innerHTML = `<span class="spin"></span> Processing 0 / ${total}...`;
+
+  const worker = async () => {
+    while (q.length) {
+      const d = q.shift();
+      await processOne(d);
+      finished++;
+      $('progress').innerHTML = `<span class="spin"></span> Processing ${finished} / ${total}...`;
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(MAX_CONCURRENCY, total) }, worker));
+  $('progress').className = 'progress';
+  toast(`Batch finished: ${finished} documents verified.`);
+}
+
+// =============================================================================
+// Verification Result Rendering
+// =============================================================================
+function renderVerification(d) {
+  const r = d.result;
+  if (!r) return;
+
+  const rules = r.rules || [];
+  const fails = rules.filter(x => x.result === 'fail');
+  const passed = rules.filter(x => x.result === 'pass').length;
+
+  const stepMap = {
+    'V-01': 1, 'V-02': 1, 'V-03': 1, 'V-06': 1,
+    'V-04': 2, 'V-05': 2,
+    'V-07': 3, 'V-08': 3, 'V-09': 3
+  };
+
+  const steps = [1, 2, 3].map(n => {
+    const x = rules.filter(v => stepMap[v.rule_id] === n);
+    const c = x.some(v => v.result === 'fail') ? 'bad' : x.every(v => v.result === 'not_evaluated') ? 'skip' : 'ok';
+    return `<div class="step ${c}">STEP ${n} · ${c === 'ok' ? 'Pass' : c === 'bad' ? 'Fail' : 'Not evaluated'}</div>`;
+  }).join('');
+
+  const statusClass = r.decision.status === 'Auto-pass' ? 'success' : r.decision.status === 'Hold' ? 'error' : 'running';
+
+  $('resultBody').innerHTML = `
+    <div class="doc-head">
+      <h2>
+        ${esc(r.invoice?.invoice_num || 'INV-Unknown')}
+        <span class="status ${statusClass}">${esc(r.decision.status)}</span>
+      </h2>
+      <div class="doc-meta">
+        <span>Supplier <b>${esc(r.invoice?.supplier_name || '—')}</b></span>
+        <span>PO <b>${esc(r.invoice?.po_number || '—')}</b></span>
+        <span>Receipt <b>${esc(r.receipt?.receipt_num || '—')}</b></span>
+        <span>ORG_ID <b>${esc(r.receipt?.org_id || '—')}</b></span>
+        <span>Total <b>${money(r.invoice?.grand_total)} THB</b></span>
+      </div>
+    </div>
+    <div class="steps">
+      ${steps}
+      <div class="step ok">Duplicate check · Clear</div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="showTab(this,'summaryPane')">Summary</button>
+      <button class="tab" onclick="showTab(this,'linesPane')">Lines (${(r.lines || []).length})</button>
+      <button class="tab" onclick="showTab(this,'rulesPane')">Rules V-01 to V-09</button>
+      <button class="tab" onclick="showTab(this,'jsonPane')">JSON Output</button>
+    </div>
+    <div id="summaryPane" class="pane on">
+      <div class="stats">
+        <div class="stat">
+          <span>Passed rules</span>
+          <b class="good">${passed}/9</b>
+        </div>
+        <div class="stat">
+          <span>Exceptions</span>
+          <b class="${fails.length ? 'badtext' : 'good'}">${fails.length}</b>
+        </div>
+        <div class="stat">
+          <span>Oracle MCP</span>
+          <b>${r.decision.oracle_called ? 'Queried' : 'Bypassed'}</b>
+        </div>
+      </div>
+      ${fails.length ? fails.map(x => `
+        <div class="exception">
+          <span class="code">${esc(x.exception_code || 'EX')}</span>
+          <b>${esc(x.rule_id)} · ${esc(RULE_NAMES[x.rule_id] || x.rule_name)}</b>
+          <p>${esc(x.evidence || 'Condition violated')}</p>
+        </div>
+      `).join('') : '<div class="note ok">All evaluated rules passed / เอกสารผ่านการตรวจสอบสมบูรณ์</div>'}
+      <div class="note warn">Verification took ${r.elapsed_seconds || (r.decision.processing_ms / 1000).toFixed(2)}s · Standard v${esc(r.standard_version || '6.2')}</div>
+    </div>
+    <div id="linesPane" class="pane">
+      ${lineTable(r.lines || [])}
+    </div>
+    <div id="rulesPane" class="pane">
+      ${ruleTable(rules)}
+    </div>
+    <div id="jsonPane" class="pane">
+      <pre>${esc(JSON.stringify(r, null, 2))}</pre>
+    </div>
+  `;
+}
+
+function lineTable(a) {
+  if (!a || !a.length) {
+    return '<div class="empty">No line item breakdown available.</div>';
+  }
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Description</th>
+          <th>Invoice qty</th>
+          <th>UOM</th>
+          <th>Price</th>
+          <th>Receipt qty</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${a.map((x, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${esc(x.description || 'Item')}</td>
+            <td class="num">${x.invoice_qty}</td>
+            <td>${esc(x.uom || 'PCS')}</td>
+            <td class="num">${money(x.invoice_price)}</td>
+            <td class="num">${x.receipt_qty ?? x.invoice_qty}</td>
+            <td class="${x.invoice_qty === (x.receipt_qty ?? x.invoice_qty) ? 'good' : 'badtext'}">
+              ${x.invoice_qty === (x.receipt_qty ?? x.invoice_qty) ? 'Pass' : 'Mismatch'}
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function ruleTable(a) {
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Result</th>
+          <th>Exception</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${a.map(x => `
+          <tr>
+            <td><b>${esc(x.rule_id)}</b> ${esc(RULE_NAMES[x.rule_id] || x.rule_name)}</td>
+            <td class="${x.result === 'pass' ? 'good' : x.result === 'fail' ? 'badtext' : 'muted'}">${esc(x.result)}</td>
+            <td>${x.exception_code ? `<span class="code">${esc(x.exception_code)}</span>` : '—'}</td>
+            <td>${esc(x.evidence || '—')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function showTab(btn, id) {
+  btn.parentElement.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  btn.parentElement.parentElement.querySelectorAll('.pane').forEach(x => x.classList.remove('on'));
+  btn.classList.add('on');
+  $(id).classList.add('on');
+}
+
+function resetFilters() {
+  ['search', 'tagFilter', 'typeFilter', 'fromDate', 'toDate', 'statusFilter'].forEach(id => $(id).value = '');
+  $('sort').value = 'new';
+  renderCards();
+}
+
+function initTags() {
+  const tags = [...new Set(documents.flatMap(d => d.tags || []))].sort();
+  $('tagFilter').innerHTML = '<option value="">All tags</option>' + tags.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('detail').classList.contains('open')) closeDetail();
+});
+
+// Initial boot
+loadDocuments();
+</script>
+</body>
+</html>
