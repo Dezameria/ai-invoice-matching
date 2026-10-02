@@ -114,3 +114,15 @@
 - แก้ `OCR service/n8n/n8n flow structure.md` เป็น v6.5: ตารางสิ่งที่เปลี่ยน, หลักการ D2/D3, ผัง mermaid, ตาราง node 8/9/13/14/15/17/20/21, SQL section ใหม่ (dual branch + โหมด `INVOICE/PO_FALLBACK/PO/NONE` + ข้อจำกัด `ORA-01791`), กฎ V-07, Python↔n8n Parity Map, ผล regression test และบันทึกข้อควรระวังของ MCP tool
 - Workflow ยัง `active: false` จึงไม่มีผลกระทบ production ระหว่างแก้; ไม่มีการเรียก LiteLLM/Paperless/Portal จริง และไม่มี commit/push ในรอบนี้
 - ก่อน commit: สร้าง `.gitignore` ของ repo (กัน archive, `tmp/`, `.pi/`, `.mcp.json`, ไฟล์ผลรัน batch ที่มีข้อมูล invoice จริง และ corpus ที่สังเคราะห์จาก Oracle extract) และเพิ่ม module-level skip ใน `tests/test_invoice_corpus.py` เพื่อให้ clone ที่ยังไม่มีข้อมูล corpus รัน pytest ผ่าน — ตรวจจริงทั้งตอนมีข้อมูล (`9 passed, 2 deselected`) และตอนถอดข้อมูลออก (`2 passed, 1 skipped`)
+
+## 2026-10-02T20:55:00+07:00 — TASK-20261002-009: Comprehensive .gitignore for Company Sensitive Data & Push to Remote
+
+- สำรวจความเสี่ยงข้อมูลความลับขององค์กรที่อาจหลุดขึ้น Git Repository: Environment variables, credentials/API keys, private keys, SSL certificates, Oracle database artifacts (wallet, net configs, sqlnet, tnsnames, dumps), ข้อมูลการเงิน/ใบแจ้งหนี้จริง (PDFs, Excel spreadsheets, CSV extracts), batch run reports/failed payloads, n8n automation local states, Python/Node runtime artifacts, IDE/Agent workspace files, OS metadata และ logs
+- ยกระดับ root .gitignore ให้เป็นชุดกฎที่ครอบคลุม 12 หมวดหมู่อย่างสมบูรณ์ พร้อมจัดหมวดหมู่อย่างเป็นระเบียบ และกำหนดข้อยกเว้นสำหรับ template (!.env.example) และ mock test fixture (!invoice-web/examples/invoice.pdf)
+- ตรวจสอบยืนยันด้วย git check-ignore -v เทียบกับ pattern จำลอง 25+ รายการ (.env, *.key, *.pem, *.pfx, cwallet.sso, tnsnames.ora, *.db, *.dmp, *.pdf, *.xlsx, *.csv, *.log, *.zip, .DS_Store, Thumbs.db) พบว่าถูก ignore ถูกต้อง 100%
+- ตรวจสอบยืนยันว่า invoice-web/examples/invoice.pdf และ .env.example ไม่ถูก ignore (exit code 1)
+- รัน regression tests ยืนยันว่าระบบทำงานปกติ:
+  - OCR service/n8n/.venv/Scripts/python -m pytest: 9 passed, 2 deselected in 1.28s
+  - invoice-web/backend unittest: 15 passed in 2.332s
+- ปรับปรุง canonical records: gent/current-state.md, gent/task-plan.md, gent/changelog.md, gent/work-log.md, gent/sessions/2026-10-02-009-comprehensive-gitignore-sensitive-data.md
+- เตรียม commit และ push สู่ origin/main

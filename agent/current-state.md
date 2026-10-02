@@ -41,6 +41,24 @@ Last verified: `2026-10-02T20:20:00+07:00`
 - ข้อจำกัดที่ค้าง: N7 ยังใส่ Bearer token ตรงๆ ใน header (n8n แนะนำให้ย้ายเป็น credential) และ canvas ยังไม่มี node group (20 boxes > 7);
   ยังไม่ได้ทดสอบการรันจริงแบบ end-to-end กับ Paperless/LiteLLM/Portal
 
+## Repository Security & Git Boundary
+- Global .gitignore ครอบคลุมข้อมูลความลับและเอกสารสำคัญของบริษัท 12 หมวดหมู่:
+  1. Environment & Config: .env, .env.*, *.env (ยกเว้น !.env.example), *.secret*, secrets/, ault/
+  2. Tokens & Credentials: credentials/, *credential*.json, *token*.json, 	oken.json, *service_account*.json, client_secret*.json, *api_key*, *apikey* (ยกเว้น package.json, package-lock.json)
+  3. Private Keys & SSL/SSH: *.key, *.pem, *.pfx, *.p12, *.pkcs12, *.cer, *.crt, *.der, id_rsa*, id_ed25519*, id_ecdsa*, id_dsa*
+  4. Oracle EBS & Databases: Oracle Wallet (cwallet.sso, ewallet.p12, *.wallet), Net config (*.ora, ojdbc.properties), Database files (*.db, *.sqlite*, data/, invoice-web/data/), Dumps/Backups (*.dmp, *.dump, *.bak, *.backup, *dump*.sql, *.sql.gz)
+  5. Company Financials & Invoices: Real PDFs (*.pdf ทั่วทั้ง repo ยกเว้น synthetic fixture !invoice-web/examples/invoice.pdf), Excel (*.xlsx, *.xls, *.xlsm), CSV extracts (*export*.csv, *report*.csv, *receipt*.csv, *invoice*.csv, *entity*.csv, *oracle*.csv), Batch reports/payloads (*my_report*, *my_failed*, *batch_result*.json, paperless_downloads/, extracted_invoices/), Synthetic corpus จาก production extract (	ests/test_invoices/_raw/, pdfs/, 	est_dataset.json)
+  6. Automation & n8n: .n8n/, 
+8n-local/, *n8n_export*.json, *workflow_export*.json
+  7. Python Environment: __pycache__/, *.py[cod], .venv/, env/, uild/, dist/, .pytest_cache/, coverage files
+  8. Node & Frontend: 
+ode_modules/, rontend/dist/, playwright-report/, 	est-results/, *.tsbuildinfo
+  9. IDE, Agent & Scratch: .vscode/* (ยกเว้น !.vscode/extensions.json), .idea/, .agent/, .agents/, .pi/, .mcp.json, .gemini/, scratch/, /tmp/, 	mp/, 	emp/
+  10. Archives: *.7z, *.zip, *.tar*, *.rar, *.gz, *.bz2
+  11. Operating System: .DS_Store, Thumbs.db, desktop.ini, ehthumbs.db, $RECYCLE.BIN/
+  12. Logs: *.log, logs/
+- ตรวจสอบยืนยันด้วย git check-ignore -v ครอบคลุม 25+ pattern ตัวอย่างของ sensitive data ทุกหมวดหมู่ และยืนยันว่า invoice-web/examples/invoice.pdf และ .env.example ไม่ถูก ignore
+
 ## Verified
 - Backend: 15 unittest tests passed (persistence, idempotency, conflicts, revisions, schema validation, versioned PDF, global audit, workflow action/version/idempotency/outbox/revision completion, compatibility backfill, origin, keys, filters, adapter, architecture boundaries).
 - Frontend: TypeScript strict and Vite production build passed.

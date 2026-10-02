@@ -1,23 +1,252 @@
-# Archives and local scratch
-*.7z
-*.zip
-/tmp/
+# ==============================================================================
+# AIVA Invoice Auto-Matching - Global Repository .gitignore
+# Covers Company Sensitive Data, Credentials, Financials, ERP Artifacts & Runtimes
+# ==============================================================================
 
-# Agent / MCP local state
-.pi/
-.mcp.json
+# ------------------------------------------------------------------------------
+# 1. Environment Configurations & Secrets
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+*.secret
+*.secrets
+secrets/
+secret/
+vault/
+.vault*
 
-# Batch-run outputs against live paperless (contain real invoice payloads)
+# ------------------------------------------------------------------------------
+# 2. Authentication Tokens, API Keys & Credentials
+# ------------------------------------------------------------------------------
+credentials/
+*credential*.json
+*credentials*.json
+!package.json
+!package-lock.json
+*token*.json
+token.json
+*service_account*.json
+*service-account*.json
+client_secret*.json
+*.token
+*api_key*
+*apikey*
+auth_token*
+id_token*
+access_token*
+*.p8
+
+# ------------------------------------------------------------------------------
+# 3. Certificates, Private Keys & SSH Credentials
+# ------------------------------------------------------------------------------
+*.key
+*.pem
+*.pfx
+*.p12
+*.pkcs12
+*.cer
+*.crt
+*.der
+*.csr
+*.keystore
+*.jks
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+id_dsa
+id_dsa.pub
+*.id_rsa
+*.id_ed25519
+
+# ------------------------------------------------------------------------------
+# 4. Oracle EBS, ERP & Database Artifacts
+# ------------------------------------------------------------------------------
+# Oracle Wallet & connection configurations
+cwallet.sso
+ewallet.p12
+tnsnames.ora
+sqlnet.ora
+listener.ora
+ojdbc.properties
+*.ora
+*.wallet
+
+# Database storage files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+invoice-web/data/
+backend/data/
+
+# Database dumps, exports & backups
+*.dmp
+*.dump
+*.bak
+*.backup
+*.rdb
+*dump*.sql
+*backup*.sql
+*export*.sql
+*.sql.gz
+*.sql.zip
+
+# ------------------------------------------------------------------------------
+# 5. Company Financial Documents, Invoices & Production Payloads
+# ------------------------------------------------------------------------------
+# All invoice PDFs & scans (keep synthetic test mock fixture)
+*.pdf
+!invoice-web/examples/invoice.pdf
+
+# Financial spreadsheets & tabular extracts
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*export*.csv
+*extract*.csv
+*report*.csv
+*receipt*.csv
+*invoice*.csv
+*entity*.csv
+*entities*.csv
+*oracle*.csv
+
+# Batch execution reports & failed run payloads (contain real invoice data)
 OCR service/n8n/my_report*.md
 OCR service/n8n/my_failed*.json
+*my_report*
+*my_failed*
+*batch_result*.json
+*live_run*.json
+paperless_downloads/
+extracted_invoices/
+invoices_raw/
+downloads/
 
-# Synthetic corpus data generated from a production Oracle extract.
-# Regenerate locally: tests/test_invoices/build_test_dataset*.py + generate_invoices.py
+# Synthetic corpus generated from production Oracle extracts
 OCR service/n8n/tests/test_invoices/_raw/
 OCR service/n8n/tests/test_invoices/pdfs/
 OCR service/n8n/tests/test_invoices/test_dataset.json
 
-# Python build/test leftovers
+# ------------------------------------------------------------------------------
+# 6. n8n & Automation Local State / Exports
+# ------------------------------------------------------------------------------
+.n8n/
+n8n-local/
+*n8n_export*.json
+*workflow_export*.json
+
+# ------------------------------------------------------------------------------
+# 7. Python Runtime & Virtual Environments
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ------------------------------------------------------------------------------
+# 8. Node.js & Frontend Artifacts
+# ------------------------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# 9. IDE, Agent & Scratch Files
+# ------------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.agent/
+.agents/
+.pi/
+.mcp.json
+.gemini/
+scratch/
+/tmp/
+tmp/
+temp/
+
+# ------------------------------------------------------------------------------
+# 10. Archives & Compressed Files
+# ------------------------------------------------------------------------------
+*.7z
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.gz
+*.bz2
+*.xz
+
+# ------------------------------------------------------------------------------
+# 11. Operating System Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ------------------------------------------------------------------------------
+# 12. Application Logs
+# ------------------------------------------------------------------------------
+*.log
+logs/
