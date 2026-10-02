@@ -1,0 +1,123 @@
+%PDF-1.3
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 2
+/Kids [ 5 0 R 7 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+5 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 595 842 ]
+/Parent 2 0 R
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 1141
+>>
+stream
+0.08 0.18 0.28 rg
+BT /F1 21 Tf 48 776 Td (AIVA / EXAMPLE DOCUMENT) Tj ET
+BT /F1 10 Tf 48 744 Td (SYNTHETIC DATA - NOT A REAL INVOICE) Tj ET
+BT /F1 12 Tf 48 712 Td () Tj ET
+BT /F1 17 Tf 48 680 Td (INVOICE  DEMO-2026-001) Tj ET
+BT /F1 12 Tf 48 648 Td (Example Parts Co., Ltd.) Tj ET
+BT /F1 11 Tf 48 616 Td (Date: 2026-10-01    |    Currency: THB) Tj ET
+BT /F1 11 Tf 48 584 Td (PO: PO-DEMO-001    Receipt: RCV-DEMO-001) Tj ET
+BT /F1 12 Tf 48 552 Td () Tj ET
+BT /F1 11 Tf 48 520 Td (Description                     Qty      Price       Amount) Tj ET
+BT /F1 11 Tf 48 488 Td (Mounting bracket                100      125.00      12,500.00) Tj ET
+BT /F1 12 Tf 48 456 Td () Tj ET
+BT /F1 12 Tf 48 424 Td (Subtotal                                      12,500.00) Tj ET
+BT /F1 12 Tf 48 392 Td (VAT                                              875.00) Tj ET
+BT /F1 16 Tf 48 360 Td (TOTAL                                         13,375.00) Tj ET
+BT /F1 12 Tf 48 328 Td () Tj ET
+BT /F1 11 Tf 48 296 Td (Receiver signature: _____________________________) Tj ET
+BT /F1 10 Tf 48 264 Td (Example page 1 of 2. Used only for viewer and integration tests.) Tj ET
+endstream
+endobj
+7 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/MediaBox [ 0.0 0.0 595 842 ]
+/Parent 2 0 R
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 1141
+>>
+stream
+0.08 0.18 0.28 rg
+BT /F1 21 Tf 48 776 Td (AIVA / EXAMPLE DOCUMENT) Tj ET
+BT /F1 10 Tf 48 744 Td (SYNTHETIC DATA - NOT A REAL INVOICE) Tj ET
+BT /F1 12 Tf 48 712 Td () Tj ET
+BT /F1 17 Tf 48 680 Td (INVOICE  DEMO-2026-001) Tj ET
+BT /F1 12 Tf 48 648 Td (Example Parts Co., Ltd.) Tj ET
+BT /F1 11 Tf 48 616 Td (Date: 2026-10-01    |    Currency: THB) Tj ET
+BT /F1 11 Tf 48 584 Td (PO: PO-DEMO-001    Receipt: RCV-DEMO-001) Tj ET
+BT /F1 12 Tf 48 552 Td () Tj ET
+BT /F1 11 Tf 48 520 Td (Description                     Qty      Price       Amount) Tj ET
+BT /F1 11 Tf 48 488 Td (Mounting bracket                100      125.00      12,500.00) Tj ET
+BT /F1 12 Tf 48 456 Td () Tj ET
+BT /F1 12 Tf 48 424 Td (Subtotal                                      12,500.00) Tj ET
+BT /F1 12 Tf 48 392 Td (VAT                                              875.00) Tj ET
+BT /F1 16 Tf 48 360 Td (TOTAL                                         13,375.00) Tj ET
+BT /F1 12 Tf 48 328 Td () Tj ET
+BT /F1 11 Tf 48 296 Td (Receiver signature: _____________________________) Tj ET
+BT /F1 10 Tf 48 264 Td (Example page 2 of 2. Used only for viewer and integration tests.) Tj ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000119 00000 n 
+0000000168 00000 n 
+0000000238 00000 n 
+0000000370 00000 n 
+0000001563 00000 n 
+0000001695 00000 n 
+trailer
+<<
+/Size 9
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+2888
+%%EOF
