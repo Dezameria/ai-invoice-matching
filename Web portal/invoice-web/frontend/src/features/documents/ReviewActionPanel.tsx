@@ -1,19 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
-  CirclePause,
-  Info,
-  MessageSquareText,
-  RefreshCw,
-  RotateCcw,
-  Send,
-  ShieldCheck,
-  X,
-  XCircle,
-} from 'lucide-react'
+import { Send, ShieldCheck, X } from 'lucide-react'
 import { post } from '../../api/client'
 import type { AvailableAction, Document } from '../../api/types'
 
@@ -35,14 +22,15 @@ const assignedLabels: Record<string, string> = {
   Closed: 'ปิดงาน',
 }
 
-const icons = {
-  explain: MessageSquareText,
-  resubmit: RefreshCw,
-  rerun: RotateCcw,
-  return: ArrowRight,
-  reject: XCircle,
-  hold: CirclePause,
-  confirm: CheckCircle2,
+const actionClassMap: Record<string, string> = {
+  confirm: 'bp',
+  resubmit: 'bt',
+  rerun: 'bt',
+  return: 'bg',
+  explain: 'bg',
+  reject: 'br',
+  hold: 'bw',
+  post: 'bb',
 }
 
 type Props = { document: Document; notify: (message: string) => void }
@@ -59,7 +47,6 @@ export default function ReviewActionPanel({ document, notify }: Props) {
   const workflow = document.workflow
   const actions = workflow.available_actions || []
   const enabled = actions.filter(action => action.allowed)
-  const disabled = actions.filter(action => !action.allowed)
   const pending = workflow.requests?.find(request => ['pending', 'accepted'].includes(request.status))
 
   useEffect(() => {
@@ -113,91 +100,40 @@ export default function ReviewActionPanel({ document, notify }: Props) {
   const recommended = enabled.find(action => action.primary) || enabled[0]
 
   return (
-    <section className={`review-action-panel workflow-${workflow.status}`} aria-label="การดำเนินการเอกสาร">
-      {/* Workflow Status Header Banner */}
-      <div className="review-action-summary">
-        <div className="review-state-icon">
-          {pending ? (
-            <RefreshCw size={22} className="spin-icon" />
-          ) : workflow.status === 'confirmed' ? (
-            <CheckCircle2 size={22} />
-          ) : workflow.status === 'rejected' ? (
-            <XCircle size={22} />
-          ) : workflow.status === 'on_hold' ? (
-            <CirclePause size={22} />
-          ) : (
-            <AlertTriangle size={22} />
-          )}
-        </div>
-        <div className="review-status-details">
-          <span className="review-step-label">ขั้นตอนถัดไป</span>
-          <h2 className="review-heading">{workflowLabels[workflow.status] || workflow.status}</h2>
-          <p className="review-assignee">
-            ผู้รับผิดชอบ: <b>{assignedLabels[workflow.assigned_to] || workflow.assigned_to}</b>
-            {pending ? ` · ${pending.reason_label}` : ''}
-          </p>
-        </div>
-        <div className="workflow-version-wrap">
-          <span className="workflow-version">งาน v{workflow.version}</span>
-        </div>
+    <div className={`bar workflow-${workflow.status}`} aria-label="การดำเนินการเอกสาร">
+      <div className="hint">
+        <h3 className="review-heading" style={{ fontSize: 13.5, fontWeight: 700, margin: 0, display: 'inline', color: 'var(--ink)' }}>
+          {workflowLabels[workflow.status] || workflow.status}
+        </h3>
+        <span className="review-assignee" style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 8 }}>
+          (ผู้รับผิดชอบ: <b>{assignedLabels[workflow.assigned_to] || workflow.assigned_to}</b>)
+        </span>
+        {!document.is_current ? (
+          <span style={{ fontSize: 12, color: 'var(--amb)', marginLeft: 8 }}>· กำลังดู revision ย้อนหลัง</span>
+        ) : pending ? (
+          <span className="pending-msg" style={{ fontSize: 12, color: 'var(--teald)', marginLeft: 8, fontWeight: 600 }}>
+            · ส่งคำขอแล้ว กำลังรอระบบต้นทาง
+          </span>
+        ) : (
+          recommended && (
+            <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 8 }}>
+              · {recommended.description}
+            </span>
+          )
+        )}
       </div>
 
-      {/* Action Content & Decision Controls */}
-      {!document.is_current ? (
-        <div className="action-guidance historical">
-          <Info size={16} />
-          <span>กำลังดู revision ย้อนหลัง การดำเนินการทำได้จาก revision ล่าสุดเท่านั้น</span>
-        </div>
-      ) : pending ? (
-        <div className="action-guidance waiting">
-          <RefreshCw size={17} className="rotate" />
-          <div>
-            <b>ส่งคำขอแล้ว กำลังรอระบบต้นทาง</b>
-            <span>Portal จะไม่เปลี่ยนผลตรวจเอง เมื่อระบบต้นทางส่ง revision ใหม่ สถานะจะอัปเดตอัตโนมัติ</span>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="action-guidance">
-            <div className="guidance-text">
-              <b>{recommended ? recommended.label : 'ไม่มีงานที่ต้องดำเนินการ'}</b>
-              <span>{recommended?.description || 'เอกสารอยู่ในสถานะสิ้นสุดแล้ว'}</span>
-            </div>
-          </div>
-
-          <div className="action-buttons">
-            {enabled.map(action => {
-              const Icon = icons[action.action]
-              return (
-                <button
-                  key={action.action}
-                  className={`button action-button ${action.primary ? 'primary' : 'secondary'} ${
-                    action.danger ? 'danger' : ''
-                  }`}
-                  onClick={() => open(action)}
-                >
-                  <Icon size={16} />
-                  <span>{action.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {disabled.length > 0 && (
-            <details className="unavailable-actions">
-              <summary>ดูรายการที่ยังทำไม่ได้ ({disabled.length})</summary>
-              <div className="unavailable-list">
-                {disabled.map(action => (
-                  <div key={action.action} className="unavailable-item">
-                    <b>{action.label}</b>
-                    <span>{action.disabled_reason}</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-        </>
-      )}
+      <div className="action-buttons" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        {enabled.map(action => (
+          <button
+            key={action.action}
+            className={actionClassMap[action.action] || 'bg'}
+            onClick={() => open(action)}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
 
       {/* Action Confirmation Modal Dialog */}
       <dialog ref={dialog} className="action-dialog" onCancel={event => { event.preventDefault(); close() }}>
@@ -283,7 +219,7 @@ export default function ReviewActionPanel({ document, notify }: Props) {
           </div>
         )}
       </dialog>
-    </section>
+    </div>
   )
 }
 

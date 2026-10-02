@@ -1,42 +1,48 @@
 # Task และ Plan
 
-Last updated: `2026-10-02T10:10:57+07:00`
+Last updated: `2026-10-02T12:15:00+07:00`
 
 ## Active Task
-- Task ID: `TASK-20261002-006`
-- Title: Redesign และ normalize invoice-web UI ให้เห็นภาพรวมและเข้าใจข้อมูลง่ายขึ้น
+- Task ID: `TASK-20261002-010`
+- Title: ปรับปรุงโครงสร้างหลักของ Web Portal สู่ต้นแบบ AIVA Mockup v4.4 อย่างสมบูรณ์ 100% (แก้ไข UI เละเทะ)
 - Status: `completed`
-- Goal: ปรับปรุงการจัดวางและดีไซน์ของ UI ทั้งหมดใน invoice-web (Queue, Document Detail, Stepper, Line Items, Actions, Filters) ให้มีภาพรวมชัดเจน ข้อมูลอ่านง่าย ไม่กระจัดกระจาย ยกระดับ visual aesthetics และคงความเข้ากันได้กับ test และ workflow เดิม 100%
+- Goal: แก้ไขปัญหา UI เละเทะที่เกิดจากการมีแถบดำด้านซ้าย 240px (Sidebar เดิม) ซ้อนกับคิว 370px, แถบ KPI ตัวเลขลอย และลำดับ component สลับกัน โดยทำการ:
+  1. ลบ 240px Fixed Black Sidebar และ Light Topbar ออกทั้งหมด
+  2. แทนที่ด้วย Authentic Navy Header (`header.aiva-header`, #0D274D, 56px) พร้อมโลโก้ AI สีเขียว, ลิงก์ Nav 4 หน้า, Role Badge "เจ้าหน้าที่บัญชี" และ User Workspace Pill ตาม Mockup v4.4
+  3. ปรับลำดับหน้า Queue: วาง `.scope` ด้านบนสุด, ตามด้วย `.kpis` 6 กล่องที่มีสไตล์และสีขอบตรงตาม Mockup v4.4, ตามด้วย `.wrap` (คิว 370px ด้านซ้าย, Document Workspace ด้านขวา)
+  4. ปรับ CSS ครบทุกองค์ประกอบ (`mockup-parity.css`) ให้มีความกลมกลืนระดับพรีเมียม สบายตา ไม่มีขยะหรือความซ้ำซ้อน
+  5. รองรับ Mobile Viewport (390px) แบบ 0 Horizontal Overflow และคงความถูกต้องของ Playwright E2E 6/6 และ Backend 15/15 tests
 
 ## Plan
-- [x] วิเคราะห์และวางแผน layout ใหม่: Unified KPI cards, Consolidated single-bar filter, Normalized document table, At-a-glance 3-way match header, Streamlined decision panel
-- [x] ปรับปรุง design system และ CSS ใน `global.css`, `mockup-parity.css`, `revisions.css` (Typography, colors, card elevation, responsive layout)
-- [x] ปรับปรุง `QueuePage.tsx` ให้มี executive overview cards, smart unified filter bar, และ readable high-contrast table
-- [x] ปรับปรุง `DocumentDetail.tsx` และ `ReviewActionPanel.tsx` ให้เห็นภาพรวม 3-way match, 3-step verification status, และ next actions อย่างชัดเจน
-- [x] ปรับปรุงแท็บข้อมูล (`SummaryTab`, `LinesTab`, `RulesTab`, `HistoryTab`, `SourceTab`) ให้จัดหมวดหมู่ข้อมูลอย่างลงตัว
-- [x] ตรวจสอบความถูกต้องด้วย TypeScript build, Backend unittests, Playwright end-to-end tests และ browser screenshots
-- [x] บันทึกผลใน canonical records (current-state, changelog, work-log, session file)
+- [x] ลบแถบดำด้านซ้าย 240px (`aside.sidebar`) และ light topbar ใน `AppShell.tsx`
+- [x] สร้าง `header.aiva-header` (#0D274D) พร้อมโลโก้, เมนูนำทาง (`คิวตรวจสอบ`, `สิทธิ์และการเข้าถึง`, `บันทึกการเข้าถึง`, `เชื่อมต่อ API`), Role badge และ status pill ตาม Mockup v4.4
+- [x] ปรับลำดับใน `QueuePage.tsx`: วางแถบขอบเขต `.scope` ด้านบน, ตามด้วย `.kpis` 6 ใบ, และ `.wrap` คิว 370px คู่กับ Document Workspace
+- [x] เติม CSS ของ `header.aiva-header`, `.scope`, `.kpis`, `.wrap`, `.panel.queue-sidebar`, `.doc`, `.dh`, `.flow`, `.tabs`, `.pane`, `.ex`, `.ev`, `.bar` ใน `mockup-parity.css`
+- [x] ทดสอบและยืนยัน: TypeScript strict build ผ่าน, Backend unittests 15/15 ผ่าน, Playwright E2E tests 6/6 ผ่าน (รวม mobile 390px)
+- [x] อัปเดต canonical records (task-plan, current-state, changelog, work-log, session file)
 
 ## Acceptance criteria
-- ข้อมูลสำคัญ (เลขที่เอกสาร, ผู้ขาย, ยอดเงิน, PO, ใบรับ, ผลตรวจ, งานถัดไป) เห็นได้เป็นภาพรวมทันที ไม่ต้องกดค้นหาหลายที่
-- ลดความซ้ำซ้อนของตัวกรองใน Queue (รวมเป็น single cohesive control bar + interactive KPI cards)
-- หน้า Detail แสดง 3-Way Match Stepper และ Next Action Hub ชัดเจนพร้อมหลักฐาน PDF
-- รองรับ Responsive บน Desktop และ Mobile (ไม่มี horizontal overflow ไม่พึงประสงค์)
-- Playwright E2E tests และ backend unittests ผ่านทั้งหมด 100%
+- ลบ sidebar สีดำเดิมทิ้ง ทำให้ไม่มีแถบซ้อนสองชั้นอีกต่อไป (ผ่านการตรวจสอบ)
+- ส่วนหัวเป็น Header สี Navy เข้ม (#0D274D) พร้อมเมนูครบถ้วนตาม Mockup v4.4 (ผ่านการตรวจสอบ)
+- แถบ Scope และ KPI 6 กล่องวางเรียงสวยงาม ตัวเลขชัดเจน ไม่ลอย (ผ่านการตรวจสอบ)
+- คิว 370px อยู่ซ้ายมือ เปิดดูเอกสารด้านขวามือได้ทันที สะอาด สบายตา ตรงตาม Mockup v4.4 (ผ่านการตรวจสอบ)
+- รองรับ Mobile (390px) ไม่มี horizontal overflow และ Playwright E2E 6/6 ผ่าน 100% (ผ่านการตรวจสอบ)
 
 ## Result
-- Normalize UI ทั้งหมด: จัด Typography, Contrast, Spacing, Card Elevation, และ Color Palette ใหม่ให้อ่านง่าย สบายตา และมีมาตรฐานแบบ Enterprise FinTech
-- Queue Page: จัดรวม 4 KPI Summary Cards (คลิกกรองได้ทันที), Consolidated Single Control Toolbar รวม Search/Selects/Quick-tabs/Company chips, และ High-Contrast Table พร้อม context chips
-- Document Detail: เพิ่ม Executive 3-Way Match Snapshot Card (Company, PO/Release, Goods Receipt, Grand Total), Provenance Bar, 3-Step Verification Pipeline Stepper, Discrepancies Callout with 1-click PDF jump, และ Decision Hub
-- Detail Tabs: จัดหมวดหมู่ 5 แท็บชัดเจน (สรุป 3-way match, รายการสินค้าเปรียบเทียบใบรับ, 9 กฎการตรวจพร้อม STEP badge และรหัสข้อผิดพลาด, Activity Timeline, และข้อมูลแหล่งที่มาพร้อมสลับ Revision)
-- ผ่านการทดสอบครบถ้วน: TypeScript build ผ่าน, Backend 15 unittests ผ่าน, Playwright E2E 6 tests ผ่าน (desktop & mobile 390px), และตรวจสอบภาพจริงผ่าน browser subagent เรียบร้อย
+- **โครงสร้าง Shell และ Header ใหม่**:
+  - เปลี่ยนจาก Sidebar สีดำ 240px มาเป็น Full-width Layout พร้อมแถบ Header Navy เข้ม `#0D274D` ความสูง 56px ที่มีโลโก้ AI สีเขียว, Navigation Bar 4 รายการ, Role Badge เจ้าหน้าที่บัญชี และ Environment Pill ตรงตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html`
+- **การจัดวางหน้ารายการ (Queue Page Layout)**:
+  - เรียงลำดับถูกต้อง: แถบ Scope ด้านบนสุด (พร้อม Company Chips, View Toggles, และปุ่มนำเข้าเอกสาร) -> แถบ KPI Summary 6 ใบพร้อมตัวเลขสถิติและสีระบุสถานะ -> แถบ Master-Detail Workspace 2 ฝั่ง (ซ้าย: คิว 370px, ขวา: เอกสารและ PDF)
+- **สไตล์และพื้นที่แสดงผล (Visual Excellence & Parity)**:
+  - ขยายพื้นที่การอ่านเอกสารให้กว้างขวาง สบายตา ปราศจากความอึดอัด คมชัด และตรงตาม Palette สีของต้นแบบ v4.4 100%
+- **การทดสอบความถูกต้อง**:
+  - Frontend production build (`tsc -b && vite build`) สำเร็จสมบูรณ์ (5.3s)
+  - Backend unittests ผ่าน 15/15 รายการ (4.0s)
+  - Playwright E2E tests ผ่านครบ 6/6 รายการ (รวม Mobile 390px zero-overflow check) (15.4s)
 
 ## Previous Result
+- ปรับ Document Workspace ให้ตรงกับ AIVA Web Portal Mockup v4.4 Release โดยตรง (คิว 370px, ส่วนหัว .dh, แถบสเต็ป .flow, แท็บ 5 แท็บ, Exception Cards .ex, แถบ Sticky Action Bar .bar)
 - เพิ่ม explain/resubmit/rerun/return/reject/hold/confirm แบบ persistent โดยผลตรวจ snapshot ไม่ถูกแก้ไข
-- เพิ่ม workflow version, reason validation, required note, idempotency, activity history และ action outbox/acknowledgement
-- จัดหน้ารายละเอียดให้เห็น next action/ผู้รับผิดชอบก่อน exception และ PDF; ลดเหลือ 5 แท็บโดยรวมข้อมูลเทคนิคไว้ในข้อมูลเพิ่มเติม
-- Queue แสดงงานที่ต้องทำแยกจากผลตรวจต้นทาง และหน้า Integration อธิบาย outbox → ack → revision ใหม่
-- Backend 15 tests, production build และ Playwright 6 tests ผ่าน; ตรวจภาพ desktop/mobile และรีสตาร์ต preview พอร์ต 8010 แล้ว
 
 ## Outside this task
 - Entra user/company/receiver RBAC และ account mapping

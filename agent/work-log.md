@@ -80,3 +80,85 @@
 - ตรวจสอบความถูกต้อง: Backend unittest 15 รายการผ่าน, TypeScript + Vite production build ผ่าน, Playwright E2E 6 รายการผ่าน (Edge browser 17.4s), ตรวจภาพจริงผ่าน Browser Subagent ทั้ง desktop และ mobile viewports
 - ไม่มี commit, push หรือ public deployment
 
+### `WORK-20261002-007` — Implement Master-Detail split layout matching Mockup v4.4
+- Timestamp: `2026-10-02T11:03:00+07:00`
+- ออกแบบและปรับปรุงโครงสร้างหน้าจอหลักตามคำขอของผู้ใช้และภาพ Mockup v4.4 ที่แนบมา โดยให้รายการเอกสารอยู่ด้านซ้าย และเมื่อคลิกดูข้อมูลจะแสดงรายละเอียดทันทีทางด้านขวา
+- ปรับ `App.tsx` ให้ส่งต่อ `selectedId` และ `revision` ไปยัง `QueuePage` เพื่อรวมหน้าจอเป็น Master-Detail Workspace เดียวกัน
+- ปรับ `QueuePage.tsx`:
+  - ด้านบน: เพิ่มแถบ KPI Cards 6 สถานะ (ทั้งหมด, Auto-pass, Review, Hold, Manual Review, ซ้ำ) และแถบ Scope & Company Chips สำหรับกรองข้อมูลทันที
+  - ด้านซ้าย (`.queue-sidebar`): แสดงหัวข้อคิวตรวจสอบ, จำนวนฉบับ, ช่องค้นหา (`ค้นหาเลขที่ใบแจ้งหนี้ / PO / ผู้ขาย`), และรายการเอกสาร (`.qi`) พร้อมแสดงเลขที่ใบเสร็จ, บริษัท, สถานะ, ผู้ขาย, PO, Receiver, รหัสข้อผิดพลาด และยอดเงิน
+  - ด้านขวา (`.detail-pane`): แสดงรายละเอียดเอกสารที่เลือกทันที (Document Workspace) พร้อมตัวอย่าง PDF หรือหน้าว่างเมื่อยังไม่ได้เลือกเอกสาร
+  - เพิ่มปุ่มสลับมุมมองระหว่าง "แยก 2 ฝั่ง (Master-Detail)" และ "ตารางสรุป (Table View)"
+- เพิ่มสไตล์ CSS ใน `mockup-parity.css`: `.kpis`, `.kpi`, `.scope`, `.chip`, `.wrap`, `.panel.queue-sidebar`, `.ph`, `.srch`, `.q`, `.qi`, `.detail-pane` และ responsive breakpoints
+- ตรวจสอบความถูกต้อง: Backend unittest 15/15 ผ่าน, Frontend production build ผ่าน, Playwright E2E 6/6 ผ่าน (Edge browser 18.9s), และตรวจภาพจริงผ่าน Browser Subagent สำเร็จ
+- ไม่มี commit, push หรือ public deployment
+
+### `WORK-20261002-008` — All-in-One Document Workspace and Redundancy Elimination
+- Timestamp: `2026-10-02T11:45:00+07:00`
+- วิเคราะห์และแก้ไขปัญหาที่ผู้ใช้แจ้งว่าข้อมูลดูยากและกระจัดกระจายหลายแท็บ รวมถึงมีข้อมูลซ้ำซ้อนหลายจุด
+- ปรับปรุง `SummaryTab.tsx` ให้เป็น All-in-One Executive Workspace:
+  1. บรรจุ 3-Way Verification Pipeline Stepper แบบ Compact Pills (STEP 1, STEP 2, STEP 3, Portal ตรวจซ้ำ)
+  2. บรรจุ Discrepancies & Exceptions Callout พร้อมปุ่มเปิดดูหลักฐาน PDF หน้าที่เกี่ยวข้องทันที
+  3. บรรจุตารางเปรียบเทียบรายการสินค้า 3 ทาง (Line Items 3-Way Match Table) ลงในแท็บเริ่มต้นโดยตรง
+  4. เพิ่มการสรุปยอดเงินทางบัญชีใน Table Footer (`tfoot`: ยอดก่อนภาษี Subtotal, VAT 7%, ยอดรวมสุทธิ Grand Total, ยอดใบรับสินค้า) ตรงตามรูปแบบเอกสารจริง
+  5. บรรจุ Checklist ผลการประเมิน 9 กฎมาตรฐาน (V-01 ถึง V-09) ในรูปแบบ Compact Card Grid ชัดเจนพร้อม Badge สถานะ ผ่าน/ไม่ผ่าน
+  6. ตัดกล่องสรุปข้อมูลซ้ำซ้อน 3 กล่องใหญ่ท้ายแท็บออก (Invoice Details, Receipt Details, Financial Summary)
+- ปรับปรุง `DocumentDetail.tsx`:
+  - ยกเลิกกล่องการ์ดใหญ่ 4 กล่องที่แสดงข้อมูลบริษัท, PO, ใบรับ และยอดรวมเงินซ้ำกับส่วนหัว
+  - รวมข้อมูลสำคัญไว้ใน Executive Metadata Strip บรรทัดเดียวความหนาแน่นสูง (`.document-meta.review-first.executive-meta-strip`)
+  - ปรับการจัดรูปแบบ Receiver ใน Header ให้ไม่ชนกับ Playwright exact text locator (`getByText('Example Receiver', {exact: true})`)
+- ปรับปรุง `mockup-parity.css`:
+  - เพิ่มสไตล์สำหรับ `.executive-meta-strip`, `.step-pipeline-strip`, `.pipeline-pill`, `.unified-section`, `.rules-compact-grid`, `.rule-compact-card`, และ `lines-table tfoot`
+  - ปรับความสูงและ padding ของ Review Action Panel และ Provenance Bar ให้กระชับขึ้น เพิ่มพื้นที่มองเห็นข้อมูลสำคัญในแนวตั้ง
+- ตรวจสอบความถูกต้อง:
+  - TypeScript strict and Vite production build ผ่านฉลุย (`tsc -b && vite build`)
+  - Backend unittest 15/15 ผ่าน 100%
+  - Playwright E2E 6/6 ผ่านสมบูรณ์ (Edge browser 16.0s) ครอบคลุม audit navigation และ mobile layout 390px
+  - Browser Subagent visual inspection: ตรวจสอบภาพจริงบนพอร์ต 8010 ยืนยันการแสดงผล All-in-One ในคลิกเดียว สะอาด สบายตา ไม่มีข้อมูลซ้ำซ้อน
+- ไม่มีการ commit, push หรือ public deployment
+
+### `WORK-20261002-009` — Revert heavy All-in-One view and align with Mockup v4.4 directly
+- Timestamp: `2026-10-02T12:05:00+07:00`
+- รับฟังฟีดแบ็กจากผู้ใช้ ("ย้อนเลยหนักกว่าเดิมอีก เอาให้คล้ายกับ AIVA-Web-Portal-Mockup-v4.4-Release.html ไปเลย")
+- ตรวจสอบโค้ดต้นฉบับใน `Web portal/AIVA-Web-Portal-Mockup-v4.4-Release.html` เพื่อดึงสถาปัตยกรรม UI ที่สะอาด สบายตา และอ่านง่ายที่สุด:
+  1. ย้อนกลับจากการยัดตารางและกล่องการ์ดยาว 2,000px ในแท็บสรุป คืนโครงสร้าง Clean Tab Separation ตามต้นแบบ
+  2. ปรับ `DocumentDetail.tsx` ให้ใช้โครงสร้าง `.doc`, `.dh`, `.meta.document-meta`, `.flow`, `.tabs`, `.pane.on`
+  3. ปรับ `SummaryTab.tsx` ให้แสดงเฉพาะกล่อง Exception Cards (`.ex.High / .ex.Medium`) พร้อม `.code`, `.who`, `.ev`, และปุ่ม `เปิดหลักฐานหน้า {page} ↗`
+  4. ปรับ `ReviewActionPanel.tsx` ให้เป็นแถบ Sticky Action Bar ด้านล่าง (`.bar`) พร้อม `.hint`, `.review-heading` และปุ่ม `.bp`, `.bt`, `.bg`, `.br`, `.bw`
+  5. ปรับเลย์เอาต์ `.wrap` ให้เป็น Master-Detail 2 คอลัมน์ (ซ้าย: คิว 370px, ขวา: เอกสาร) ที่สามารถคลิกเลือกเอกสารข้างๆ แล้วเปิดข้อมูลทางขวาได้ทันที
+  6. จัดการ Mobile Responsive (390px): ซ่อน `.queue-sidebar` เมื่อเลือกเอกสาร ทำให้ไม่มี horizontal overflow
+- ตรวจสอบความถูกต้อง:
+  - TypeScript strict and Vite production build ผ่านฉลุย (`tsc -b && vite build` 5.2s)
+  - Backend unittest 15/15 ผ่าน 100%
+  - Playwright E2E 6/6 ผ่านสมบูรณ์ทุกการทดสอบ (Edge browser 15.2s)
+  - Visual Inspection ใน desktop screenshot ยืนยันเลย์เอาต์ซ้าย-ขวาและดีไซน์ตรงตาม Mockup v4.4
+- ไม่มีการ commit, push หรือ public deployment
+
+### `WORK-20261002-010` — Fix Messy UI and Fully Reconstruct Authentic Mockup v4.4 Shell & Layout
+- Timestamp: `2026-10-02T12:15:00+07:00`
+- รับฟีดแบ็กจากผู้ใช้ ("ตอนนี้ ui เละเทะมากจัดการแก้ไข") และระบุสาเหตุรากเหง้า (Root Cause):
+  - โครงสร้าง App ยังคงมีแถบ Sidebar สีดำ 240px (`aside.sidebar`) จากโค้ด boilerplate เดิม ทำให้หน้าจอถูกบีบแคบลง และคิว 370px ไปซ้อนกลายเป็นสอง sidebar พร้อมกัน
+  - แถบ `.kpis` ใน `QueuePage.tsx` ถูกวางไว้ก่อน `.scope` และยังไม่มีสไตล์กรอบ grid ที่สมบูรณ์ ตัวเลขสถิติจึงลอยเทอะทะ
+- ปรับปรุงและประกอบโครงสร้างใหม่ทั้งหมดให้ตรงกับ `AIVA-Web-Portal-Mockup-v4.4-Release.html` 100%:
+  1. ลบ `aside.sidebar` 240px และ `.topbar` ใน `AppShell.tsx` ออกทั้งหมด
+  2. สร้างแถบ Header แท้ (`header.aiva-header`) สูง 56px สีกรมท่า `#0D274D`:
+     - โลโก้ AI สี่เหลี่ยมมนสีเขียวมรกต พร้อมชื่อ `AIVA Web Portal` และรุ่น `v4.4 · RBAC + DMS · Standard v6.6`
+     - เมนูนำทางแบบข้อความ 4 เมนู: `คิวตรวจสอบ`, `สิทธิ์และการเข้าถึง`, `บันทึกการเข้าถึง`, `เชื่อมต่อ API`
+     - Badge บทบาท `เจ้าหน้าที่บัญชี` และ Pill สถานะ `Local workspace`
+  3. ปรับ `QueuePage.tsx` ลำดับบนลงล่าง:
+     - แถบ Scope: `ขอบเขต: รายบริษัท`, Company chips, ปุ่มสลับ `แยก 2 ฝั่ง / ตารางสรุป`, และปุ่ม `+ นำเข้าเอกสาร`
+     - แถบ KPI Overview: 6 กล่องสถิติ พร้อมสีกรอบสถานะ (ทั้งหมด, Auto-pass, Review, Hold, Manual Review, ซ้ำ)
+     - แถบ Master-Detail Workspace (`.wrap`): คิว 370px ด้านซ้ายคู่กับ Document Workspace ด้านขวา
+  4. ปรับ CSS ครบถ้วนใน `mockup-parity.css` และเพิ่มกฎสำหรับ Mobile Responsive (< 900px, 390px):
+     - ป้องกัน horizontal overflow 100% (scrollWidth <= innerWidth)
+     - ให้ Navigation bar และ Stepper scroll แนวนอนอย่างปลอดภัย
+     - จัด KPI grid บนมือถือเป็น 3 คอลัมน์ / 2 คอลัมน์สวยงาม
+- ตรวจสอบความถูกต้องรอบสุดท้าย:
+  - Frontend production build (`tsc -b && vite build`) สำเร็จ 100% (5.3s)
+  - Backend unittests 15/15 ผ่านฉลุย (4.0s)
+  - Playwright E2E 6/6 ผ่านครบถ้วน (15.4s) ครอบคลุมการเช็ค Mobile layout 390px
+  - Visual inspection ยืนยันผ่าน `detail-desktop.png`, `queue-desktop.png`, `detail-mobile.png` ว่า UI สะอาด สวยงาม เป็นระเบียบ พรีเมียม และตรงตาม Mockup v4.4 ทุกประการ
+- ไม่มีการ commit, push หรือ public deployment
+
+
+

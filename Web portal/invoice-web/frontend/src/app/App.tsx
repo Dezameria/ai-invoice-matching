@@ -5,7 +5,6 @@ import { api, setAccessKey } from '../api/client'
 import type { DocumentList, SessionInfo } from '../api/types'
 import AppShell from '../components/layout/AppShell'
 import { Empty } from '../components/ui'
-import DocumentDetail from '../features/documents/DocumentDetail'
 import ImportDialog from '../features/documents/ImportDialog'
 import IntegrationPage from '../features/integration/IntegrationPage'
 import QueuePage from '../features/queue/QueuePage'
@@ -33,8 +32,19 @@ export default function App() {
   else if (route.page === 'integration') content = <IntegrationPage/>
   else if (route.page === 'access') content = <AccessPage session={session.data}/>
   else if (route.page === 'audit') content = <AuditPage onOpen={id => navigate('documents', id)}/>
-  else if (route.id) content = <DocumentDetail key={`${route.id}-${route.revision || 'current'}`} id={route.id} revision={route.revision} onBack={() => navigate('documents')} onRevision={revision => navigate('documents', route.id, revision)} notify={setToast}/>
-  else content = <QueuePage enabled={!!session.data} onImport={() => setImporting(true)} onIntegration={() => navigate('integration')} onOpen={id => navigate('documents', id)}/>
+  else content = (
+    <QueuePage
+      enabled={!!session.data}
+      selectedId={route.id}
+      revision={route.revision}
+      onImport={() => setImporting(true)}
+      onIntegration={() => navigate('integration')}
+      onOpen={id => navigate('documents', id)}
+      onBack={() => navigate('documents')}
+      onRevision={revision => navigate('documents', route.id, revision)}
+      notify={setToast}
+    />
+  )
 
   return <AppShell connected={!!session.data} documentCount={summary.data?.total || 0} mode={health.data?.mode} page={route.page} onNavigate={navigate} onLogout={logout}>
     {content}
