@@ -225,6 +225,59 @@ class VerificationPipeline:
             execution_time_seconds=elapsed
         )
 
+    async def verify_paperless_document(
+        self,
+        doc_meta: Dict[str, Any],
+        post_to_portal: bool = False,
+        tag_paperless: bool = False
+    ) -> VerificationResponse:
+        """Verify a single Paperless document dictionary."""
+        start_time = time.time()
+        doc_id = doc_meta["id"]
+        title = doc_meta.get("title", f"DOC_{doc_id}")
+        ocr_content = doc_meta.get("content", "")
+
+        # 1. Download Document PDF
+        pdf_bytes = await self.paperless_client.download_document_pdf(doc_id)
+
+        # 2. Vision Extraction
+        extracted = await self.vision_extractor.extract_from_pdf(
+            pdf_bytes=pdf_bytes,
+            ocr_text=ocr_content,
+            doc_id=doc_id,
+            validation_round=1
+        )
+
+        # 3. Execute Matching Engine
+        table9 = await self.execute_matching_engine(extracted)
+
+        # 4. Optional Post to Portal
+        if post_to_portal:
+            await self.portal_client.post_verification_result(table9)
+
+        # 5. Optional Update Paperless
+        paperless_update = None
+        if tag_paperless:
+            exceptions_str = ",".join(e.code for e in table9.exceptions)
+            paperless_update = await self.paperless_client.update_verification_status(
+                doc_id=doc_id,
+                status=table9.decision.status,
+                validation_round=1,
+                exceptions_str=exceptions_str,
+                append_checked_tag=True
+            )
+
+        elapsed = round(time.time() - start_time, 2)
+        tag_msg = f" Tag ID {self.paperless_client.checked_tag_id} appended." if tag_paperless else ""
+        return VerificationResponse(
+            success=True,
+            status=table9.decision.status,
+            message=f"Document {doc_id} ('{title}') verified: {table9.decision.status}.{tag_msg}",
+            data=table9,
+            paperless_update=paperless_update,
+            execution_time_seconds=elapsed
+        )
+
     async def verify_paperless_next(
         self,
         tag_id: Optional[int] = None,
@@ -249,44 +302,8 @@ class VerificationPipeline:
                 execution_time_seconds=round(time.time() - start_time, 2)
             )
 
-        doc_id = doc_meta["id"]
-        title = doc_meta.get("title", f"DOC_{doc_id}")
-        ocr_content = doc_meta.get("content", "")
-
-        # 2. Download Document PDF
-        pdf_bytes = await self.paperless_client.download_document_pdf(doc_id)
-
-        # 3. Vision Extraction
-        extracted = await self.vision_extractor.extract_from_pdf(
-            pdf_bytes=pdf_bytes,
-            ocr_text=ocr_content,
-            doc_id=doc_id,
-            validation_round=1
-        )
-
-        # 4. Execute Matching Engine
-        table9 = await self.execute_matching_engine(extracted)
-
-        # 5. Post to Portal
-        if post_to_portal:
-            await self.portal_client.post_verification_result(table9)
-
-        # 6. Update Paperless tag & status (prevent duplicate run)
-        exceptions_str = ",".join(e.code for e in table9.exceptions)
-        paperless_update = await self.paperless_client.update_verification_status(
-            doc_id=doc_id,
-            status=table9.decision.status,
-            validation_round=1,
-            exceptions_str=exceptions_str,
-            append_checked_tag=True
-        )
-
-        elapsed = round(time.time() - start_time, 2)
-        return VerificationResponse(
-            success=True,
-            status=table9.decision.status,
-            message=f"Document {doc_id} ('{title}') verified: {table9.decision.status}. Tag ID {self.paperless_client.checked_tag_id} appended.",
-            data=table9,
-            paperless_update=paperless_update,
-            execution_time_seconds=elapsed
+        return await self.verify_paperless_document(
+            doc_meta=doc_meta,
+            post_to_portal=post_to_portal,
+            tag_paperless=True
         )
