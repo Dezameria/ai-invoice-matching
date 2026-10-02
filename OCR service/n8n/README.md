@@ -144,3 +144,17 @@ PORTAL_API_URL=https://httpbin.org/post
 - **TEST SUITE 5 (FastAPI Endpoints):** ทดสอบ Endpoints `/health`, `/master-entities`, `/oracle-receipts`, และ `/verify/extracted-json`
 
 **ผลลัพธ์การรันล่าสุด:** `16 / 16 Tests Passed (Success Rate: 100.0%)`
+
+### Offline Regression Suite (pytest — ไม่ต้องต่อ Oracle/LiteLLM/Paperless)
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r tests/test_invoices/requirements-test.txt
+.\.venv\Scripts\python.exe -m pytest
+```
+
+- `tests/test_invoice_corpus.py` — replay ใบกำกับภาษีสังเคราะห์ 155 ฉบับใน `tests/test_invoices/` ผ่าน Rules Engine จริง (`app/core.rules` Step 1–4) และตรวจว่า PDF ที่ render ตรงกับ answer key (ฟิลด์ที่มี/ที่หาย, จำนวนหน้า) ใช้เวลา ~2 วินาที
+- Expectation ทั้งหมดผลิตจาก engine จึงเป็น regression gate เมื่อแก้ไข threshold, decision matrix หรือ PDF corpus แล้วรัน `tests/test_invoices/verify_dataset.py` เพื่อดูรายการที่ drift
+- `pytest.ini` deselect test ที่ติด marker `live` (ต้องยิง LiteLLM/Paperless จริง) — เรียกใช้ด้วย `python -m pytest -m live`
+- `tests/test_suite.py` เป็นสคริปต์รายงานผลสด จึงถูกยกเว้นจาก pytest (`tests/conftest.py`) ให้รันตรงตามที่อธิบายข้างบน
+
+**ผลลัพธ์การรันล่าสุด:** `9 passed, 2 deselected in ~1.7s`

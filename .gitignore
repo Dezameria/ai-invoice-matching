@@ -1,0 +1,23 @@
+# Archives and local scratch
+*.7z
+*.zip
+/tmp/
+
+# Agent / MCP local state
+.pi/
+.mcp.json
+
+# Batch-run outputs against live paperless (contain real invoice payloads)
+OCR service/n8n/my_report*.md
+OCR service/n8n/my_failed*.json
+
+# Synthetic corpus data generated from a production Oracle extract.
+# Regenerate locally: tests/test_invoices/build_test_dataset*.py + generate_invoices.py
+OCR service/n8n/tests/test_invoices/_raw/
+OCR service/n8n/tests/test_invoices/pdfs/
+OCR service/n8n/tests/test_invoices/test_dataset.json
+
+# Python build/test leftovers
+__pycache__/
+*.py[cod]
+.pytest_cache/
