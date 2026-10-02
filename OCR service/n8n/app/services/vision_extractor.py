@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
     "คุณคือ AI Extractor สำหรับระบบ AIVA PO-INV Matching (Standard v6.2) "
-    "โปรดสกัดข้อมูลและตอบกลับในรูปแบบ JSON object ตาม Schema เท่านั้น ห้ามใส่ markdown block"
+    "โปรดสกัดข้อมูลและตอบกลับในรูปแบบ JSON object ตาม Schema เท่านั้น ห้ามใส่ markdown block\n\n"
+    "ข้อกำหนดพิเศษสำหรับการคำนวณ:\n"
+    "- สำหรับรายการสินค้าประเภทเหล็กหรือวัตถุดิบที่มีทั้งจำนวนม้วนและน้ำหนักรวม ให้ใช้ตัวเลขน้ำหนัก (Weight/KG) เป็น qty และราคาต่อหน่วยเป็น unit_price เพื่อให้ผลคูณ qty * unit_price เท่ากับ amount เสมอ"
 )
 
 EXTRACTION_GUIDE = """
@@ -63,7 +65,11 @@ EXTRACTION_GUIDE = """
   "pages_complete": true,
   "po_type": "Purchase Order"
 }
+
+ข้อกำหนดการสกัดข้อมูลในบรรทัดสินค้า (lines):
+- สำหรับรายการสินค้าประเภทเหล็กหรือวัตถุดิบที่มีทั้งจำนวนม้วนและน้ำหนักรวม ให้ใช้ตัวเลขน้ำหนัก (Weight/KG) เป็น qty และราคาต่อหน่วยเป็น unit_price เพื่อให้ผลคูณ qty * unit_price เท่ากับ amount เสมอ
 """
+
 
 
 class VisionExtractor:

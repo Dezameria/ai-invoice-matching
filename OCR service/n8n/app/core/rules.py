@@ -55,23 +55,39 @@ def clean_po_number(po: Any) -> Optional[str]:
 
 
 def clean_uom(uom: Any) -> str:
-    """Normalize unit of measure according to Standard v6.2."""
+    """Normalize unit of measure according to Standard v6.2 (Enhanced)."""
     if not uom:
         return "UNKNOWN"
-    u = str(uom).strip().upper()
-    if u in ["PCS", "PIECE", "PIECES", "ชิ้น"]:
+    u = str(uom).strip().rstrip(".").upper()
+    # PCS / Countable Items / Sets / Each
+    # PCS: PC, PCS, PCS., PIECE, PIECES, EA, EACH, ชิ้น, อัน, ตัว, SET, เส้น
+    if u in ["PCS", "PC", "PIECE", "PIECES", "EA", "EACH", "ชิ้น", "อัน", "ตัว", "SET", "เส้น"]:
         return "PCS"
-    if u in ["KGS", "KG", "KILOGRAM", "ก.ก.", "กก."]:
+    # KG: KGS, KG, KILOGRAM, กก., ก.ก.
+    if u in ["KGS", "KG", "KILOGRAM", "กก", "ก.ก", "กก.", "ก.ก."]:
         return "KG"
+    # BOOK: เล่ม, BOOK
+    if u in ["BOOK", "เล่ม"]:
+        return "BOOK"
+    # CAN: กระป๋อง, CAN
+    if u in ["CAN", "กระป๋อง", "กระป่อง"]:
+        return "CAN"
+    # DRUM: DRUM, DRUMS
+    if u in ["DRUM", "DRUMS"]:
+        return "DRUM"
+    # Sheet
     if u in ["SHEET", "SHT", "แผ่น"]:
         return "SHT"
+    # Job
     if u in ["JOB", "งาน"]:
         return "JOB"
+    # Cylinder
     if u in ["CYL"]:
         return "CYL"
     if "TRIP" in u or u == "TP":
         return "TRIP"
     return u
+
 
 
 def clean_date(date_str: Any) -> Optional[str]:
@@ -420,32 +436,155 @@ def evaluate_step3(
     v07_has_mismatch = False
     v08_has_mismatch = False
 
-    for l in lines:
-        # Ladder matching
-        desc_upper = (l.description or "").upper()
-        # M1: Match by item number in invoice description
-        matched = next(
-            (r for r in active_rows if r.ITEM_NUMBER and r.ITEM_NUMBER.upper() in desc_upper),
-            None
-        )
-        # M2: Match by exact line_no
-        if not matched:
-            matched = next((r for r in active_rows if r.LINE_NUM == l.line_no), None)
-        # M3: Match by description substring
-        if not matched:
-            matched = next(
-                (r for r in active_rows if any(w in desc_upper for w in (r.ITEM_DESCRIPTION or "").upper().split() if len(w) > 4)),
-                None
-            )
-        # M4: Fallback to first line in active receipt
-        if not matched and active_rows:
-            matched = active_rows[0]
+    # Bipartite / Price-First Matching between Invoice Lines and Oracle Receipts
+    # Track assigned receipt row for each invoice line
+    matched_pairs: Dict[int, Any] = {}
+    used_receipt_indices: set = set()
 
+    # Pre-calculate subtotal match check
+    total_rcv_amount = sum((r.LINE_TOTAL or (r.UNIT_PRICE * r.QUANTITY_RECEIVED)) for r in active_rows)
+    subtotal_perfect_match = bool(inv.sub_total > 0 and abs(inv.sub_total - total_rcv_amount) <= 1.0)
+
+    # Helper: description score between invoice line and receipt row
+    def calc_desc_similarity(l_desc: str, r_row: Any) -> int:
+        score = 0
+        desc_u = (l_desc or "").upper()
+        item_no = (r_row.ITEM_NUMBER or "").strip().upper()
+        if item_no and item_no in desc_u:
+            score += 20
+        r_desc = (r_row.ITEM_DESCRIPTION or "").upper()
+        tokens = [w for w in re.split(r"[\s,\-\\/]+", r_desc) if len(w) > 3]
+        for t in tokens:
+            if t in desc_u:
+                score += 2
+        return score
+
+    # Pass 1: Exact Price + Exact Quantity
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        cands = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+            and abs(l.unit_price - r.UNIT_PRICE) < 0.01
+            and abs(l.qty - r.QUANTITY_RECEIVED) < 0.001
+        ]
+        if cands:
+            best_r_idx, best_r = max(cands, key=lambda c: calc_desc_similarity(l.description, c[1]))
+            matched_pairs[l_idx] = best_r
+            used_receipt_indices.add(best_r_idx)
+
+    # Pass 2: Price within 1% (< 1% and <= 200 THB) + Exact Quantity
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        cands = []
+        for r_idx, r in enumerate(active_rows):
+            if r_idx in used_receipt_indices:
+                continue
+            if abs(l.qty - r.QUANTITY_RECEIVED) < 0.001 and r.UNIT_PRICE > 0:
+                p_diff = abs(l.unit_price - r.UNIT_PRICE)
+                if (p_diff / r.UNIT_PRICE) <= 0.01 and p_diff <= 200.0:
+                    cands.append((r_idx, r))
+        if cands:
+            best_r_idx, best_r = max(cands, key=lambda c: calc_desc_similarity(l.description, c[1]))
+            matched_pairs[l_idx] = best_r
+            used_receipt_indices.add(best_r_idx)
+
+    # Pass 3: If Subtotal matches 100%, Greedy matching by Line Amount
+    if subtotal_perfect_match:
+        for l_idx, l in enumerate(lines):
+            if l_idx in matched_pairs:
+                continue
+            l_amt = l.amount if l.amount > 0 else (l.unit_price * l.qty)
+            cands = []
+            for r_idx, r in enumerate(active_rows):
+                if r_idx in used_receipt_indices:
+                    continue
+                r_amt = r.LINE_TOTAL or (r.UNIT_PRICE * r.QUANTITY_RECEIVED)
+                if abs(l_amt - r_amt) <= 1.0:
+                    cands.append((r_idx, r))
+            if cands:
+                best_r_idx, best_r = max(cands, key=lambda c: calc_desc_similarity(l.description, c[1]))
+                matched_pairs[l_idx] = best_r
+                used_receipt_indices.add(best_r_idx)
+
+    # Pass 4: Match by Item Number in description
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        desc_u = (l.description or "").upper()
+        cands = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+            and r.ITEM_NUMBER and r.ITEM_NUMBER.upper() in desc_u
+        ]
+        if cands:
+            best_r_idx, best_r = max(cands, key=lambda c: -abs(l.unit_price - c[1].UNIT_PRICE))
+            matched_pairs[l_idx] = best_r
+            used_receipt_indices.add(best_r_idx)
+
+    # Pass 5: Match by Exact Price (handles partial delivery / milestone)
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        cands = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+            and abs(l.unit_price - r.UNIT_PRICE) < 0.01
+        ]
+        if cands:
+            best_r_idx, best_r = max(cands, key=lambda c: calc_desc_similarity(l.description, c[1]))
+            matched_pairs[l_idx] = best_r
+            used_receipt_indices.add(best_r_idx)
+
+    # Pass 6: Description substring match
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        cands = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+            and calc_desc_similarity(l.description, r) > 0
+        ]
+        if cands:
+            best_r_idx, best_r = max(cands, key=lambda c: calc_desc_similarity(l.description, c[1]))
+            matched_pairs[l_idx] = best_r
+            used_receipt_indices.add(best_r_idx)
+
+    # Pass 7: Line number fallback (only after all content-based rules tried)
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        cands = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+            and r.LINE_NUM == l.line_no
+        ]
+        if cands:
+            matched_pairs[l_idx] = cands[0][1]
+            used_receipt_indices.add(cands[0][0])
+
+    # Pass 8: Any remaining receipt or active receipt fallback
+    for l_idx, l in enumerate(lines):
+        if l_idx in matched_pairs:
+            continue
+        remaining = [
+            (r_idx, r) for r_idx, r in enumerate(active_rows)
+            if r_idx not in used_receipt_indices
+        ]
+        if remaining:
+            matched_pairs[l_idx] = remaining[0][1]
+            used_receipt_indices.add(remaining[0][0])
+        elif active_rows:
+            matched_pairs[l_idx] = active_rows[0]
+
+    for l_idx, l in enumerate(lines):
+        matched = matched_pairs.get(l_idx)
         if not matched:
             v07_has_mismatch = True
             exceptions.append(ExceptionItem(code="E30", severity="High", rule_id="V-07", message=f"บรรทัดที่ {l.line_no} ไม่พบบรรทัดตรงในใบรับ"))
             continue
-
 
         # Price comparison
         price_diff = abs(l.unit_price - matched.UNIT_PRICE)
@@ -458,9 +597,15 @@ def evaluate_step3(
                 v07_has_mismatch = True
                 exceptions.append(ExceptionItem(code="E05", severity="High", rule_id="V-07", message=f"บรรทัดที่ {l.line_no} ราคาต่างเกินกรอบยอมรับ"))
 
-        # UOM Check
+        # UOM Check - Normalize both sides
+        cleaned_inv_uom = clean_uom(l.uom)
         cleaned_rcv_uom = clean_uom(matched.UNIT_MEAS_LOOKUP_CODE)
-        if l.uom != matched.UNIT_MEAS_LOOKUP_CODE and l.uom != cleaned_rcv_uom:
+        if (
+            cleaned_inv_uom != cleaned_rcv_uom
+            and l.uom != matched.UNIT_MEAS_LOOKUP_CODE
+            and cleaned_inv_uom != matched.UNIT_MEAS_LOOKUP_CODE
+            and l.uom != cleaned_rcv_uom
+        ):
             exceptions.append(ExceptionItem(
                 code="E12",
                 severity="Medium",
@@ -484,6 +629,7 @@ def evaluate_step3(
                 rule_id="V-08",
                 message=f"บรรทัดที่ {l.line_no} วางบิลบางส่วน (Inv: {l.qty} จาก {matched.QUANTITY_RECEIVED})"
             ))
+
 
     # Append V-07 & V-08 results
     rules.append(RuleResult(
