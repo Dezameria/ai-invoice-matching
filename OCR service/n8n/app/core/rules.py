@@ -10,11 +10,9 @@ Corresponds to n8n nodes:
 """
 
 import re
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Set
 
 from app.core.master_data import (
-    MASTER_ENTITIES,
-    MASTER_ENTITIES_BY_ORG_ID,
     STANDARD_RULES,
     VALID_EXCEPTION_CODES,
     USER_TASK_CODES,
@@ -290,9 +288,10 @@ def evaluate_step2(
     doc: ExtractedDocument,
     receipts: List[OracleReceipt],
     existing_rules: List[RuleResult],
-    existing_exceptions: List[ExceptionItem]
+    existing_exceptions: List[ExceptionItem],
+    internal_tax_ids: Optional[Set[str]] = None,
 ) -> Tuple[List[RuleResult], List[ExceptionItem], List[OracleReceipt], Optional[str], bool, bool, bool]:
-    """Evaluate Oracle receipts and Customer Master Entity matching (N8).
+    """Evaluate Oracle receipts and Customer Entity matching dynamically from Oracle EBS (N8).
 
     Returns:
         (rules, exceptions, active_receipts, address_matched, intercompany, manual_review, has_critical_issue)
@@ -320,44 +319,83 @@ def evaluate_step2(
     else:
         rules.append(RuleResult(rule_id="V-04", result="PASS", code=None, severity=None))
 
-    # V-05: Customer Entity & Tax ID Check
-    entity_org_id = receipts[0].ORG_ID if receipts else None
-    matched_entity = MASTER_ENTITIES_BY_ORG_ID.get(entity_org_id) if entity_org_id is not None else None
-
+    # V-05: Customer Entity & Tax ID Check (100% Dynamic from Oracle EBS)
     address_matched: Optional[str] = None
     intercompany = False
 
     if len(receipts) == 0:
         rules.append(RuleResult(rule_id="V-05", result="not_evaluated", code=None, severity=None))
-    elif not matched_entity or matched_entity.status != "ACTIVE":
-        status_name = matched_entity.status if matched_entity else "NOT_FOUND"
-        rules.append(RuleResult(rule_id="V-05", result="MANUAL", code=None, severity="Medium", details=f"ORG_ID {entity_org_id} สถานะ {status_name}"))
-        manual_review = True
     else:
-        # Tax ID check
-        if inv.customer_tax_id != matched_entity.tax_id:
-            details_msg = f"Tax ID ลูกค้าไม่ตรง (Master: {matched_entity.tax_id}, Inv: {inv.customer_tax_id})"
+        rcv = receipts[0]
+        oracle_tax_id = (rcv.CUSTOMER_TAX_ID or "").strip()
+        oracle_postal = (rcv.CUSTOMER_POSTAL or "").strip()
+        oracle_loc = (rcv.CUSTOMER_LOC_CODE or "").strip()
+        ou_name = (rcv.OU_NAME or "").strip()
+
+        if not oracle_tax_id:
+            rules.append(RuleResult(
+                rule_id="V-05",
+                result="MANUAL",
+                code=None,
+                severity="Medium",
+                details=f"ไม่พบข้อมูล Tax ID ผู้ซื้อในระบบ Oracle (Org {rcv.ORG_ID})"
+            ))
+            manual_review = True
+        elif inv.customer_tax_id != oracle_tax_id:
+            details_msg = f"Tax ID ลูกค้าไม่ตรง (Oracle: {oracle_tax_id}, Inv: {inv.customer_tax_id})"
             rules.append(RuleResult(rule_id="V-05", result="FAIL", code="E09", severity="High", details=details_msg))
-            exceptions.append(ExceptionItem(code="E09", severity="High", rule_id="V-05", message="เลขประจำตัวผู้เสียภาษีลูกค้าไม่ตรงกับ Master นิติบุคคล"))
+            exceptions.append(ExceptionItem(code="E09", severity="High", rule_id="V-05", message="เลขประจำตัวผู้เสียภาษีลูกค้าไม่ตรงกับระบบ Oracle"))
         else:
             # Address / Branch postal check
             addr = inv.customer_address or ""
-            has_branch_match = any(b in addr for b in matched_entity.branches)
-            if matched_entity.postal in addr or has_branch_match:
+            postal_match = bool(oracle_postal and oracle_postal in addr)
+            loc_match = False
+            if oracle_loc:
+                loc_parts = [p.strip() for p in re.split(r'[\\/\-,\s]+', oracle_loc) if len(p.strip()) > 3]
+                loc_match = any(p.lower() in addr.lower() for p in loc_parts)
+
+            if postal_match or loc_match or not oracle_postal or not addr:
                 if "00003" in addr:
                     address_matched = "branch 00003"
                 elif "00001" in addr:
                     address_matched = "branch 00001"
                 else:
-                    address_matched = f"HQ ({matched_entity.postal})"
-                rules.append(RuleResult(rule_id="V-05", result="PASS", code=None, severity=None, details=f"Matched {address_matched}"))
+                    address_matched = f"HQ ({oracle_postal})" if oracle_postal else "HQ"
+                rules.append(RuleResult(
+                    rule_id="V-05",
+                    result="PASS",
+                    code=None,
+                    severity=None,
+                    details=f"Matched {address_matched} ({ou_name or 'Oracle'})"
+                ))
             else:
-                rules.append(RuleResult(rule_id="V-05", result="FAIL", code="E09", severity="Medium", details="ที่อยู่ลูกค้าไม่ตรงกับข้อมูลจดทะเบียนสำนักงานใหญ่หรือสาขา"))
-                exceptions.append(ExceptionItem(code="E09", severity="Medium", rule_id="V-05", message="ที่อยู่ลูกค้าไม่ตรงกับข้อมูลจดทะเบียนนิติบุคคล"))
+                rules.append(RuleResult(
+                    rule_id="V-05",
+                    result="FAIL",
+                    code="E09",
+                    severity="Medium",
+                    details=f"ที่อยู่ลูกค้าไม่ตรงกับรหัสไปรษณีย์ในระบบ Oracle (Oracle: {oracle_postal})"
+                ))
+                exceptions.append(ExceptionItem(
+                    code="E09",
+                    severity="Medium",
+                    rule_id="V-05",
+                    message="ที่อยู่ลูกค้าไม่ตรงกับข้อมูลสาขาหรือรหัสไปรษณีย์ในระบบ Oracle"
+                ))
 
-    # Intercompany check
-    if any(e.tax_id == inv.supplier_tax_id for e in MASTER_ENTITIES if e.tax_id):
-        intercompany = True
+    # Intercompany check (Dynamic Oracle Tax IDs)
+    if internal_tax_ids is None:
+        try:
+            from app.services.master_data_service import get_master_data_service
+            mds = get_master_data_service()
+            if mds._internal_tax_ids:
+                internal_tax_ids = mds._internal_tax_ids
+        except Exception:
+            pass
+
+    if internal_tax_ids and inv.supplier_tax_id:
+        if inv.supplier_tax_id.strip() in internal_tax_ids:
+            intercompany = True
 
     has_critical_issue = any(e.code in ["E17", "E35"] for e in exceptions) or manual_review
     return rules, exceptions, active_rows, address_matched, intercompany, manual_review, has_critical_issue
@@ -486,7 +524,8 @@ def evaluate_step4_decision(
     manual_review: bool = False,
     halted_by: Optional[str] = None,
     address_matched: Optional[str] = None,
-    intercompany: bool = False
+    intercompany: bool = False,
+    oracle_data: Optional[Dict[str, Any]] = None,
 ) -> Table9Output:
     """Aggregate all 9 rules, determine final decision, and validate Table 9 schema (N10, N11)."""
     # Ensure all 9 rules are present; if bypassed, mark as 'not_evaluated'
@@ -551,7 +590,8 @@ def evaluate_step4_decision(
         decision=decision,
         invoice_summary=summary,
         rules=final_rules,
-        exceptions=exceptions
+        exceptions=exceptions,
+        oracle_data=oracle_data
     )
 
     # N11: Schema Validate assertion

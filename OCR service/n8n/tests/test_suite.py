@@ -98,10 +98,10 @@ class TestRunner:
         self.print_header("TEST SUITE 2: Live Oracle EBS MCP Service (Named Query)")
         client = OracleMCPClient(timeout=60.0)
 
-        # 2.1 Query PO 42052835
+        # 2.1 Query PO 42052835 with Invoice No
         start = time.time()
         try:
-            receipts = await client.get_po_receipts("42052835")
+            receipts = await client.get_receipts(invoice_num="TLP-IV-69-09-0025", po_number="42052835")
             duration = round(time.time() - start, 2)
             has_rows = len(receipts) > 0
             self.record_result(
@@ -183,7 +183,7 @@ class TestRunner:
                 supplier_tax_id="0205549020741",
                 customer_name="บริษัท อาปิโก ไฮเทค ทูลลิง จำกัด",
                 customer_address="สํานักงานใหญ่ 991 หมู่ 1 นิคมอุตสาหกรรม ไฮเทค ต.บ้านเลน อ.บางปะอิน จ.พระนครศรีอยุธยา 13160",
-                customer_tax_id="0145548001557",  # Does NOT match Master Tax ID for ORG_ID 352 (0107545000213)
+                customer_tax_id="0000000000000",  # Intentionally mismatched to test E09 Hold
                 invoice_num="TLP-IV-69-09-0025",
                 invoice_date="15/09/2026",
                 po_number="42052835",
@@ -229,7 +229,7 @@ class TestRunner:
                 supplier_tax_id="0205549020741",
                 customer_name="อาปิโก ไฮเทค ทูลลิ่ง",
                 customer_address="13160",
-                customer_tax_id="0107545000213",  # Exact match with Master ORG_ID 352
+                customer_tax_id="0145548001557",  # Exact match with Oracle EBS for ORG_ID 352
                 invoice_num="TLP-IV-69-09-0025",
                 invoice_date="15/09/2026",
                 po_number="42052835",

@@ -28,6 +28,7 @@ from app.core.rules import (
     evaluate_step3,
     evaluate_step4_decision,
 )
+from app.services.master_data_service import get_master_data_service
 from app.services.oracle_mcp import OracleMCPClient
 from app.services.vision_extractor import VisionExtractor
 from app.services.paperless import PaperlessClient
@@ -50,6 +51,7 @@ class VerificationPipeline:
         self.vision_extractor = vision_extractor or VisionExtractor()
         self.paperless_client = paperless_client or PaperlessClient()
         self.portal_client = portal_client or PortalClient()
+        self.master_data_service = get_master_data_service()
 
     async def execute_matching_engine(
         self,
@@ -64,12 +66,20 @@ class VerificationPipeline:
         # Principle D3: Skip Oracle EBS if E28 line math error is detected
         if has_e28:
             logger.info(f"Doc {doc.doc_id}: E28 Line Math error detected. Bypassing Oracle EBS.")
+            oracle_data = {
+                "queried": False,
+                "reason": "Bypassed due to E28 Line Math Error",
+                "po_number": doc.invoice.po_number,
+                "count": 0,
+                "receipts": []
+            }
             return evaluate_step4_decision(
                 doc=doc,
                 rules=rules,
                 exceptions=exceptions,
                 manual_review=False,
-                halted_by=halted_by
+                halted_by=halted_by,
+                oracle_data=oracle_data
             )
 
         # ---------------------------------------------------------------------
@@ -89,10 +99,22 @@ class VerificationPipeline:
         except Exception as e:
             logger.error(f"Doc {doc.doc_id}: Oracle MCP query failed (Inv: {invoice_num}, Tax: {supplier_tax_id}, PO: {po_number}): {e}")
 
+        oracle_data = {
+            "queried": True,
+            "po_number": po_number,
+            "count": len(oracle_receipts),
+            "receipts": [r.model_dump() for r in oracle_receipts]
+        }
 
         # ---------------------------------------------------------------------
-        # STEP 2: Receipts & ORG_ID (V-04, V-05)
+        # STEP 2: Receipts & ORG_ID (V-04, V-05) - 100% Dynamic Oracle
         # ---------------------------------------------------------------------
+        internal_tax_ids = None
+        try:
+            internal_tax_ids = await self.master_data_service.get_internal_tax_ids()
+        except Exception as e:
+            logger.warning(f"Could not load internal tax IDs from Oracle EBS: {e}")
+
         (
             rules,
             exceptions,
@@ -105,7 +127,8 @@ class VerificationPipeline:
             doc=doc,
             receipts=oracle_receipts,
             existing_rules=rules,
-            existing_exceptions=exceptions
+            existing_exceptions=exceptions,
+            internal_tax_ids=internal_tax_ids
         )
 
         # If Critical Receipt Issue (E17, E35, or manual_review) -> Skip STEP 3
@@ -118,7 +141,8 @@ class VerificationPipeline:
                 manual_review=manual_review,
                 halted_by=halted_by,
                 address_matched=address_matched,
-                intercompany=intercompany
+                intercompany=intercompany,
+                oracle_data=oracle_data
             )
 
         # ---------------------------------------------------------------------
@@ -141,7 +165,8 @@ class VerificationPipeline:
             manual_review=manual_review,
             halted_by=halted_by,
             address_matched=address_matched,
-            intercompany=intercompany
+            intercompany=intercompany,
+            oracle_data=oracle_data
         )
 
         return table9_result

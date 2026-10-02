@@ -522,13 +522,20 @@ async function loadDocuments() {
     return;
   }
 
-  $('count').textContent = 'Loading documents from Paperless-ngx...';
+  $('count').textContent = 'Loading all documents from Paperless-ngx...';
   try {
-    const res = await fetch(API_BASE + API.documents + '?page_size=50', {
+    const res = await fetch(API_BASE + API.documents + '?fetch_all=true', {
       headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: Paperless service unavailable`);
+      let errDetail = `HTTP ${res.status}`;
+      try {
+        const errJson = await res.json();
+        errDetail = errJson.detail || errJson.message || errDetail;
+      } catch (e) {
+        errDetail = await res.text() || errDetail;
+      }
+      throw new Error(errDetail);
     }
     const data = await res.json();
     if (data.results && data.results.length > 0) {
@@ -545,20 +552,35 @@ async function loadDocuments() {
         result: null,
         stepLogs: [],
       }));
-      toast(`Loaded ${documents.length} documents from Paperless-ngx`);
+      toast(`Loaded ${documents.length} document(s) from Paperless-ngx`);
     } else {
-      toast('No documents found in Paperless-ngx. Loading mock sample.');
-      setMockMode(true);
-      return;
+      documents = [];
+      toast('No documents found in Paperless-ngx');
     }
+    initTags();
+    renderCards();
   } catch (err) {
-    console.warn('Live API error, falling back to mock mode:', err);
-    toast('Paperless-ngx unreachable. Switched to Mock mode.');
-    setMockMode(true);
-    return;
+    console.error('Paperless API error:', err);
+    documents = [];
+    $('count').textContent = 'Connection error (Paperless-ngx)';
+    $('selectedCount').textContent = 'Selected 0';
+    $('processBtn').disabled = true;
+    $('cards').innerHTML = `
+      <div class="empty" style="padding:48px 24px;text-align:center;grid-column:1/-1;background:white;border-radius:12px;border:1px solid #f0d5d5;">
+        <div style="font-size:42px;margin-bottom:12px;">⚠️</div>
+        <h3 style="color:var(--red);margin:0 0 10px;font-size:17px;font-weight:800;">ไม่สามารถเชื่อมต่อ Paperless-ngx ได้</h3>
+        <p style="color:var(--mut);max-width:560px;margin:0 auto 18px;font-size:13px;line-height:1.6;">
+          ${esc(err.message)}<br>
+          <span style="font-size:11.5px;color:#8997a5;">กรุณาตรวจสอบว่า Paperless-ngx กำลังทำงาน และตั้งค่า PAPERLESS_BASE_URL / PAPERLESS_API_TOKEN ในไฟล์ .env ถูกต้อง</span>
+        </p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn primary small" onclick="loadDocuments()">↻ ลองเชื่อมต่อใหม่ (Retry)</button>
+          <button class="btn outline small" onclick="toggleMode()">สลับไปโหมด Demo (Mock)</button>
+        </div>
+      </div>
+    `;
+    toast('⚠️ ไม่สามารถเชื่อมต่อ Paperless-ngx: ' + (err.message || ''));
   }
-  initTags();
-  renderCards();
 }
 
 // =============================================================================
@@ -1075,6 +1097,7 @@ function mockResult(d) {
   const rules = Object.keys(RULE_NAMES).map(id => ({ rule_id: id, result: 'pass' }));
   failures.forEach(f => Object.assign(rules.find(r => r.rule_id === f.rule_id), f));
 
+  const poNum = 'PO-' + (42000000 + (parseInt(d.id) || 100));
   return {
     schema_version: '1.1',
     doc_id: String(d.id),
@@ -1082,7 +1105,7 @@ function mockResult(d) {
     standard_version: '6.2',
     invoice: {
       invoice_num: 'INV-' + d.id,
-      po_number: 'PO-' + (42000000 + (parseInt(d.id) || 100)),
+      po_number: poNum,
       supplier_name: 'AAPICO Amata Co., Ltd.',
       supplier_tax_id: '0105539001234',
       customer_name: 'AAPICO Hitech Public Company Limited',
@@ -1096,6 +1119,41 @@ function mockResult(d) {
       receipt_num: 'RCV-' + d.id,
       org_id: 103,
       receipt_total: 2910
+    },
+    oracle_data: {
+      queried: true,
+      po_number: poNum,
+      count: 2,
+      receipts: [
+        {
+          PO_HEADER_ID: 9001,
+          PO_NUMBER: poNum,
+          LINE_NUM: 1,
+          ITEM_DESCRIPTION: 'Precision stamping part A-102',
+          QUANTITY_RECEIVED: d.id === 124 ? 2 : 3,
+          UNIT_PRICE: 130,
+          UNIT_MEAS_LOOKUP_CODE: 'PCS',
+          ORG_ID: 103,
+          LINE_TOTAL: (d.id === 124 ? 2 : 3) * 130,
+          RCV_INV_NUM: 'RCV-' + d.id,
+          SUPPLIER_NAME: 'AAPICO Amata Co., Ltd.',
+          SUPPLIER_TAX_ID: '0105539001234'
+        },
+        {
+          PO_HEADER_ID: 9001,
+          PO_NUMBER: poNum,
+          LINE_NUM: 2,
+          ITEM_DESCRIPTION: 'CNC machined bracket B-405',
+          QUANTITY_RECEIVED: 4,
+          UNIT_PRICE: 630,
+          UNIT_MEAS_LOOKUP_CODE: 'PCS',
+          ORG_ID: 103,
+          LINE_TOTAL: 2520,
+          RCV_INV_NUM: 'RCV-' + d.id,
+          SUPPLIER_NAME: 'AAPICO Amata Co., Ltd.',
+          SUPPLIER_TAX_ID: '0105539001234'
+        }
+      ]
     },
     lines: [
       { description: 'Precision stamping part A-102', invoice_qty: 3, uom: 'PCS', invoice_price: 130, invoice_amount: 390, receipt_qty: d.id === 124 ? 2 : 3, receipt_price: 130, match_level: 'M1' },
@@ -1170,6 +1228,7 @@ function renderVerification(d) {
   }).join('');
 
   const statusClass = r.decision.status === 'Auto-pass' ? 'success' : r.decision.status === 'Hold' ? 'error' : 'running';
+  const oracleCount = r.oracle_data?.receipts?.length ?? (r.oracle_data?.count ?? 0);
 
   $('resultBody').innerHTML = `
     <div class="doc-head">
@@ -1192,6 +1251,7 @@ function renderVerification(d) {
     <div class="tabs">
       <button class="tab on" onclick="showTab(this,'summaryPane')">Summary</button>
       <button class="tab" onclick="showTab(this,'linesPane')">Lines (${(r.lines || []).length})</button>
+      <button class="tab" onclick="showTab(this,'oraclePane')">Oracle Receipts (${oracleCount})</button>
       <button class="tab" onclick="showTab(this,'rulesPane')">Rules V-01 to V-09</button>
       <button class="tab" onclick="showTab(this,'jsonPane')">JSON Output</button>
     </div>
@@ -1206,8 +1266,8 @@ function renderVerification(d) {
           <b class="${fails.length ? 'badtext' : 'good'}">${fails.length}</b>
         </div>
         <div class="stat">
-          <span>Oracle MCP</span>
-          <b>${r.decision.oracle_called ? 'Queried' : 'Bypassed'}</b>
+          <span>Oracle EBS</span>
+          <b>${r.oracle_data?.queried ? `${oracleCount} row(s)` : (r.decision.oracle_called ? 'Queried' : 'Bypassed')}</b>
         </div>
       </div>
       ${fails.length ? fails.map(x => `
@@ -1222,12 +1282,71 @@ function renderVerification(d) {
     <div id="linesPane" class="pane">
       ${lineTable(r.lines || [])}
     </div>
+    <div id="oraclePane" class="pane">
+      ${oracleTable(r.oracle_data)}
+    </div>
     <div id="rulesPane" class="pane">
       ${ruleTable(rules)}
     </div>
     <div id="jsonPane" class="pane">
       <pre>${esc(JSON.stringify(r, null, 2))}</pre>
     </div>
+  `;
+}
+
+function oracleTable(data) {
+  if (!data) {
+    return '<div class="empty">No Oracle EBS data attached to this verification.</div>';
+  }
+  if (!data.queried) {
+    return `
+      <div style="padding:16px;background:var(--amberbg);border:1px solid #ebd292;border-radius:8px;color:var(--amber);">
+        <b>Oracle EBS Query Bypassed:</b> ${esc(data.reason || 'Bypassed')}
+      </div>
+    `;
+  }
+  const receipts = data.receipts || [];
+  if (!receipts.length) {
+    return `<div class="empty">Oracle EBS query completed for PO <b>${esc(data.po_number || '—')}</b>, but returned 0 receipt rows.</div>`;
+  }
+  return `
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span class="hint">PO Number: <b>${esc(data.po_number || receipts[0]?.PO_NUMBER || '—')}</b></span>
+      <span class="hint">Receipt Count: <b>${receipts.length} row(s)</b></span>
+      <span class="hint">Supplier: <b>${esc(receipts[0]?.SUPPLIER_NAME || '—')}</b></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>PO Number</th>
+          <th>Line</th>
+          <th>Description</th>
+          <th>Qty Received</th>
+          <th>UOM</th>
+          <th>Unit Price</th>
+          <th>Line Total</th>
+          <th>Receipt / Inv Num</th>
+          <th>Org ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${receipts.map((x, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><b>${esc(x.PO_NUMBER || '—')}</b></td>
+            <td>${esc(x.LINE_NUM ?? '—')}</td>
+            <td>${esc(x.ITEM_DESCRIPTION || '—')}</td>
+            <td class="num">${x.QUANTITY_RECEIVED ?? 0}</td>
+            <td>${esc(x.UNIT_MEAS_LOOKUP_CODE || 'PCS')}</td>
+            <td class="num">${money(x.UNIT_PRICE)}</td>
+            <td class="num">${money(x.LINE_TOTAL || ((x.QUANTITY_RECEIVED || 0) * (x.UNIT_PRICE || 0)))}</td>
+            <td>${esc(x.RCV_INV_NUM || x.AP_INV_NUM || '—')}</td>
+            <td>${esc(x.ORG_ID || x.OU_ORG_ID || '—')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
   `;
 }
 
