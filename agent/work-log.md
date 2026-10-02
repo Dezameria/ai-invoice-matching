@@ -1,6 +1,7 @@
 # Work Log
 
 บันทึกการดำเนินงานและผลตรวจสอบตามลำดับเวลา รายการใหม่ต้องเพิ่มด้านล่างเท่านั้น
+
 ## 2026-10-01
 
 ### `WORK-20261001-001` — Establish central architecture documentation in `docs/`
@@ -80,3 +81,36 @@
 - ตรวจสอบความถูกต้อง: Backend unittest 15 รายการผ่าน, TypeScript + Vite production build ผ่าน, Playwright E2E 6 รายการผ่าน (Edge browser 17.4s), ตรวจภาพจริงผ่าน Browser Subagent ทั้ง desktop และ mobile viewports
 - ไม่มี commit, push หรือ public deployment
 
+
+### `WORK-20261002-007` — Extend synthetic invoice corpus to 155 PDFs with engine-derived answer key
+- Timestamp: `2026-10-02T18:40:00+07:00`
+- ศึกษา `app/core/rules.py` และ `app/services/pipeline.py` เพื่อทำ replay path ที่เหมือน production ทุกขั้น รวมถึง branch ที่ skip Oracle (E28) และ skip STEP 3 (E17/E35/safety cap)
+- ออกแบบ 100 เคสใหม่จากข้อมูล Oracle จริงใน `_raw/` โดยสร้าง `Picker` ที่เลือก receipt group แบบ deterministic (ใช้ครบทุก group ก่อนใช้ซ้ำ) และ scenario พิเศษ: ไม่มีใบรับ, หลายใบรับภายใต้ PO เดียว, price-swap, 50-row safety cap
+- ให้ engine เป็นผู้ผลิต expected_result ทั้งหมด แล้วเพิ่ม invariants ตรวจผลรายหมวด (F ต้อง Auto-pass, I ต้อง intercompany=true, H ต้องมีหลาย code ฯลฯ) และ warn เมื่อ description รายงาน code น้อยกว่าจริง
+- รัน `verify_dataset.py --fix` พบ drift 30 รายการของ wave 1 (ส่วนใหญ่คือ `halted_by` ที่เขียนเองและ E31 ที่เกิดพร้อม E34/E06) และ recalibrate จน drift = 0 / 155 เคส
+- Render PDF ครบ 155 ไฟล์ (Tahoma, 3 layout, watermark/speckle, ต่อบัญชี 2 หน้า) และรัน `check_pdfs.py` ผ่าน 155 ไฟล์ 157 หน้าไม่มี mismatch
+- ตรวจภาพจริง 3 หน้าด้วย pypdfium2 + Pillow: อักษรไทยถูกต้อง, watermark ไม่บังข้อมูล, พื้นที่ลายเซ็นผู้รับว่างตามเคส E26, หน้าต่อ (continuation) แสดงหัวเอกสารและเลขหน้า
+- ติดตั้ง `fpdf2` และ `pypdf` ใน `.venv` ของ service เพื่อรันชุดทดสอบ (ไม่ถูกเพิ่มใน `requirements.txt` ของ production)
+- ไม่มี commit, push หรือการเรียก Oracle/LiteLLM/Paperless จริง
+
+### `WORK-20261002-008` — Wire the invoice corpus into an offline pytest gate
+- Timestamp: `2026-10-02T19:05:00+07:00`
+- เปลี่ยน `check_pdfs.py`/`verify_dataset.py` จาก script ล้วนเป็น module ที่ import ได้ (`audit(dataset)`, `verify(dataset, fix)`) โดยคง CLI เดิมไว้ แล้วสร้าง `tests/test_invoice_corpus.py` 7 test ครอบคลุม shape, engine drift, coverage, wave-2 invariants และ PDF ↔ key
+- เพิ่ม `pytest.ini` + `tests/conftest.py` และ marker `live` เพื่อให้ `python -m pytest` รันเฉพาะชุด offline (ผลลัพธ์ `9 passed, 2 deselected in ~1.7s`) และรันจาก repo root ได้ผ่าน conftest path setup
+- เขียน mutation check 4 แบบ (โกหกว่าฟิลด์หาย, โกหกว่าฟิลด์มี, โกหกจำนวนหน้า, โกหก decision) เพื่อยืนยันว่า gate ไม่ใช่ test เปล่า — พบว่า branch "ฟิลด์ที่ต้องหาย" ไม่ทำงานกับ wave 1 จึงแก้ให้ไปอ่านค่าจริงจาก `_raw` แล้วตรวจซ้ำผ่านทั้งหมด
+- อัปเดต `OCR service/n8n/README.md` (หัวข้อ Offline Regression Suite) และ `tests/test_invoices/README.md` (หัวข้อ CI gate)
+- ไม่มี commit/push และไม่มีการเรียก endpoint ภายนอก
+
+## 2026-10-02 (รอบเย็น: n8n workflow)
+
+### `WORK-20261002-009` — อัปเดต n8n workflow เป็น v6.5 ให้ตรงกับ Python engine ผ่าน MCP
+- Timestamp: `2026-10-02T20:20:00+07:00`
+- ตรวจสอบว่า `aiva-n8n` MCP ใช้งานได้ (connected + authenticated, 52 tools) แล้ว export workflow `aLUCmn3l0bZDjbVV` ตัวจริงลงมาอ่านทั้ง 23 nodes ก่อนแก้
+- อ่าน `app/core/rules.py`, `app/services/oracle_mcp.py`, `pipeline.py`, `vision_extractor.py`, `portal.py`, `paperless.py`, `master_data_service.py` ทั้งไฟล์ เพื่อเทียบ parity กับ n8n ทีละ node แล้วเก็บ JS ต้นฉบับไว้ที่ `tmp/nodes/*.js`
+- ยืนยัน SQL shape ด้วย MCP `oracle` (`oracle_sql_run`): invoice `112603974` ไม่ปรากฏใน `RCV_INV_NUM` (primary query คืน no rows) แต่ branch `PO_NUM='40121195'` คืนแถว → จึงใช้ `(Invoice+Tax) OR (PO_NUM)` ในคำสั่งเดียว และ scalar `SUPPLIER_IS_INTERNAL` จาก `financials_system_params_all` ตรวจ intercompany (tax `0145556001111` คืน 1)
+- อัปเดตด้วย `aiva-n8n_update_workflow` หลาย-call (atomic): `N2.4`, `HTTP Request`, `N4`, `N7` (jsonBody), `N7.1`, `N8`, `N9`, `N10`, `N12` (settings + options), `N13` และเปลี่ยนชื่อ workflow เป็น `AIVA PO-INV Matching Verification v6.5`; คง `N5`/`N11` ไว้เพราะตรงกับ Python แล้ว
+- พบว่า `setNodeParameter.path` สัมพัทธ์กับ `parameters` ทำให้ call แรกเขียน code ลง `parameters.parameters.jsCode` — แก้โดยเขียน path เป็น `/jsCode`, `/jsonBody`, `/options` และล้างค่าค้างด้วย `value: null` แล้ว export ซ้ำเทียบ byte-for-byte: **7 jsCode + N7 jsonBody ตรงกับไฟล์ต้นฉบับทุกตัวอักษร**
+- ตรวจ `jsCode` ทั้ง 12 Code nodes ด้วย `node --check` (ผ่านทั้งหมด) และเขียน harness `tmp/run_flow_sim.js` ที่ **รัน jsCode ที่ export จาก workflow จริง** กับ input จำลอง 7 เคส: Auto-pass, PO fallback, E28 bypass, E17, E06, E35, intercompany+E26 — ผลตรงกับ Python ทุกเคส และผ่าน N11 Schema Validate ครบ
+- แก้ `OCR service/n8n/n8n flow structure.md` เป็น v6.5: ตารางสิ่งที่เปลี่ยน, หลักการ D2/D3, ผัง mermaid, ตาราง node 8/9/13/14/15/17/20/21, SQL section ใหม่ (dual branch + โหมด `INVOICE/PO_FALLBACK/PO/NONE` + ข้อจำกัด `ORA-01791`), กฎ V-07, Python↔n8n Parity Map, ผล regression test และบันทึกข้อควรระวังของ MCP tool
+- Workflow ยัง `active: false` จึงไม่มีผลกระทบ production ระหว่างแก้; ไม่มีการเรียก LiteLLM/Paperless/Portal จริง และไม่มี commit/push ในรอบนี้
+- ก่อน commit: สร้าง `.gitignore` ของ repo (กัน archive, `tmp/`, `.pi/`, `.mcp.json`, ไฟล์ผลรัน batch ที่มีข้อมูล invoice จริง และ corpus ที่สังเคราะห์จาก Oracle extract) และเพิ่ม module-level skip ใน `tests/test_invoice_corpus.py` เพื่อให้ clone ที่ยังไม่มีข้อมูล corpus รัน pytest ผ่าน — ตรวจจริงทั้งตอนมีข้อมูล (`9 passed, 2 deselected`) และตอนถอดข้อมูลออก (`2 passed, 1 skipped`)
