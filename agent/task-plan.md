@@ -1,6 +1,6 @@
 # Task และ Plan
 
-Last updated: `2026-10-03T11:35:00+07:00`
+Last updated: `2026-10-03T12:20:00+07:00`
 
 ## Concurrent Task
 - Task ID: `TASK-20261003-004`
@@ -25,7 +25,7 @@ Last updated: `2026-10-03T11:35:00+07:00`
 - Result:
   - เพิ่มโฟลเดอร์ `Web portal/invoice-webv3` (9 ไฟล์ ~2,293 บรรทัด) + `README.md` อธิบาย provenance และข้อจำกัด
   - `node --check` ผ่าน 4 สคริปต์; `node tools/smoke-test.js` ผ่าน 46 การตรวจ
-  - ยังไม่ต่อ API จริง ยังไม่ commit/push
+  - commit `94d8cad` และ push ไป `origin/invoice-web` แล้ว (ยังไม่ต่อ API จริง)
 
 ## Previous Task Record
 - Task ID: `TASK-20261003-002`

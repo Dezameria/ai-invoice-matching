@@ -10,12 +10,12 @@ Last verified: `2026-10-03T11:35:00+07:00`
   - `Web portal/invoice-web-9054076`: โค้ดจาก commit 9054076 สำหรับทดสอบเทียบเคียง (พอร์ต 5173 / 8010)
   - `Web portal/invoice-webv3`: mockup ใหม่แบบ no-build (plain classic script ไม่ต้อง build) สำหรับรีวิว UI + business rule
 - Existing OCR service and original HTML mockup remain unchanged this development session.
-- Agent records, central docs and invoice-web working tree are organized; previous commit `9054076` pushed to remote.
+- Agent records, central docs and invoice-web working tree are organized; latest commit `94d8cad` (invoice-webv3 mockup) pushed to `origin/invoice-web`.
 - Repository-local skill `.agents/skills/aiva-invoice-core` สรุปขอบเขตระบบ field หลัก กฎ V-01–V-09, decision/routing, workflow/audit requirements และความขัดแย้งระหว่าง code, docs และ mockup เพื่อใช้เป็น domain reference ระหว่างพัฒนาต่อ.
 
 ## Mockup v3 (no-build) — `Web portal/invoice-webv3`
 
-สถานะ: สร้างใหม่ทั้งโฟลเดอร์ ยังไม่ต่อ backend และยังไม่ commit/push (untracked)
+สถานะ: สร้างใหม่ทั้งโฟลเดอร์ ยังไม่ต่อ backend — commit `94d8cad` และ push ไป `origin/invoice-web` แล้ว (2026-10-03)
 
 - เปิดจาก `file://` ได้ทันที (ดเบิลคลิก `index.html`) ไม่ต้องมี `node_modules` หรือ bundler; ปุ่มคัดลอก JSON ต้องเปิดผ่าน `python -m http.server 5190`
 - โหลดสคริปต์คลาสสิก 4 ไฟล์ตามลำดับ `assets/data.js` → `assets/domain.js` → `assets/docs.js` → `assets/app.js`
@@ -77,7 +77,7 @@ Last verified: `2026-10-03T11:35:00+07:00`
 - `docs/` remains original architecture reference; code/docs have known contract and rules-version differences recorded in invoice-web planning documents.
 
 ## Constraints / Next Work
-- Mockup v3 เป็น in-memory ทั้งหมด (reload แล้วคืนค่าเดิม) ยังไม่เรียก `GET /api/portal/v1/documents`, `/documents/{id}`, `/kpis`, `/workflow/actions`, `/workflow/outbox` และยังไม่ commit/push
+- Mockup v3 เป็น in-memory ทั้งหมด (reload แล้วคืนค่าเดิม) ยังไม่เรียก `GET /api/portal/v1/documents`, `/documents/{id}`, `/kpis`, `/workflow/actions`, `/workflow/outbox`
 - Current release is local/integration pilot, not company-scoped production: shared API keys are workspace-wide; Entra, user/receiver RBAC and immutable user audit remain unimplemented.
 - Workflow actions ใน shared-key pilot ไม่มีตัวตนรายบุคคล; ต้องเชื่อม Entra ก่อนบังคับ EU/ACC/APR และ separation of duties.
 - SQLite startup table creation currently used; PostgreSQL/Alembic and production backup/storage/retention/scan/rate limits remain future work.

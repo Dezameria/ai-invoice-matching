@@ -198,3 +198,11 @@
 - หลังแก้: console error 0, หน้า 390px ไม่มี overflow, ผู้ใช้ตั้งต้น (ACC) เห็นคิว 11 ฉบับ และ `.qi.on` ตรงกับเอกสารที่เปิด
 - ลบสคริปต์/ภาพ screenshot ชั่วคราวทั้งหมดออกจากโฟลเดอร์ mockup เหลือเฉพาะไฟล์ส่งมอบ (index.html, README.md, assets/4 ไฟล์+css, tools/2 ไฟล์)
 - ยืนยันซ้ำด้วย `node --check` (4 ไฟล์) และ `node tools/smoke-test.js` → ผ่าน 46 การตรวจ
+
+### `WORK-20261003-015` — Commit และ push mockup v3 ขึ้น `origin/invoice-web`
+- Timestamp: `2026-10-03T12:20:00+07:00`
+- ตรวจ staging ก่อน commit: มีเฉพาะ 9 ไฟล์ของ `Web portal/invoice-webv3` + canonical records 6 ไฟล์, ขนาดโฟลเดอร์ 192K, ไม่มีไฟล์ ชั่วคราว/screenshot/node_modules และ smoke test ยืนยันว่าไม่พบรูปแบบ credential
+- รัน `git fetch origin invoice-web` ก่อน เพื่อยืนยันว่า local ahead 1 (fast-forward) แล้ว commit `94d8cad` ด้วย message `feat(portal): add invoice-webv3 no-build mockup with as-built rules and conflict surfacing`
+- repo ไม่มี `user.email` ใน config จึงใส่ `-c user.email="aapico.intern07@aapico.com"` เฉพาะคำสั่ง commit (ไม่ได้แก้ global config) เพื่อคง author เดียวกับ commit ก่อนหน้า
+- push สำเร็จ `b248e7d..94d8cad` → `origin/invoice-web`; `git status -sb` clean และ sync กับ remote
+- ไม่ได้ push code ขึ้น分支อื่น ไม่มี deployment และไม่มี secret ถูกแนบขึ้นไป

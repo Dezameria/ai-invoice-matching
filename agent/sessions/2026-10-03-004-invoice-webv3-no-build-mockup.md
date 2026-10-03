@@ -66,3 +66,11 @@
 - ผลตรวจหลังแก้: console/page error 0, ไม่มีค่าผิดปกติ (`undefined`/`NaN`/`[object Object]`) ในการไล่ทุกผู้ใช้×ทุกหน้า×ทุกเอกสาร×ทุกแท็บ, 390px ไม่มี horizontal overflow, computed style ตรง token (header 56px `#0D274D`, active tab `#00B5AF`)
 - ไฟล์ชั่วคราวที่ใช้ตรวจ (script + screenshot) ถูกลบออกหมดแล้ว โฟลเดอร์ mockup เหลือเฉพาะไฟล์ส่งมอบ
 - รายละเอียดงาน/ปัญหาเพิ่มดูได้ที่ `CHG-20261003-014`, `WORK-20261003-014`, `ERR-20261003-005`
+
+## Addendum (commit และ push)
+
+- เวลา: `2026-10-03T12:20:00+07:00`
+- commit `94d8cad` (15 ไฟล์ +2,534/−2) และ push `b248e7d..94d8cad` ไป `origin/invoice-web` สำเร็จ, working tree clean
+- author ใช้ `Deizyn <aapico.intern07@aapico.com>` ผ่าน `-c user.email=...` เฉพาะคำสั่ง commit เพราะ repo นี้ไม่ได้ตั้ง `user.email` ไว้ (ไม่ได้แก้ git config)
+- ก่อน commit ตรวจว่าไม่มีไฟล์ชั่วคราว/ภาพ screenshot/node_modules และ `tools/smoke-test.js` ผ่าน 46 การตรวจ (รวมสแกนรูปแบบ credential)
+- รายละเอียด work log: `WORK-20261003-015`
