@@ -16,6 +16,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
+# Ensure project root is in sys.path
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 from app.config import get_settings
 from app.services.paperless import PaperlessClient
 from app.services.pipeline import VerificationPipeline
@@ -363,8 +368,8 @@ def main():
     parser.add_argument("--skip-checked", action="store_true", help="Skip documents already marked with Tag ID 12 (check n8n)")
     parser.add_argument("--tag-paperless", action="store_true", help="Append Tag ID 12 in Paperless after verification")
     parser.add_argument("--post-portal", action="store_true", help="Post verification result to AIVA portal")
-    parser.add_argument("--output", "-o", type=Path, default=Path("failed_verifications.json"), help="Output JSON path for failed cases")
-    parser.add_argument("--report", "-r", type=Path, default=Path("failed_verifications_report.md"), help="Output Markdown report path")
+    parser.add_argument("--output", "-o", type=Path, default=_ROOT / "tests" / "reports" / "batch_failed_verifications.json", help="Output JSON path for failed cases")
+    parser.add_argument("--report", "-r", type=Path, default=_ROOT / "tests" / "reports" / "batch_verifications_report.md", help="Output Markdown report path")
 
     args = parser.parse_args()
 

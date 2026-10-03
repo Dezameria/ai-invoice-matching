@@ -383,8 +383,8 @@ class TestRunner:
         data_ent = res_ent.json() if res_ent.status_code == 200 else []
         self.record_result(
             "GET /api/v1/master-entities",
-            res_ent.status_code == 200 and len(data_ent) == 27,
-            f"(Found {len(data_ent)} master entities)"
+            res_ent.status_code == 200 and len(data_ent) >= 27,
+            f"(Found {len(data_ent)} master entities dynamically from Oracle EBS)"
         )
 
         # 5.3 GET /oracle-receipts/{po_number}
