@@ -1,8 +1,33 @@
 # Task และ Plan
 
-Last updated: `2026-10-03T08:33:34+07:00`
+Last updated: `2026-10-03T11:35:00+07:00`
 
 ## Concurrent Task
+- Task ID: `TASK-20261003-004`
+- Title: สร้าง Web portal mockup v3 แบบ no-build ใน `Web portal/invoice-webv3`
+- Status: `completed`
+- Goal: ทำ mockup ที่เปิดจาก `file://` ได้ทันที โดยไม่ต้องใช้ build tooling เพื่อนำข้อมูลจริงในคลังโค้ด (master data, กฎ V-01–V-09, workflow/receiving contract) มาแสดงในโครงหน้าตาของ Mockup v4.4 พร้อมเปิดเผยข้อขัดแย้งระหว่าง docs / as-built / mockup ให้ทีมรับรองก่อนพัฒนาจริง
+- Plan:
+  - [x] อ่าน master data, rules engine, receiving contract, docs standard และ Mockup v4.4
+  - [x] ตั้งโครง no-build (classic script 4 ไฟล์ + CSS + HTML)
+  - [x] สร้าง `tools/build-domain-data.py` เพื่อกำเนิด `assets/data.js` จาก OCR service แทนการ copy มือ
+  - [x] เขียน domain reference (กฎ, decision order, ownership, RBAC, action/reason code, mapping, conflicts, provenance)
+  - [x] สังเคราะห์ชุดเอกสาร 16 ฉบับให้ครอบคลุมทุกเคส รวมถึง fail-safe/duplicate/revision/pipeline-fail
+  - [x] ทำ UI ให้โต้ตอบได้: คิว/KPI/chips, 6 แท็บ, PDF viewer จำลอง, action + 409 + outbox, RBAC, audit, reference
+  - [x] เขียน `tools/smoke-test.js` และทำให้ผ่านครบทุกการตรวจ
+  - [x] อัปเดต canonical records ตาม Agent Operating Protocol
+- Acceptance criteria:
+  - เปิด `index.html` จาก `file://` ได้โดยไม่ต้อง install/build และไม่มีการพึ่งพาไฟล์นอกรากโปรเจกต์
+  - สถานะเอกสารทุกฉบับใน mockup คำนวณซ้ำได้จาก rules ที่แสดงบนหน้าจอ (ไม่ใส่ผลแบบมือล้วน)
+  - ไม่ relabel exception code ข้าม ruleset และความขัดแย้งของข้อมูลปรากฏให้ผู้ใช้เห็น
+  - ทุก action จำลอง reason code, version check (409) และ outbox ตาม contract
+  - ไม่แก้โค้ด portal/backend/OCR ที่ใช้อยู่
+- Result:
+  - เพิ่มโฟลเดอร์ `Web portal/invoice-webv3` (9 ไฟล์ ~2,293 บรรทัด) + `README.md` อธิบาย provenance และข้อจำกัด
+  - `node --check` ผ่าน 4 สคริปต์; `node tools/smoke-test.js` ผ่าน 46 การตรวจ
+  - ยังไม่ต่อ API จริง ยังไม่ commit/push
+
+## Previous Task Record
 - Task ID: `TASK-20261003-002`
 - Title: จัดทำ repository skill สรุปแก่นระบบ AIVA Invoice Matching
 - Status: `completed`

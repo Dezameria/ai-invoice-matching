@@ -113,3 +113,26 @@
 - คืนค่าและอัปเดต Canonical Records ในโฟลเดอร์ราก `agent/` ตามข้อกำหนด `AGENTS.md`
 
 
+
+### Added — `CHG-20261003-013`
+- Timestamp: `2026-10-03T11:35:00+07:00`
+- เพิ่ม Web portal mockup เวอร์ชันใหม่ `Web portal/invoice-webv3` แบบ **no-build** (เปิด `index.html` จาก `file://` ได้ทันที ไม่ต้อง `npm install`/bundler) โดยใช้ design token ของ Mockup v4.4 (navy `#0D274D`, teal `#00B5AF`, Sarabun + JetBrains Mono)
+- แยกชั้นข้อมูลเป็นสคริปต์คลาสสิก 4 ไฟล์ตามลำดับ `assets/data.js` → `assets/domain.js` → `assets/docs.js` → `assets/app.js` (ไม่ใช้ ES module/bundler)
+- `assets/data.js` รีเจเนอเรตได้จาก `tools/build-domain-data.py` ซึ่งอ่าน `OCR service/n8n/app/core/master_data.py` (นิติบุคคล 48 แถว) และ `rules.py` (exception as-built 15 รหัส E05 E06 E09 E12 E13 E16 E17 E25 E26 E28 E29 E30 E31 E34 E35 + ชุดรหัสที่มอบหมายให้ user E06 E12 E13 E17 E26 E34 E35)
+- แสดงผลตามพฤติกรรม engine จริง: decision order manual_review → Manual Review, High → Hold, Medium → Review, ที่เหลือรวม Low → Auto-pass และจับคู่รายบรรทัดแบบบันได M1 → M2 → M3 → M4 (M4 ถือว่าน่าสงสัย ต้องให้คนตรวจ)
+- `assets/docs.js` เป็นข้อมูลสังเคราะห์ 16 ฉบับ ครอบคลุม Auto-pass, ขาดลายเซ็นผู้รับของ, วางบิลเกินรับจริง, เลขคณิตบรรทัดผิด, UOM/ราคาต่าง, ขาดใบรับ, หลายใบรับ, เอกสารซ้ำ, ORG/Tax ID map ไม่ได้, fallback M4, revision round 2 และ pipeline fail (fail-safe)
+- จำลอง workflow ตาม receiving contract: ทุก action มี reason code, note บังคับตามกรณี, expected_workflow_version และ Idempotency-Key; version ไม่ตรงบันทึก 409 Conflict และไม่แก้สถานะ; rerun สร้าง action outbox waiting_revision และกันการสั่งซ้ำ
+- เพิ่ม RBAC 6 ผู้ใช้/5 บทบาทพร้อมขอบเขต company ↔ receiver, ตารางสิทธิ์, ตาราง Portal ↔ Entra ID ↔ Oracle RECEIVER ↔ บริษัท และตาราง Mockup ↔ Production gap
+- ไม่ปิดบังความขัดแย้งของแหล่งข้อมูล: แสดงผัง docs-catalog ↔ as-built mapping, รหัสที่ชนกัน (E13, E34), Tax ID 0107545000179 / ORG 222 / ORG 196 ที่ไม่มีใน master, ORG 556 ที่ master map แล้ว, ขีดจำกัด PDF ของ portal ↔ Vision และ Decimal ↔ JSON float
+- เพิ่ม `tools/smoke-test.js` (DOM ปลอม) ไล่เรนเดอร์ทุกผู้ใช้ ทุกหน้า ทุกแท็บ ทุกเอกสาร ทุก action และตรวจ invariant ของ decide() — ผ่าน 46 การตรวจ
+- ยังไม่ได้แก้ `invoice-webV2`, `invoice-web1`, `invoice-web-9054076`, OCR engine หรือ backend ใด และไม่ได้ต่อ API จริง
+
+### Changed — `CHG-20261003-014`
+- Timestamp: `2026-10-03T12:05:00+07:00`
+- ตรวจ `Web portal/invoice-webv3` ด้วย Chromium จริง (Playwright จาก `invoice-web-9054076/frontend`) แล้วแก้สิ่งที่เจอ:
+  - `boot()` ไม่เคยsetค่า `<select id="user">` ทำให้ `BOOT.user` ถูกเพิกเฉยและ mockup เปิดด้วยผู้ใช้ option แรก → setค่า select จาก `BOOT.user` ก่อน `switchUser()` และเปลี่ยน `BOOT.doc` เป็นเอกสารที่อยู่ในขอบเขตของผู้ใช้ตั้งต้น (`AIVA-2609-0003`) เพื่อไม่ให้ first paint แสดงหน้าล็อก
+  - แถบสเต็ปการทำงานเพิ่มขั้นที่ 4 "Portal ตรวจซ้ำ / ตัดสิน" (สถานะมาจาก `wf` + ผู้รับผิดชอบ) ให้เห็น pipeline ครบแบบ Mockup v4.4 แทนที่จะมีแค่ STEP 1–3 ของ engine
+  - หน้า PDF จำลอง highlight หลักฐานตาม `rule.page` จริง: outline สีส้มที่รายการ/คอลัมน์ที่ evidence อ้างถึง ("บรรทัด N"), กล่องลายเซ็น, คู่ Tax ID ผู้ขาย และเลข PO พร้อมสรุปบรรทัด "หลักฐานที่ระบบชี้บนหน้านี้"
+  - คิวแสดงแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่ไม่ตรงกับตัวกรอง/KPI chip ปัจจุบัน พร้อมลิงก์ `resetFilt()` ล้างตัวกรอง (เดิมคือหายไปจากคิวโดยไม่มีคำอธิบาย)
+- ผลตรวจ Chromium: console/page error 0 รายการ, ไม่มีค่า `undefined`/`NaN`/`[object Object]` ในทุกผู้ใช้×ทุกหน้า×ทุกเอกสาร×ทุกแท็บ, ที่กว้าง 390px ไม่มี horizontal overflow (0px), header 56px สี `rgb(13,39,77)`, KPI 6 ใบ, แท็บ active ใช้เส้นใต้ `rgb(0,181,175)`
+- ไม่มีไฟล์ portal/backend/OCR เดิมถูกแก้ (ยังเป็นโฟลเดอร์ `invoice-webv3` ใหม่อย่างเดียว)

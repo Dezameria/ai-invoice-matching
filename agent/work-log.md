@@ -178,3 +178,23 @@
 - จัดการไฟล์ canonical records ใน `agent/` ให้ครบถ้วนตามข้อกำหนด `AGENTS.md`
 - ทำการ commit และ push ขึ้น `origin/invoice-web`
 
+
+### `WORK-20261003-013` — สร้าง Web portal mockup v3 แบบ no-build ใน `Web portal/invoice-webv3`
+- Timestamp: `2026-10-03T11:35:00+07:00`
+- อ่านแหล่งอ้างอิง: `Web portal/AIVA-Web-Portal-Mockup-v4.4-Release.html`, `docs/matching-rules-standard-v6.2.md`, `OCR service/n8n/app/core/` (master_data.py, rules.py, models.py), `.agents/skills/aiva-invoice-core/references/core-domain.md`, `invoice-web-9054076/docs/04-receiving-api.md`, `invoice-webV2/src/data/mockInvoices.ts`
+- สร้างไฟล์ใน `Web portal/invoice-webv3`: `index.html`, `README.md`, `assets/style.css`, `assets/data.js`, `assets/domain.js`, `assets/docs.js`, `assets/app.js`, `tools/build-domain-data.py`, `tools/smoke-test.js` (รวมประมาณ 2,293 บรรทัด)
+- เขียน `tools/build-domain-data.py` ให้ import `master_data.py` ตรง ๆ แล้ว emit `assets/data.js` เพื่อไม่ให้ master data ถูก copy แบบ manual และรันซ้ำได้
+- ทำ UI ให้โต้ตอบได้จริงแทนภาพนิ่ง: คิว + KPI + company chip + ค้นหา, 6 แท็บรายละเอียด, viewer จำลอง PDF/DMS (thumbnail, highlight หลักฐาน, กล่องลายเซ็นขาด, watermark ทุกหน้า), ฟอร์ม action พร้อม reason code/version/idempotency, 409 Conflict, outbox, audit search/pagination, JSON snapshot
+- หลักการออกแบบ: ไม่ relabel exception code ข้าม ruleset — ใช้รหัส as-built เป็นหลัก และแสดงชุดรหัสใน docs เป็นคำเตือน/ผัง mapping แยก
+- ตัดสินใจให้เอกสารที่ map บริษัทไม่ได้ (ORG/Tax ID ว่างหรือไม่อยู่ใน master) แสดงในคิวฝ่ายบัญชีพร้อมป้ายเตือน แทนการหายไปจากทุกคิว เพื่อให้ fail-safe มีผู้รับผิดชอบ
+- ตรวจด้วย `node --check` ทั้ง 4 สคริปต์ (ผ่าน) และ `node tools/smoke-test.js` → ผ่าน 46 การตรวจ
+- ไม่ได้รัน OCR/Oracle/Entra/backend จริง และไม่ได้ commit/push ในขั้นตอนนี้
+
+### `WORK-20261003-014` — ตรวจ mockup v3 ด้วย Chromium และแก้ first paint / evidence highlight
+- Timestamp: `2026-10-03T12:05:00+07:00`
+- รันสคริปต์ชั่วคราวด้วย Playwright chromium (ใช้ package จาก `Web portal/invoice-web-9054076/frontend/node_modules`) เพื่อ open `file://.../invoice-webv3/index.html` จริง, เก็บ console/pageerror, ไล่สลับ 6 ผู้ใช้ × 4 หน้า × ทุกเอกสาร × 6 แท็บ, เปิด viewer/modal และวัด layout ด้วย computed style
+- พบว่า `BOOT.user` ไม่มีผลจริง เพราะ `<select>` ยังไม่ถูกsetค่า → แกใน `boot()`; เปลี่ยน `BOOT.doc` ให้อยู่ใน scope ผู้ใช้ตั้งต้น
+- เพิ่มขั้นที่ 4 "Portal ตรวจซ้ำ / ตัดสิน" ในแถบสเต็ป, เพิ่ม highlight หลักฐานตาม `rule.page` ในหน้า PDF จำลอง และเพิ่มแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่หลุดจากตัวกรอง (พร้อม `resetFilt()`)
+- หลังแก้: console error 0, หน้า 390px ไม่มี overflow, ผู้ใช้ตั้งต้น (ACC) เห็นคิว 11 ฉบับ และ `.qi.on` ตรงกับเอกสารที่เปิด
+- ลบสคริปต์/ภาพ screenshot ชั่วคราวทั้งหมดออกจากโฟลเดอร์ mockup เหลือเฉพาะไฟล์ส่งมอบ (index.html, README.md, assets/4 ไฟล์+css, tools/2 ไฟล์)
+- ยืนยันซ้ำด้วย `node --check` (4 ไฟล์) และ `node tools/smoke-test.js` → ผ่าน 46 การตรวจ

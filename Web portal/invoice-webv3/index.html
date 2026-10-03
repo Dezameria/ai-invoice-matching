@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIVA Invoice Portal — Mockup v3 (ข้อมูลสังเคราะห์)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><i>AIVA</i><div>Invoice Portal<small>Mockup v3 · ข้อมูลสังเคราะห์ · ไม่ใช่ข้อมูลจริง</small></div></div>
+  <nav id="nav"></nav>
+  <span class="sp"></span>
+  <span class="mock" title="mockup นี้ใช้ข้อมูลสังเคราะห์ และบางอย่างไม่ได้ทำงานจริงใน backend">MOCKUP</span>
+  <select id="user" class="u" onchange="switchUser()" title="สลับผู้ใช้เพื่อดูขอบเขตสิทธิ์ที่เปลี่ยนไป"></select>
+  <span id="rolebadge" class="role"></span>
+  <div id="who" class="who"></div>
+</header>
+
+<main id="app"></main>
+
+<div class="ov" id="ov">
+  <div class="modal" id="modal">
+    <div class="mh"><span id="mt"></span><button class="bg bsm" onclick="closeModal()">ปิด ✕</button></div>
+    <div class="mb" id="mb"></div>
+    <div class="mf" id="mmf"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer style="padding:18px 16px 26px;max-width:1720px;margin:0 auto;color:var(--gry);font-size:11.5px">
+  Mockup v3 — สร้างจากข้อมูลจริงในคลังโค้ด: master data และเกณฑ์ V-01–V-09 จาก <span class="src">OCR service/n8n/app/core</span>,
+  โครง field และ workflow จาก <span class="src">docs/04-receiving-api.md</span>,
+  เลย์เอาต์และบทบาทจาก <span class="src">AIVA-Web-Portal-Mockup-v4.4-Release.html</span> ·
+  เลขเอกสาร ผู้ขาย และใบรับทั้งหมดเป็น <b>ข้อมูลสังเคราะห์</b> · เปิดไฟล์นี้จาก <span class="src">file://</span> ได้โดยไม่ต้อง build
+  แต่การคัดลอก JSON ต้องเปิดผ่าน <span class="src">http://</span>
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/domain.js"></script>
+<script src="assets/docs.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
