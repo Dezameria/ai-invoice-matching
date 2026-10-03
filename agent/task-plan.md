@@ -1,25 +1,60 @@
 # Task และ Plan
 
-Last updated: `2026-10-02T12:15:00+07:00`
+Last updated: `2026-10-03T08:33:34+07:00`
+
+## Concurrent Task
+- Task ID: `TASK-20261003-002`
+- Title: จัดทำ repository skill สรุปแก่นระบบ AIVA Invoice Matching
+- Status: `completed`
+- Goal: สกัดข้อมูลหลักจาก Mockup v4.4, OCR service และ docs ให้เป็น skill สำหรับอ้างอิงระหว่างพัฒนาต่อ โดยครอบคลุมขอบเขตระบบ field สำคัญ กฎตรวจสอบ requirement และข้อขัดแย้งของแหล่งข้อมูล โดยไม่ผูกกับโครงสร้าง implementation ที่ละเอียดเกินจำเป็น
+- Plan:
+  - [x] อ่าน schema และกฎที่ OCR service ใช้งานจริง
+  - [x] อ่าน receiving contract และ requirement จาก Web Portal/docs
+  - [x] สร้าง skill และ reference ฉบับกระชับ
+  - [x] ตรวจรูปแบบ skill และตรวจทานกับ source
+  - [x] ปิดงานและอัปเดต canonical records
+- Acceptance criteria:
+  - มีรายการ field หลักตั้งแต่เอกสาร, รายการสินค้า, receipt, ผลกฎ, workflow และ audit
+  - สรุป V-01 ถึง V-09, decision, tolerance และ fail-safe ตาม implementation ปัจจุบัน
+  - แยก requirement ที่ต้องมีออกจากสิ่งที่ยังต้องรับรองก่อน production
+  - ระบุความขัดแย้งสำคัญระหว่าง docs, mockup และ code เพื่อไม่ให้ agent เดาความหมายเอง
+- Result:
+  - เพิ่ม `.agents/skills/aiva-invoice-core/SKILL.md` เป็น entrypoint และกติกาการใช้ domain knowledge
+  - เพิ่ม `references/core-domain.md` ครอบคลุม system boundary, field catalog, V-01–V-09, decision/routing, workflow, production requirements และ source conflicts
+  - เพิ่ม `agents/openai.yaml` สำหรับการค้นพบและเรียกใช้ skill
+  - ตรวจด้วย `quick_validate.py` ผ่าน และตรวจ source/reference paths ครบ
 
 ## Active Task
+- Task ID: `TASK-20261003-003`
+- Title: จัดการ Commit และ Push โค้ดทั้งหมดขึ้น Git
+- Status: `completed`
+- Goal: บันทึกการเปลี่ยนแปลงใน Web portal (invoice-webV2, invoice-web1, invoice-web-9054076) และ Canonical records ใน agent/ ขึ้น GitHub
+- Result: Commit และ push เรียบร้อย
+
+## Previous Tasks
+- Task ID: `TASK-20261003-001`
+- Title: พัฒนา Modern Frontend V2 ในโฟลเดอร์ Web portal/invoice-webV2
+- Status: `completed`
+- Goal: สร้าง Frontend ใหม่ด้วย React 19 + TypeScript + Vite ในโฟลเดอร์ Web portal/invoice-webV2 ตามสถาปัตยกรรม V2 ที่พรีเมียม สบายตา โมเดิร์น รองรับการทำงานแบบ Standalone (Mock data สมบูรณ์) พร้อมวางโครงสร้างโมดูลที่สะอาดเพื่อเชื่อมต่อ Real API และต่อยอดได้ง่าย
+- Plan:
+  - [x] Initialized Vite React + TypeScript ใน `Web portal/invoice-webV2`
+  - [x] ติดตั้ง dependencies พื้นฐานและ `lucide-react`
+  - [x] วางโครงสร้างสถาปัตยกรรม (Architecture & Type Definitions & API Client boundary)
+  - [x] จัดทำ Realistic Mock Data ครบถ้วน (Invoice summary, PO, GRN lines, 3-way matching, exceptions, rules, revisions, audit trail)
+  - [x] สร้าง Premium Design System (CSS tokens, Glassmorphism/Modern card styles, typography, micro-animations, responsive layout)
+  - [x] สร้าง Core Components & Features:
+    - Navigation Header (Logo, Nav items, Status indicator, User role)
+    - Scope Bar (Company filter chips, View switcher, Document import trigger)
+    - KPI Metrics Dashboard (Interactive filter cards with status counters)
+    - Master Document Queue (Search, multi-criteria filters, sorting, status badges)
+    - Detailed Document Inspector
+    - Document Import Modal
+  - [x] ทดสอบ TypeScript build (`npm run build`)
+  - [x] ทดสอบการเปิดดูและโต้ตอบด้วย Browser Subagent
+  - [x] บันทึก Canonical Records ตาม Agent Operating Protocol
 - Task ID: `TASK-20261002-010`
 - Title: ปรับปรุงโครงสร้างหลักของ Web Portal สู่ต้นแบบ AIVA Mockup v4.4 อย่างสมบูรณ์ 100% (แก้ไข UI เละเทะ)
 - Status: `completed`
-- Goal: แก้ไขปัญหา UI เละเทะที่เกิดจากการมีแถบดำด้านซ้าย 240px (Sidebar เดิม) ซ้อนกับคิว 370px, แถบ KPI ตัวเลขลอย และลำดับ component สลับกัน โดยทำการ:
-  1. ลบ 240px Fixed Black Sidebar และ Light Topbar ออกทั้งหมด
-  2. แทนที่ด้วย Authentic Navy Header (`header.aiva-header`, #0D274D, 56px) พร้อมโลโก้ AI สีเขียว, ลิงก์ Nav 4 หน้า, Role Badge "เจ้าหน้าที่บัญชี" และ User Workspace Pill ตาม Mockup v4.4
-  3. ปรับลำดับหน้า Queue: วาง `.scope` ด้านบนสุด, ตามด้วย `.kpis` 6 กล่องที่มีสไตล์และสีขอบตรงตาม Mockup v4.4, ตามด้วย `.wrap` (คิว 370px ด้านซ้าย, Document Workspace ด้านขวา)
-  4. ปรับ CSS ครบทุกองค์ประกอบ (`mockup-parity.css`) ให้มีความกลมกลืนระดับพรีเมียม สบายตา ไม่มีขยะหรือความซ้ำซ้อน
-  5. รองรับ Mobile Viewport (390px) แบบ 0 Horizontal Overflow และคงความถูกต้องของ Playwright E2E 6/6 และ Backend 15/15 tests
-
-## Plan
-- [x] ลบแถบดำด้านซ้าย 240px (`aside.sidebar`) และ light topbar ใน `AppShell.tsx`
-- [x] สร้าง `header.aiva-header` (#0D274D) พร้อมโลโก้, เมนูนำทาง (`คิวตรวจสอบ`, `สิทธิ์และการเข้าถึง`, `บันทึกการเข้าถึง`, `เชื่อมต่อ API`), Role badge และ status pill ตาม Mockup v4.4
-- [x] ปรับลำดับใน `QueuePage.tsx`: วางแถบขอบเขต `.scope` ด้านบน, ตามด้วย `.kpis` 6 ใบ, และ `.wrap` คิว 370px คู่กับ Document Workspace
-- [x] เติม CSS ของ `header.aiva-header`, `.scope`, `.kpis`, `.wrap`, `.panel.queue-sidebar`, `.doc`, `.dh`, `.flow`, `.tabs`, `.pane`, `.ex`, `.ev`, `.bar` ใน `mockup-parity.css`
-- [x] ทดสอบและยืนยัน: TypeScript strict build ผ่าน, Backend unittests 15/15 ผ่าน, Playwright E2E tests 6/6 ผ่าน (รวม mobile 390px)
-- [x] อัปเดต canonical records (task-plan, current-state, changelog, work-log, session file)
 
 ## Acceptance criteria
 - ลบ sidebar สีดำเดิมทิ้ง ทำให้ไม่มีแถบซ้อนสองชั้นอีกต่อไป (ผ่านการตรวจสอบ)

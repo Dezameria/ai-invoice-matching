@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "event_id": "example-invoice-001-r1",
+  "source_system": "Example ERP",
+  "external_id": "DEMO-001",
+  "revision": 1,
+  "standard_version": "6.6",
+  "status": "Review",
+  "invoice": {
+    "invoice_num": "DEMO-2026-001",
+    "supplier_name": "Example Parts Co., Ltd.",
+    "company": "DEMO",
+    "invoice_date": "2026-10-01",
+    "po_number": "PO-DEMO-001",
+    "currency": "THB",
+    "sub_total": "12500.00",
+    "vat": "875.00",
+    "grand_total": "13375.00"
+  },
+  "receipt": {
+    "receipt_num": "RCV-DEMO-001",
+    "org_id": "DEMO",
+    "receiver": "Example Receiver",
+    "receipt_total": "12500.00"
+  },
+  "lines": [
+    {
+      "description": "Mounting bracket (synthetic)",
+      "quantity": "100",
+      "uom": "PCS",
+      "unit_price": "125.00",
+      "amount": "12500.00",
+      "receipt_line": "1",
+      "receipt_qty": "100",
+      "receipt_price": "125.00",
+      "match_level": "M1"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "V-01",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-02",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-03",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-04",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-05",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-06",
+      "result": "fail",
+      "exception_code": "E08",
+      "severity": "Medium",
+      "evidence": "Synthetic missing signature",
+      "page": 2
+    },
+    {
+      "rule_id": "V-07",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-08",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    },
+    {
+      "rule_id": "V-09",
+      "result": "pass",
+      "exception_code": null,
+      "severity": null,
+      "evidence": "Synthetic upstream result",
+      "page": null
+    }
+  ],
+  "note": "SYNTHETIC DEMO DATA - not a real invoice. Results are supplied by the example, not calculated by this portal."
+}

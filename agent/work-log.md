@@ -160,5 +160,21 @@
   - Visual inspection ยืนยันผ่าน `detail-desktop.png`, `queue-desktop.png`, `detail-mobile.png` ว่า UI สะอาด สวยงาม เป็นระเบียบ พรีเมียม และตรงตาม Mockup v4.4 ทุกประการ
 - ไม่มีการ commit, push หรือ public deployment
 
+### `WORK-20261003-011` — Create AIVA Invoice Core repository skill
+- Timestamp: `2026-10-03T08:33:34+07:00`
+- อ่านและเทียบ Mockup v4.4, OCR models/rules/master data/Vision extraction, Portal receiving/workflow schemas และเอกสาร architecture/rules
+- สร้าง `.agents/skills/aiva-invoice-core/SKILL.md`, `references/core-domain.md` และ `agents/openai.yaml`
+- กำหนด source-of-truth precedence สำหรับพฤติกรรมปัจจุบัน และแยก executable behavior ออกจาก accounting policy ที่ยังต้องรับรอง
+- บันทึก field catalog, กฎ V-01–V-09, tolerance, exception, decision/routing, immutable snapshot, idempotency/revision และ production prerequisites
+- ตรวจรูปแบบด้วย `quick_validate.py`: ผ่าน (`Skill is valid!`) เมื่อเปิด Python UTF-8 mode
+- ตรวจ reference link และ source paths ที่ skill อ้างถึง: พบครบทั้งหมด
+- ไม่ได้แก้ OCR engine, Portal runtime, schema หรือ business rule ที่ใช้งานจริง
 
+### `WORK-20261003-012` — Archive commit 9054076 and commit workspace updates
+- Timestamp: `2026-10-03T09:58:00+07:00`
+- Export โค้ด commit `9054076` ไปยัง `Web portal/invoice-web-9054076` พร้อมเชื่อมต่อ `node_modules`
+- รัน Backend FastAPI บนพอร์ต 8010 และ Frontend Vite บนพอร์ต 5173 พร้อมทดสอบผ่านเบราว์เซอร์
+- รักษาโครงสร้าง `invoice-webV2`, `invoice-web1`, และ `invoice-web-9054076`
+- จัดการไฟล์ canonical records ใน `agent/` ให้ครบถ้วนตามข้อกำหนด `AGENTS.md`
+- ทำการ commit และ push ขึ้น `origin/invoice-web`
 

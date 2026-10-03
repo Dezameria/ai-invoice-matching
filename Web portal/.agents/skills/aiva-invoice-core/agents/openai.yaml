@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIVA Invoice Core"
+  short_description: "Core fields, rules, and requirements for AIVA"
+  default_prompt: "Use $aiva-invoice-core to design or review this AIVA invoice-matching change against the domain contract."

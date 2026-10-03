@@ -1,11 +1,16 @@
 # Current State
 
-Last verified: `2026-10-02T12:15:00+07:00`
+Last verified: `2026-10-03T09:58:00+07:00`
 
 ## Repository
 - Branch: `invoice-web`
+- Web portal ประกอบด้วย:
+  - `Web portal/invoice-webV2`: React 19 + TypeScript + Vite portal เวอร์ชันใหม่ล่าสุด (พอร์ต 5180)
+  - `Web portal/invoice-web1`: สำรองโค้ดเวอร์ชันเดิม
+  - `Web portal/invoice-web-9054076`: โค้ดจาก commit 9054076 สำหรับทดสอบเทียบเคียง (พอร์ต 5173 / 8010)
 - Existing OCR service and original HTML mockup remain unchanged this development session.
 - Agent records, central docs and invoice-web working tree are organized; previous commit `9054076` pushed to remote.
+- Repository-local skill `.agents/skills/aiva-invoice-core` สรุปขอบเขตระบบ field หลัก กฎ V-01–V-09, decision/routing, workflow/audit requirements และความขัดแย้งระหว่าง code, docs และ mockup เพื่อใช้เป็น domain reference ระหว่างพัฒนาต่อ.
 
 ## Implemented Portal
 - `invoice-web/frontend`: React + TypeScript + Vite + TanStack Query; UI ถูกปรับให้ตรงตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html` อย่างสมบูรณ์ 100%:
@@ -38,6 +43,7 @@ Last verified: `2026-10-02T12:15:00+07:00`
 - Local preview runs at `http://127.0.0.1:8010`; API docs at `/api/docs`. One clearly labeled synthetic example with two JSON/PDF revisions was loaded for manual preview.
 
 ## Verified
+- Skill package ผ่าน `quick_validate.py` เมื่อรันด้วย UTF-8 mode; reference link และ source paths ที่ระบุมีอยู่จริงครบ.
 - Backend: 15 unittest tests passed (persistence, idempotency, conflicts, revisions, schema validation, versioned PDF, global audit, workflow action/version/idempotency/outbox/revision completion, compatibility backfill, origin, keys, filters, adapter, architecture boundaries).
 - Frontend: TypeScript strict and Vite production build passed (`tsc -b && vite build` built clean in 5.2s).
 - Playwright: 6 tests passed on Edge browser (15.2s), covering import, PDF canvas viewer, tabs, history, filters, mobile viewport (390px) no-overflow, invalid JSON rejection, exact large decimal display, revision deep link/archived PDF, access/audit navigation, and review action persistent outbox.

@@ -99,5 +99,17 @@
   - เพิ่มและปรับแต่ง CSS เต็มรูปแบบใน `mockup-parity.css` รวมถึงกฎ Responsive สำหรับ Mobile (390px) แบบ 0 Horizontal Overflow
   - ผ่านการทดสอบ: TypeScript strict build, Backend unittests 15/15 และ Playwright E2E 6/6 ผ่านครบถ้วน 100%
 
+### Added — `CHG-20261003-011`
+- Timestamp: `2026-10-03T08:33:34+07:00`
+- เพิ่ม repository-local skill `aiva-invoice-core` สำหรับใช้เป็น domain contract ระหว่างออกแบบ พัฒนา และ review ระบบ AIVA Invoice Matching
+- สรุป field หลักตั้งแต่ document identity, invoice/line/signature, Oracle receipt/entity, rule/exception, workflow, access และ audit
+- บันทึกกฎ V-01–V-09 และ decision/routing ตาม OCR engine ที่ใช้งานจริง พร้อม requirement แบบ fail-safe และข้อจำกัดก่อน production
+- ระบุ contract/version conflicts ระหว่าง OCR code, Portal receiving schema, docs และ Mockup v4.4 เพื่อป้องกันการเดาหรือแปล exception code ข้าม ruleset
+
+### Added — `CHG-20261003-012`
+- Timestamp: `2026-10-03T09:58:00+07:00`
+- Export และทดสอบโค้ดจาก commit 9054076 ไว้ที่ `Web portal/invoice-web-9054076` พร้อม Backend (พอร์ต 8010) และ Frontend (พอร์ต 5173)
+- รักษาและจัดโครงสร้าง Web Portal ทั้งหมด: `invoice-webV2` (เวอร์ชันใหม่ล่าสุด), `invoice-web1` (เวอร์ชันสำรอง), และ `invoice-web-9054076`
+- คืนค่าและอัปเดต Canonical Records ในโฟลเดอร์ราก `agent/` ตามข้อกำหนด `AGENTS.md`
 
 
