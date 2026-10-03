@@ -97,18 +97,28 @@ const USERS = [
 ];
 
 /* Action ของ workflow ตาม receiving contract */
+/* ผัง action ตาม `Web portal/invoice-web-9054076/docs/08-task-first-review-ux.md`
+ * wf: สถานะ workflow ปลายทาง (null = ไม่เปลี่ยน workflow), needReceiver: ต้องมี Receiver,
+ * decide: เป็น action ประเภทตัดสินใจ (บังคับ separation of duties),
+ * blocked: เหตุผลที่ปิดไว้ใน pilot นี้ — ห้ามแกล้งทำให้กดได้เพื่อให้ดูครบ */
 const ACTIONS = {
-  explain:  { n: "ชี้แจง",            perm: "EXPLAIN",  needNote: true,  opensOutbox: false, cls: "bg" },
-  resubmit: { n: "ส่งตรวจซ้ำ",        perm: "RESUBMIT", needNote: true,  opensOutbox: true,  cls: "bt" },
-  rerun:    { n: "ให้ AIVA ตรวจใหม่",  perm: "RERUN",    needNote: true,  opensOutbox: true,  cls: "bt" },
-  return:   { n: "ส่งกลับผู้ขาย",      perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "bw" },
-  hold:     { n: "ระงับ",              perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "bw" },
-  reject:   { n: "ปฏิเสธ",             perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "br" },
-  confirm:  { n: "ยืนยันและส่ง AP",     perm: "CONFIRM",  needNote: false, opensOutbox: false, cls: "bp" },
+  explain:  { n: "ชี้แจง",             perm: "EXPLAIN",  needNote: true,  opensOutbox: false, cls: "bg", wf: null,           use: "บันทึกเหตุผลแล้วส่งงานกลับฝ่ายบัญชี · ไม่แตะผลตรวจและไม่ปิดงาน" },
+  resubmit: { n: "แก้ไขแล้ว ส่งตรวจซ้ำ", perm: "RESUBMIT", needNote: true,  opensOutbox: true,  cls: "bt", wf: "RESUBMITTED", needReceiver: true, use: "สร้าง action outbox แล้วรอ snapshot revision ใหม่" },
+  rerun:    { n: "สั่ง AIVA ตรวจซ้ำ",   perm: "RERUN",    needNote: true,  opensOutbox: true,  cls: "bt", wf: "RESUBMITTED", use: "ใช้เมื่อไม่มี Receiver หรืออ่านเอกสารไม่ครบ · รอ revision ใหม่" },
+  return:   { n: "ส่งกลับผู้ใช้งาน",     perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "bw", wf: "RETURNED", needReceiver: true, decide: true, use: "เปลี่ยนผู้รับผิดชอบเป็น End user พร้อมเหตุผล" },
+  hold:     { n: "พักไว้ (Hold)",       perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "bw", wf: "ON_HOLD", decide: true, use: "พัก workflow โดยไม่แก้ผลตรวจจากต้นทาง" },
+  release_hold: { n: "ถอนพัก",         perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "bg", wf: null, needPrev: true, decide: true, use: "ออกจาก On Hold กลับสถานะก่อนพัก · production ต้องมี reason + ผู้ลงคนละคนกับผู้พัก" },
+  reject:   { n: "ปฏิเสธ",             perm: "CONFIRM",  needNote: true,  opensOutbox: false, cls: "br", wf: "REJECTED", decide: true, use: "ปิด workflow พร้อมเหตุผล action อื่นถูกบล็อกทันที" },
+  confirm:  { n: "ยืนยัน",              perm: "CONFIRM",  needNote: false, opensOutbox: false, cls: "bp", wf: "CONFIRMED", decide: true, use: "ยอมรับ revision ปัจจุบัน · High severity ต้องมี note" },
+  post:     { n: "ส่งเข้า AP Interface", perm: "POST",     needNote: true,  opensOutbox: false, cls: "bg", wf: "POSTED", decide: true,
+    blocked: "ยังไม่เปิดใช้ · ต้องมี AP acknowledgement contract จาก ERP และผู้ตั้งหนี้ต้องเป็นคนละคนกับผู้ยืนยัน (separation of duties) — portal ห้ามแสดงว่าส่ง AP สำเร็จโดยไม่มีหลักฐานจากปลายทาง" },
 };
+/* ลำดับการแนะนำ action ในการ์ดขั้นตอนถัดไป */
+const ACTION_ADVICE = ["confirm", "resubmit", "rerun", "release_hold", "return", "hold", "explain", "reject", "post"];
 const REASON_CODES = [
   "RCV_WRONG_ORG", "RCV_NOT_FOUND", "RCV_QTY_PARTIAL", "PRICE_NOT_UPDATED",
-  "SIG_MISSING_ON_SCAN", "PO_AMEND_REQUIRED", "DUPLICATE_BILLING", "OCR_MISREAD", "OTHER",
+  "SIG_MISSING_ON_SCAN", "PO_AMEND_REQUIRED", "DUPLICATE_BILLING", "OCR_MISREAD",
+  "SPLIT_BILLING", "MASTER_STALE", "HOLD_RESOLVED", "OTHER",
 ];
 
 /* รหัสในเอกสารมาตรฐาน v6.2 ฉบับ docs (คนละชุดกับ as-built) — เก็บไว้แสดงช่องขัดแย้งเท่านั้น */
@@ -178,7 +188,19 @@ const DATA_CONFLICTS = [
     k: "เลขทศนิยม",
     a: "Portal ใช้ Decimal",
     b: "OCR core ใช้ float",
-    act: "กำหนด rounding/precision ที่ boundary ก่อนส่งงานการเงินจริง",
+    act: "กำหนด rounding/precision ที่ boundary ก่อนส่งงานการเงินจริง — ดูเอกสารสังเคราะห์ AIVA-2609-0017 ที่ 600 × 30.666667 = 18,400.0002",
+  },
+  {
+    k: "เส้นทางออกจาก On Hold",
+    a: "docs 08 (action parity) มีเฉพาะ explain/resubmit/rerun/return/reject/hold/confirm",
+    b: "UI ต้องมีทางถอนการพัก มิฉะนั้นเอกสารค้างถาวร จึงเพิ่ม release_hold ใน mockup",
+    act: "ให้ทีมบัญชีนิยาม policy การถอนพัก (สิทธิ์ + reason + four-eyes) ก่อนทำ production",
+  },
+  {
+    k: "action `explain`",
+    a: "docs 08 ระบุว่าชี้แจงแล้วส่ง workflow กลับฝ่ายบัญชี",
+    b: "as-built 9054076 ไม่ระบุว่าเปลี่ยน assigned หรือwf หรือไม่",
+    act: "mockup อธิบายว่า explain ไม่ปิดงานและไม่แก้ผลตรวจ (wf คงเดิม, assigned → accounting) ต้องรับรองก่อนใช้จริง",
   },
 ];
 

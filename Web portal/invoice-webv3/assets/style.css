@@ -199,3 +199,30 @@ pre.json .k{color:#7FD8D3}pre.json .s{color:#F5D27A}pre.json .n{color:#FFA657}
   .thumbs{display:flex;gap:6px;border-right:0;overflow-x:auto}
   .thumb{width:70px;flex:0 0 70px}
 }
+
+/* ---------- องค์ประกอบที่เพิ่มรอบปรับปรุงจาก log (task-first, revisions, audit, viewer) ---------- */
+.srch{display:flex;gap:6px;align-items:center}
+.srch input{flex:1;min-width:0}
+.srch select{font-family:inherit;font-size:12px;padding:7px 6px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--mut)}
+.qpg{display:flex;gap:8px;align-items:center;justify-content:center;padding:8px 10px;border-top:1px solid var(--line);flex-wrap:wrap}
+.qpg .pill{font-size:11.5px}
+.todo{font-size:11.2px;padding:3px 7px;border-radius:6px;background:var(--blul);color:#174f80;border-left:3px solid var(--blu);margin:3px 0}
+.todo.t-user{background:var(--orgl);color:#9A3412;border-left-color:var(--org)}
+.todo.t-accounting{background:var(--grnl);color:#15613f;border-left-color:var(--grn)}
+.todo.t-producer{background:var(--ambl);color:#7a5b00;border-left-color:var(--amb)}
+.todo.t-none,.todo.t-x{background:var(--gryl);color:var(--gry);border-left-color:var(--gry)}
+.card.next{border-left:3px solid var(--teal);background:#FBFDFD}
+.card.next h4{color:var(--teald)}
+.actlist{margin:6px 0 0 18px;font-size:12.4px}
+.actlist li{margin:3px 0}
+.blocked{margin-top:9px;font-size:12.2px;color:var(--mut)}
+.blocked summary{cursor:pointer;color:var(--blu);font-weight:600}
+.blocked ul{margin:6px 0 0 18px}
+.blocked li{margin:2px 0}
+.revsel{font-family:inherit;font-size:11.5px;padding:2px 4px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+.hashc{font-size:11px;color:var(--mut);white-space:nowrap}
+.vbar{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:0 0 10px;background:#fff;flex-wrap:wrap}
+.w-RETURNED{background:var(--orgl);color:#9A3412}
+a.bp{display:inline-block;text-decoration:none}
+.next + .ph{margin-top:12px}
+@media(max-width:1023px){.vbar{gap:4px}.srch select{font-size:11px}}

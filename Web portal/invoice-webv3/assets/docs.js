@@ -181,7 +181,7 @@ const DOCS = [
     doc: "AIVA-2609-0012", ext: "DMS-2026-000184", inv: "AP-2609-0207", po: "40121500", release: null,
     vendor: "Hi-Tech Consumables Co., Ltd.", vtax: "0105552018899", org: 103, date: "2026-10-01",
     cur: "THB", sub: 14285.72, vat: 1000.00, total: 15285.72, pages: 1, sigS: 1, sigR: 1, pc: true,
-    rcv: "530340330", rcvs: ["530340330"], receiver: "SOMSAK JAIDEE", upl: "SOMSAK.J",
+    rcv: "530340330", rcvs: ["530340330"], receiver: "SOMSAK JAIDEE", upl: "PANIDA.R",
     lines: [
       ["Nitrile Glove Size L (กล่อง 100)", 120, "BOX", 95.2133, 11425.60, 1, 120, 95.2133, "M1"],
       ["Isopropyl Alcohol 99% 4L", 40, "CAN", 71.503, 2860.12, 2, 40, 71.503, "M1"],
@@ -192,7 +192,7 @@ const DOCS = [
     }),
     codes: ["E16"], status: "Auto-pass", wf: "PENDING_REVIEW", proc: "Completed",
     round: 1, rev: 1, wfv: 0, dup: null,
-    note: "E16 = Low → ยัง Auto-pass ตามลำดับ decision ของ engine",
+    note: "E16 = Low → ยัง Auto-pass ตามลำดับ decision ของ engine · ผู้แนบเอกสาร (PANIDA.R) เป็นฝ่ายบัญชีคนเดียวกับที่มีสิทธิ์ยืนยัน → ต้องแยกคนทำ (separation of duties)",
   },
   {
     doc: "AIVA-2609-0013", ext: "DMS-2026-000186", inv: "PT-2609-0512", po: "40121622", release: "7",
@@ -211,6 +211,16 @@ const DOCS = [
     round: 2, rev: 2, wfv: 3, dup: null,
     note: "รอบที่ 2 หลัง resubmit · รอบ 1 ติด E30 (จับคู่บรรทัดไม่ได้) ผู้ขายแก้ description แล้ว",
     prevRev: { rev: 1, round: 1, status: "Hold", codes: ["E30"], closed: "resubmit · RC=OCR_MISREAD · ส่งตรวจซ้ำเมื่อ 02/10 09:12" },
+    revs: [
+      { rev: 1, round: 1, at: "2026-10-01 15:40:11", by: "WILAIWAN.S", status: "Hold", codes: ["E30"],
+        sub: 96000, vat: 6720, total: 102720, pages: 4, pc: true, sigS: 1, sigR: 1,
+        rulesNote: "V-07 FAIL E30 (จับคู่บรรทัดไม่ได้ด้วย M4) · V-08 ยังไม่ถูกประเมินเพราะถูก Bypass",
+        note: "รอบ 1 ผู้ขายไม่ใส่ part number ใน description ทำให้จับคู่รายบรรทัดไม่ได้", closed: "resubmit โดย วิไลวรรณฯ (RCV_NOT_FOUND)" },
+      { rev: 2, round: 2, at: "2026-10-02 09:12:40", by: "producer", status: "Review", codes: ["E34"],
+        sub: 96000, vat: 6720, total: 102720, pages: 4, pc: true, sigS: 1, sigR: 1,
+        rulesNote: "V-07 PASS (M1 จาก part number ที่ผู้ขายเพิ่ม) · V-08 FAIL E34 Medium วางบิลบางส่วน",
+        note: "revision ปัจจุบัน", closed: null },
+    ],
   },
   {
     doc: "AIVA-2609-0014", ext: "DMS-2026-000188", inv: "EM-2609-0021", po: "40121700", release: null,
@@ -241,6 +251,34 @@ const DOCS = [
     round: 2, rev: 2, wfv: 1, dup: null,
     note: "รอ snapshot รอบใหม่จาก producer (action outbox ยัง not completed) · ผลที่แสดงคือ snapshot ล่าสุด",
     prevRev: { rev: 1, round: 1, status: "Review", codes: ["E13"], closed: "rerun โดย ปณิดาฯ · ยังไม่ได้รับ revision ใหม่" },
+    revs: [
+      { rev: 1, round: 1, at: "2026-10-02 07:55:02", by: "THANAKORN.M", status: "Review", codes: ["E13"],
+        sub: 8400, vat: 588, total: 8988, pages: 2, pc: false, sigS: 1, sigR: 1,
+        rulesNote: "V-01 FAIL E13 Medium (Vision อ่านได้ 1 ของ 2 หน้า) · กฎอื่น PASS",
+        note: "PDF แนบ 2 หน้า แต่ extractor แปลงได้หน้าเดียว · snapshot เก่าเก็บแยกไม่ทับของเดิม", closed: "rerun โดย ปณิดาฯ (OCR_MISREAD) · outbox REQ-8842 ยัง waiting_revision" },
+      { rev: 2, round: 2, at: "2026-10-03 08:41:02", by: "producer", status: "Review", codes: ["E13"],
+        sub: 8400, vat: 588, total: 8988, pages: 1, pc: false, sigS: 1, sigR: 1,
+        rulesNote: "ยังไม่มี snapshot รอบใหม่ · ข้อมูลที่แสดงคือ revision 1 ที่ producer ส่งซ้ำ",
+        note: "revision ปัจจุบัน (รอผลตรวจรอบใหม่)", closed: null },
+    ],
+  },
+  {
+    doc: "AIVA-2609-0017", ext: "DMS-2026-000194", inv: "SB-2610-0031", po: "40121812", release: "1",
+    vendor: "Siam Precision Bearing Co., Ltd.", vtax: "0105551023311", org: 103, date: "2026-10-03",
+    cur: "THB", sub: "36,800.0002", vat: "2,576.0000", total: "39,376.0002", pages: 1, sigS: 1, sigR: 1, pc: true,
+    rcv: "530340455", rcvs: ["530340455"], receiver: "SOMSAK JAIDEE", upl: "SOMSAK.J", decStr: true,
+    lines: [
+      ["Bearing 6205-2RS (แบ่งจ่าย 3 ครั้ง)", 600, "PCS", "30.666667", "18,400.0002", 1, 600, "30.666667", "M1"],
+      ["Bearing 6308-ZZ", 400, "PCS", "46.000000", "18,400.0000", 2, 400, "46.000000", "M1"],
+    ],
+    rtotal: 36800,
+    rules: R({
+      "V-02": { result: P, code: "E16", severity: "Low", page: 1, evidence: "บรรทัด 1: 600 × 30.666667 = 18,400.0002 ปัดเป็น 18,400.00 (ต่าง 0.0002 ≤ 0.50) — ผ่านแต่ต้องแสดงตัวเลขตรงกับ snapshot" },
+      "V-05": { result: F, code: "E29", severity: "Low", page: 1, evidence: "ราคา 30.666667 เทียบราคา PO 30.6667 ต่าง 0.000033 (≤1% และ ≤200 บาท) → E29 Low ยอมรับได้ แต่ประเภทเลขต้นทางไม่ตรงกัน (PO = float, Portal = Decimal)" },
+    }),
+    codes: ["E16", "E29"], status: "Auto-pass", wf: "PENDING_REVIEW", proc: "Completed",
+    round: 1, rev: 1, wfv: 0, dup: null,
+    note: "เคส Decimal ↔ float: ยอดในเอกสารนี้เป็น string ตรงตาม snapshot ห้ามแปลงเป็น float แล้วแสดงผลลัพธ์ที่เปลี่ยน · portal ต้องแสดงเลขเดิมของผู้ขาย",
   },
   {
     doc: "AIVA-2609-0016", ext: "DMS-2026-000192", inv: "SV-2610-0007", po: "40121808", release: null,
@@ -258,7 +296,7 @@ const DOCS = [
 
 /* สถานะ workflow ที่ portal รองรับ (คนละแกนกับผลตรวจของ engine) */
 const WF_LABEL = {
-  PENDING_REVIEW: "รอตรวจสอบ", CONFIRMED: "ยืนยันแล้ว", REJECTED: "ปฏิเสธแล้ว",
+  PENDING_REVIEW: "รอตรวจสอบ", CONFIRMED: "ยืนยันแล้ว", REJECTED: "ปฏิเสธแล้ว", RETURNED: "ส่งกลับผู้ใช้งาน",
   ON_HOLD: "ระงับ", RESUBMITTED: "ส่งตรวจซ้ำแล้ว", POSTED: "ตั้งหนี้แล้ว",
 };
 
