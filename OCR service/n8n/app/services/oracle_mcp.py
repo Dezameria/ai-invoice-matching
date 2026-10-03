@@ -85,6 +85,7 @@ class OracleMCPClient:
                     OU_NAME=str(row.get("OU_NAME") or "").strip() or None,
                     CUSTOMER_POSTAL=str(row.get("CUSTOMER_POSTAL") or "").strip() or None,
                     CUSTOMER_LOC_CODE=str(row.get("CUSTOMER_LOC_CODE") or "").strip() or None,
+                    CUSTOMER_TAX_ID=str(row.get("CUSTOMER_TAX_ID") or "").strip() or None,
                     SUPPLIER_NAME=str(row.get("SUPPLIER_NAME") or "").strip() or None,
                     SUPPLIER_TAX_ID=str(row.get("SUPPLIER_TAX_ID") or "").strip() or None,
                 )
@@ -94,6 +95,10 @@ class OracleMCPClient:
                 continue
 
         return receipts
+
+    async def execute_sql(self, sql_query: str) -> str:
+        """Execute SQL via ORDS MCP server tools/call (public interface)."""
+        return await self._execute_sql(sql_query)
 
     async def _execute_sql(self, sql_query: str) -> str:
         """Execute SQL via ORDS MCP server tools/call."""
@@ -196,6 +201,7 @@ class OracleMCPClient:
             "v.ORG_ID as INV_ORG_ID, "
             "ood.operating_unit as OU_ORG_ID, "
             "hou.name as OU_NAME, "
+            "fsp.vat_registration_num as CUSTOMER_TAX_ID, "
             "hla.postal_code as CUSTOMER_POSTAL, "
             "hla.location_code as CUSTOMER_LOC_CODE, "
             "pv.vendor_name as SUPPLIER_NAME, "
@@ -204,6 +210,7 @@ class OracleMCPClient:
             "JOIN apps.po_vendors pv ON v.vendor_id = pv.vendor_id "
             "LEFT JOIN apps.org_organization_definitions ood ON v.org_id = ood.organization_id "
             "LEFT JOIN apps.hr_operating_units hou ON ood.operating_unit = hou.organization_id "
+            "LEFT JOIN apps.financials_system_params_all fsp ON ood.operating_unit = fsp.org_id "
             "LEFT JOIN apps.hr_all_organization_units haou ON v.org_id = haou.organization_id "
             "LEFT JOIN apps.hr_locations_all hla ON haou.location_id = hla.location_id "
             f"WHERE {where_clause} "
@@ -254,4 +261,41 @@ class OracleMCPClient:
         """Synchronous query for Oracle ERP receipts."""
         import asyncio
         return asyncio.run(self.get_po_receipts(po_number))
+
+    async def get_all_master_entities(self) -> List[dict]:
+        """Query all active corporate entities and locations dynamically from Oracle EBS."""
+        sql = (
+            "SELECT DISTINCT "
+            "ood.organization_id as inv_org_id, "
+            "ood.organization_code as inv_code, "
+            "ood.organization_name as inv_name, "
+            "ood.operating_unit as ou_org_id, "
+            "hou.name as ou_name, "
+            "fsp.vat_registration_num as tax_id, "
+            "hla.postal_code, "
+            "hla.location_code, "
+            "hla.address_line_1, "
+            "hla.address_line_2 "
+            "FROM apps.org_organization_definitions ood "
+            "JOIN apps.hr_operating_units hou ON ood.operating_unit = hou.organization_id "
+            "LEFT JOIN apps.financials_system_params_all fsp ON ood.operating_unit = fsp.org_id "
+            "LEFT JOIN apps.hr_all_organization_units haou ON ood.organization_id = haou.organization_id "
+            "LEFT JOIN apps.hr_locations_all hla ON haou.location_id = hla.location_id "
+            "WHERE ood.operating_unit IS NOT NULL "
+            "ORDER BY ood.organization_id"
+        )
+        csv_text = await self._execute_sql(sql)
+        clean_text = csv_text.strip() if csv_text else ""
+        if not clean_text or "no rows selected" in clean_text.lower():
+            return []
+
+        rows: List[dict] = []
+        reader = csv.DictReader(io.StringIO(clean_text))
+        for r in reader:
+            inv_id_str = str(r.get("INV_ORG_ID") or "").strip()
+            if not inv_id_str or not inv_id_str.isdigit():
+                continue
+            rows.append(r)
+        return rows
+
 

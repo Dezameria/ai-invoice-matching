@@ -25,6 +25,7 @@ from app.services.paperless import PaperlessClient
 from app.services.pipeline import VerificationPipeline
 from app.services.vision_extractor import VisionExtractor
 from app.services.oracle_mcp import OracleMCPClient
+from app.services.master_data_service import get_master_data_service
 from app.core.models import Table9Output, VerificationResponse, ExtractedDocument, OracleReceipt
 
 logger = logging.getLogger(__name__)
@@ -55,11 +56,14 @@ def sse_event(event_type: str, data: dict) -> dict:
 @fe_router.get("/documents", summary="List Paperless Documents for Frontend Gallery")
 async def list_paperless_documents(
     page: int = 1,
-    page_size: int = 25,
+    page_size: Optional[int] = None,
+    fetch_all: bool = True,
     tags__id__in: Optional[str] = None,
     ordering: str = "-created",
 ):
-    """Proxy Paperless-ngx document listing for the frontend gallery view."""
+    """Proxy Paperless-ngx document listing for the frontend gallery view.
+    When fetch_all=True, iterates all pages and returns all documents.
+    """
     import httpx
 
     settings = get_settings()
@@ -69,32 +73,65 @@ async def list_paperless_documents(
     if token and token != "your_paperless_token_here":
         headers["Authorization"] = f"Token {token}"
 
-    params = {
-        "page": page,
-        "page_size": page_size,
-        "ordering": ordering,
-    }
-    if tags__id__in:
-        params["tags__id__in"] = tags__id__in
-
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(
-                f"{base_url}/api/documents/", params=params, headers=headers
-            )
-            resp.raise_for_status()
-            data = resp.json()
-
-            # Also fetch tags list for mapping tag IDs -> names
-            tags_resp = await client.get(f"{base_url}/api/tags/", headers=headers)
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # 1. Fetch tags list for mapping tag IDs -> names
             tag_map = {}
-            if tags_resp.status_code == 200:
-                for t in tags_resp.json().get("results", []):
-                    tag_map[t["id"]] = t["name"]
+            try:
+                tags_resp = await client.get(f"{base_url}/api/tags/?page_size=200", headers=headers)
+                if tags_resp.status_code == 200:
+                    for t in tags_resp.json().get("results", []):
+                        tag_map[t["id"]] = t["name"]
+            except Exception as te:
+                logger.warning(f"Could not load tags from Paperless: {te}")
+
+            # 2. Fetch documents
+            raw_docs = []
+            total_count = 0
+
+            if fetch_all:
+                current_url = f"{base_url}/api/documents/"
+                init_params = {
+                    "page_size": 100,
+                    "ordering": ordering,
+                }
+                if tags__id__in:
+                    init_params["tags__id__in"] = tags__id__in
+
+                is_first = True
+                while current_url:
+                    resp = await client.get(
+                        current_url,
+                        params=init_params if is_first else None,
+                        headers=headers
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    total_count = data.get("count", total_count)
+                    batch = data.get("results", [])
+                    raw_docs.extend(batch)
+                    current_url = data.get("next")
+                    is_first = False
+            else:
+                params = {
+                    "page": page,
+                    "page_size": page_size or 25,
+                    "ordering": ordering,
+                }
+                if tags__id__in:
+                    params["tags__id__in"] = tags__id__in
+
+                resp = await client.get(
+                    f"{base_url}/api/documents/", params=params, headers=headers
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                total_count = data.get("count", len(raw_docs))
+                raw_docs = data.get("results", [])
 
             # Enrich documents with tag names
             results = []
-            for doc in data.get("results", []):
+            for doc in raw_docs:
                 tag_names = [tag_map.get(tid, f"tag-{tid}") for tid in doc.get("tags", [])]
                 results.append({
                     "id": doc["id"],
@@ -110,9 +147,10 @@ async def list_paperless_documents(
                 })
 
             return {
-                "count": data.get("count", len(results)),
-                "next": data.get("next"),
-                "previous": data.get("previous"),
+                "count": len(results),
+                "total_count": total_count,
+                "next": None,
+                "previous": None,
                 "results": results,
                 "tag_map": tag_map,
             }
@@ -411,11 +449,19 @@ async def verify_document_sse(doc_id: int, request: Request):
                     "message": "ข้าม Oracle EBS เนื่องจาก E28 Line Math Error",
                     "completed": True, "skipped": True,
                 })
+                oracle_data = {
+                    "queried": False,
+                    "reason": "Bypassed due to E28 Line Math Error",
+                    "po_number": extracted.invoice.po_number,
+                    "count": 0,
+                    "receipts": []
+                }
                 table9 = evaluate_step4_decision(
                     doc=extracted, rules=rules, exceptions=exceptions,
                     manual_review=False, halted_by=halted_by,
+                    oracle_data=oracle_data
                 )
-                yield sse_event("result", _build_result_payload(table9, start_time, doc=extracted))
+                yield sse_event("result", _build_result_payload(table9, start_time, doc=extracted, oracle_data=oracle_data))
                 yield sse_event("done", {"message": "เสร็จสิ้น"})
                 return
 
@@ -453,12 +499,19 @@ async def verify_document_sse(doc_id: int, request: Request):
                 "message": "กำลังตรวจสอบ STEP 2 & 3: ใบรับสินค้า, นิติบุคคล, Line Matching...",
             })
 
+            internal_tax_ids = None
+            try:
+                internal_tax_ids = await get_master_data_service().get_internal_tax_ids()
+            except Exception as e:
+                logger.warning(f"Could not load internal tax IDs from Oracle EBS: {e}")
+
             (
                 rules, exceptions, active_receipts,
                 address_matched, intercompany, manual_review, has_critical
             ) = evaluate_step2(
                 doc=extracted, receipts=oracle_receipts,
                 existing_rules=rules, existing_exceptions=exceptions,
+                internal_tax_ids=internal_tax_ids,
             )
 
             if not has_critical:
@@ -487,13 +540,23 @@ async def verify_document_sse(doc_id: int, request: Request):
                 "message": "กำลังสร้าง Decision Matrix และ Table 9 Output...",
             })
 
+            oracle_data = {
+                "queried": True,
+                "po_number": extracted.invoice.po_number,
+                "count": len(oracle_receipts),
+                "receipts": [r.model_dump() for r in oracle_receipts]
+            }
+
             table9 = evaluate_step4_decision(
                 doc=extracted, rules=rules, exceptions=exceptions,
                 manual_review=manual_review, halted_by=halted_by,
                 address_matched=address_matched, intercompany=intercompany,
+                oracle_data=oracle_data
             )
 
-            yield sse_event("result", _build_result_payload(table9, start_time, doc=extracted, active_receipts=active_receipts))
+            yield sse_event("result", _build_result_payload(
+                table9, start_time, doc=extracted, active_receipts=active_receipts, oracle_data=oracle_data
+            ))
 
             # ── Optional: Update Paperless tags ──
             try:
@@ -540,6 +603,7 @@ def _build_result_payload(
     start_time: float,
     doc: Optional[ExtractedDocument] = None,
     active_receipts: Optional[List[OracleReceipt]] = None,
+    oracle_data: Optional[Dict[str, Any]] = None,
 ) -> dict:
     """Convert Table9Output into the result payload for SSE and frontend rendering."""
     elapsed = round(time.time() - start_time, 2)
@@ -602,6 +666,19 @@ def _build_result_payload(
 
     po_num = table9.invoice_summary.po_number
 
+    # Resolve oracle_data payload
+    if oracle_data is not None:
+        final_oracle_data = oracle_data
+    elif hasattr(table9, "oracle_data") and table9.oracle_data is not None:
+        final_oracle_data = table9.oracle_data
+    else:
+        final_oracle_data = {
+            "queried": po_num is not None,
+            "po_number": po_num,
+            "count": len(active_receipts) if active_receipts else 0,
+            "receipts": [r.model_dump() for r in active_receipts] if active_receipts else [],
+        }
+
     return {
         "schema_version": "1.1",
         "doc_id": table9.doc_id,
@@ -627,6 +704,7 @@ def _build_result_payload(
             "intercompany": table9.invoice_summary.intercompany,
             "receipt_total": table9.invoice_summary.sub_total,
         },
+        "oracle_data": final_oracle_data,
         "lines": lines_out,
         "rules": rules_out,
         "exceptions": exceptions_out,
@@ -641,3 +719,4 @@ def _build_result_payload(
         },
         "elapsed_seconds": elapsed,
     }
+

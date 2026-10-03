@@ -24,31 +24,38 @@
 
 ```
 n8n/
-├── app/
-│   ├── __init__.py
-│   ├── config.py                 # Configuration ผ่าน pydantic-settings โหลดจาก .env
-│   ├── main.py                   # FastAPI Application Entrypoint
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── routes.py             # REST API Endpoints (/verify/file, /verify/paperless-next, ฯลฯ)
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── master_data.py        # Master Data 27 บริษัท & รหัสข้อยกเว้น E05-E35
-│   │   ├── models.py             # Pydantic Schemas (Table 3 Extraction & Table 9 Output)
-│   │   └── rules.py              # กฎการคำนวณบริสุทธิ์ STEP 1, STEP 2, STEP 3, STEP 4
-│   └── services/
-│       ├── __init__.py
-│       ├── oracle_mcp.py         # Client เชื่อมต่อ Oracle EBS ORDS MCP (Stream-safe)
-│       ├── vision_extractor.py   # Multi-modal Vision Extractor (PDF/Image -> deepseek-v4-flash)
-│       ├── paperless.py          # Paperless-ngx REST Client (ดึงคิว & ติด Tag 12 ป้องกันทำซ้ำ)
-│       ├── portal.py             # Dispatcher ส่ง Table 9 JSON ไปยัง AIVA Portal
-│       └── pipeline.py           # Verification Pipeline Orchestrator (ควบคุมการไหล 4 ขั้นตอน)
-├── tests/
-│   └── test_suite.py             # Live Test Suite ทดสอบทั้งระบบพร้อมรายงานผลสรุป
-├── .env.example                  # Template สำหรับตั้งค่า Environment
-├── .env                          # Local Environment Configuration
-├── requirements.txt              # รายการ Dependencies
-└── README.md                     # เอกสารคู่มือการใช้งาน
+├── .agent/                             # [Dev Agent Memory] บันทึก Task plan, current state, changelogs
+├── .pi/                                # [Pi QA Agent Workspace]
+│   ├── AGENT_INSTRUCTIONS.md           # คู่มือและบทบาท QA Specialist ของ Pi Agent
+│   └── mcp-adapter.json                # MCP Configuration สำหรับ Pi Agent
+├── app/                                # [Core Production Code] (Dev Agent ดูแล)
+│   ├── api/                            # REST & SSE Endpoints (/verify/file, /oracle-receipts, /fe/*)
+│   ├── core/                           # Data Models & Rules Engine (STEP 1 - STEP 4)
+│   ├── services/                       # Integrations (Oracle MCP, Vision Extractor, Paperless, Portal)
+│   ├── config.py                       # Configuration ผ่าน pydantic-settings โหลดจาก .env
+│   ├── main.py                         # FastAPI Application Entrypoint
+│   └── AIVA-Document-Card-Verification-v3.html
+├── docs/                               # [Documentation & Workflow Parity]
+│   └── workflows/
+│       ├── n8n_flow_v6_5.md            # เอกสารโครงสร้าง 23 Nodes ของ n8n Flow (v6.5)
+│       └── parity_spec_matrix.md       # ตารางเทียบ Python Method <-> n8n Node แบบ 1:1
+├── scripts/                            # [Operational & Batch Scripts]
+│   └── batch_verify_paperless.py       # สคริปต์รันตรวจ Batch จาก Paperless-ngx
+├── tests/                              # [Test Suite & Pi Agent Domain] (Pi Agent ถือครอง)
+│   ├── fixtures/                       # Test Scenarios Matrix & Sample Data
+│   │   └── oracle_test_scenarios.json  # รวมเคส PO จริง, เลขที่บิลจริง, Intercompany, E17, E28
+│   ├── live/                           # Live Integration Tests (ต่อ Oracle EBS จริง)
+│   │   └── test_live_oracle.py         # Live Oracle MCP Integration Tests
+│   ├── test_invoices/                  # Synthetic Invoice Corpus & Tools
+│   ├── reports/                        # ที่เก็บ Test Run Reports & JSON Failure Artifacts
+│   │   └── test_run_latest.md          # รายงานผลการรันเทสต์ฉบับทางการล่าสุด
+│   ├── conftest.py
+│   ├── pytest.ini                      # Markers: [offline, live, oracle, corpus]
+│   └── run_tests.py                    # Unified CLI Test Runner สำหรับ Pi Agent
+├── .env.example                        # Template สำหรับตั้งค่า Environment
+├── .env                                # Local Environment Configuration
+├── requirements.txt                    # รายการ Dependencies
+└── README.md                           # เอกสารคู่มือการใช้งาน
 ```
 
 ---
@@ -123,24 +130,35 @@ PORTAL_API_URL=https://httpbin.org/post
 
 ---
 
-## 6. การรันสคริปต์ทดสอบระบบ (Running the Test Suite)
+## 6. การรันสคริปต์ทดสอบระบบและการใช้งาน Pi Agent (Testing & Pi Agent)
 
-ระบบมาพร้อมกับ Live Test Suite ครอบคลุม 16 การทดสอบ ยิงทดสอบระบบจริงทั้ง Oracle EBS MCP, LiteLLM `deepseek-v4-flash`, Rules Engine, และ REST API:
+โฟลเดอร์ `tests/` ถูกออกแบบให้เป็นอิสระสำหรับ **Pi Agent (QA Auditor)** เพื่อทดสอบระบบอย่างสมบูรณ์ทั้งแบบ Offline และ Live กับ Oracle EBS:
 
+### 6.1 รันผ่าน Unified CLI Runner (`tests/run_tests.py`)
 ```powershell
-.\.venv\Scripts\python.exe tests/test_suite.py
+# 1. รันเฉพาะ Live Oracle EBS Tests (ดึงข้อมูลจริงจาก Oracle EBS ผ่าน MCP rcv_v01)
+.\.venv\Scripts\python.exe tests/run_tests.py --mode live-oracle
+
+# 2. รัน Offline Unit & Rules Suite (เร็วมาก ไม่ต้องต่อ Network)
+.\.venv\Scripts\python.exe tests/run_tests.py --mode offline
+
+# 3. รันครบทุกชุด (Live Oracle + Rules + Corpus) พร้อมสร้าง Report อัตโนมัติใน tests/reports/
+.\.venv\Scripts\python.exe tests/run_tests.py --all --report
 ```
 
-### ผลการทดสอบ (Test Report):
-- **TEST SUITE 1 (Configuration):** ตรวจสอบการโหลดค่าคอนฟิก (.env, URLs, Models)
-- **TEST SUITE 2 (Live Oracle MCP):** ทดสอบ Query PO `42052835` สดจาก EBS view `apps.AH_DEV_RCV_PO_AP_MATCHING_V`, ตรวจสอบโครงสร้างใบรับ 4 รายการ, และทดสอบ Handle PO ที่ไม่มีในระบบ (0 rows)
-- **TEST SUITE 3 (Live LiteLLM):** ทดสอบเรียก Vision LLM `deepseek-v4-flash` สกัดข้อมูลเอกสารภาษาไทยและคำนวณฟิลด์
-- **TEST SUITE 4 (Rules Engine):** 
-  - Case 4.1: ข้อมูลจริงจาก Execution #292 (พบ Tax ID ไม่ตรง -> ตัดสิน **Hold** ส่งต่อ `user`)
-  - Case 4.2: ข้อมูลที่ตรงกัน 100% (ตัดสิน **Auto-pass**)
-  - Case 4.3: ข้อผิดพลาดคณิตศาสตร์บรรทัด E28 (Bypass Oracle EBS สำเร็จ)
-  - Case 4.4: ขาดลายเซ็นผู้รับ/ผู้ส่งของ E26 (ส่งต่อ `user`)
-  - Case 4.5: ไม่พบใบรับสินค้าใน ERP E17 (Bypass STEP 3 สำเร็จ)
-- **TEST SUITE 5 (FastAPI Endpoints):** ทดสอบ Endpoints `/health`, `/master-entities`, `/oracle-receipts`, และ `/verify/extracted-json`
+### 6.2 การรันแยกตามโมดูล
+```powershell
+# รัน Live Suite ดั้งเดิม (16 การทดสอบพร้อม Badge สี)
+.\.venv\Scripts\python.exe tests/test_suite.py
 
-**ผลลัพธ์การรันล่าสุด:** `16 / 16 Tests Passed (Success Rate: 100.0%)`
+# รัน Pytest Offline Regression (155 Synthetic Invoices)
+.\.venv\Scripts\python.exe -m pytest tests/test_invoice_corpus.py -q
+
+# รัน Live Oracle Integration Test ด้วย Pytest
+.\.venv\Scripts\python.exe -m pytest tests/live/test_live_oracle.py -m oracle -o addopts="" -v -s
+```
+
+### 6.3 Test Reports & Artifacts
+ผลการทดสอบทั้งหมดจะถูกจัดเก็บไว้ใน `tests/reports/`:
+- `tests/reports/test_run_latest.md`: รายงานสรุปผลรอบล่าสุด พร้อม Duration และ Logs
+- `tests/reports/batch_verifications_report.md` & `batch_failed_verifications.json`: ผลการรัน Batch จาก Paperless-ngx
