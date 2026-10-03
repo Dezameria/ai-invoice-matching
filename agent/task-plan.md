@@ -1,6 +1,38 @@
 # Task และ Plan
 
-Last updated: `2026-10-03T12:20:00+07:00`
+Last updated: `2026-10-03T14:25:00+07:00`
+
+## Completed Task
+- Task ID: `TASK-20261003-005`
+- Title: ยกระดับ mockup v3 ด้วยข้อสังเกตจาก log ทั้งหมด (action parity, revisions, audit, scope/SoD, decimal)
+- Status: `completed`
+- Goal: นำช่องว่าง/บั๊กที่บันทึกไว้ใน `agent/work-log.md`, `agent/errors-and-solutions.md`, session ก่อนหน้าและเอกสารอ้างอิง (`07-mockup-feature-parity.md`, `08-task-first-review-ux.md`, `05-implementation-status.md`) มาปิดในงาน mockup เดิม เพื่อให้ v3 สาธิตพฤติกรรมจริงได้ครบและตรง contract ขึ้น
+- Plan:
+  - [x] แก้บั๊กที่พบจาก log: action `explain` ทำให้ `workflow` เป็น undefined, filter "งานของฉัน" ถึงไม่ได้จาก KPI, `release_hold` ไม่มีใน action set
+  - [x] action parity ตาม `08-task-first-review-ux.md`: explain/resubmit/rerun/return/reject/hold/release_hold/confirm + `post` ที่ปิดพร้อมเหตุผล + blocking reason ทุกปุ่ม
+  - [x] การ์ด "ขั้นตอนถัดไป" (งาน + ปัญหา + ผู้รับผิดชอบ + action ที่ทำได้/ไม่ได้) ตามลำดับข้อมูล task-first
+  - [x] separation of duties + ล็อกฝั่งบัญชีเมื่อ High exception ของฝั่งผู้ใช้ยังไม่ปิด
+  - [x] revision selector + banner immutable + PDF/JSON ตรงรุ่น (stale revision ทำ action ไม่ได้)
+  - [x] audit: hash chain (tamper-evident) + verify + จำลองการแก้ไขเพื่อแสดง chain ขาด + คลิกไปยังเอกสาร + ส่งออก CSV
+  - [x] คิว: คอลัมน์ "งานที่ต้องทำ", sort, pagination, KPI "งานของฉัน" (UI-02/UI-03)
+  - [x] viewer: zoom, เล่มหน้าด้วยปุ่ม/คีย์บอร์ด, บันทึก access event, ปุ่มดาวน์โหลด/พิมพ์ปิดพร้อม policy (UI-12)
+  - [x] เคสทศนิยม Decimal ↔ float และเลข string ตรงตาม snapshot (เอกสารใหม่ `AIVA-2609-0017`)
+  - [x] ขยาย `tools/smoke-test.js` ให้คลุมพฤติกรรมใหม่ทั้งหมด (46 → 60 การตรวจ)
+  - [x] แปลงสคริปต์ตรวจชั่วคราวเป็นเครื่องมือถาวร `tools/browser-check.js` (Chromium จริง 14 การตรวจ + exit code) และเก็บกวาดไฟล์ `_dbg*`, `_bc.*`, `tools/_patch_*.py` + เพิ่ม `.gitignore`
+  - [x] อัปเดต README (โครงสร้าง, คำสั่ง, ตาราง 17 เคสที่ map กับ `docs.js` จริง, ข้อจำกัด) + canonical records
+- Acceptance criteria:
+  - [x] ทุก action ที่แสดงบนหน้าจอมีผลต่อ workflow/audit/outbox ชัดเจน และไม่มี path ใดทำให้สถานะเป็น undefined
+  - [x] ปุ่มที่กดไม่ได้ต้องอธิบายเหตุผลได้ (guard เดียวกันใช้ทั้งใน action bar และการ์ดขั้นตอนถัดไป) — ตรวจว่าทุกปุ่ม disabled มี `title` ยาว ≥ 10 ตัวอักษร
+  - [x] ไม่แก้ snapshot/rules เดิม และ action บน revision เก่าถูกบล็อก (ตรวจว่า `d.rev`/`d.wfv`/`OUTBOX` คงเดิมหลังดูของเก่า)
+  - [x] audit chain ตรวจแล้วผ่าน และแสดง chain ขาดเมื่อมีการแก้บันทึก (แล้วกู้กลับได้ด้วย `rechain()`)
+  - [x] `node --check` + smoke test ผ่านโดยไม่มี `undefined`/`NaN`/`[object Object]` (รวมการไล่ด้วย Chromium จริง 102 จอ + 22 จอที่ nav เปิดให้)
+- Result:
+  - `assets/app.js` +685 บรรทัด (guards/todoOf/nextCard/revision view/queue sort+pagination/audit hash chain+CSV+deep link/viewer toolbar+access event), `assets/domain.js` (ACTIONS ครบ 9 ตัว + use/blocked/decide/needReceiver, REASON_CODES 12), `assets/docs.js` (revs ของ 0013/0015, เอกสาร 0017, ปรับ `upl` ของ 0012 เพื่อทดสอบ SoD), `assets/style.css` (+27 บรรทัด)
+  - `tools/smoke-test.js` 46 → **60** การตรวจ ผ่านทั้งหมด; เพิ่ม `tools/browser-check.js` ผ่าน **14** การตรวจด้วย Chromium จริง (console error 0, 390px overflow 0px)
+  - README ถูกรีไรต์ในส่วนพฤติกรรม/ตารางเคสให้ตรงกับ `docs.js` (ตารางเดิม drift เช่น 0005/0006/0012) + `.gitignore` กันไฟล์ชั่วคราว
+  - บันทึกเป็น `CHG-20261003-015/016`, `WORK-20261003-016/017`, `ERR-20261003-006/007/008` และ session `2026-10-03-005-mockup-v3-round2.md`
+  - commit `cd76db0` (mockup) + commit ของ `agent/` แยกถัง ยังไม่ได้ push
+  - ข้อจำกัดที่เหลือ: hash chain/idempotency เป็นของจำลอง, `post`/download ปิดไว้, ยังไม่ต่อ backend — ต้องให้ฝ่ายบัญชีรับรองกติกา SoD/ล็อกฝั่งก่อนใช้เป็นสเปก
 
 ## Concurrent Task
 - Task ID: `TASK-20261003-004`

@@ -206,3 +206,24 @@
 - repo ไม่มี `user.email` ใน config จึงใส่ `-c user.email="aapico.intern07@aapico.com"` เฉพาะคำสั่ง commit (ไม่ได้แก้ global config) เพื่อคง author เดียวกับ commit ก่อนหน้า
 - push สำเร็จ `b248e7d..94d8cad` → `origin/invoice-web`; `git status -sb` clean และ sync กับ remote
 - ไม่ได้ push code ขึ้น分支อื่น ไม่มี deployment และไม่มี secret ถูกแนบขึ้นไป
+
+### `WORK-20261003-016` — ปิดงาน mockup v3 รอบ 2 (action parity, revisions, audit chain, queue, viewer, decimal)
+- Timestamp: `2026-10-03T14:10:00+07:00`
+- ต่อยอดงานค้างของ `TASK-20261003-005` ที่ยังไม่ได้ปิดรอบ (มี patch ชั่วคราว `_patch_a..m.py` + สคริปต์ debug ค้างในโฟลเดอร์ แต่ไม่มีการบันทึก records)
+- เขียนแบบแผนของรอบนี้: guard เดียวกัน (`guards(doc)`) → ใช้ทั้ง action bar / การ์ดขั้นตอนถัดไป / modal และทำให้ทุกปุ่มที่ปิดตอบ "ทำไม" ได้ ตามหลัก action parity ใน `08-task-first-review-ux.md`
+- ลงมือแก้ `assets/app.js` (state + guards + todoOf + nextCard + revision viewRev + queue sort/pagination + audit hash chain/CSV/deep link + viewer toolbar/access event) · `assets/domain.js` (ACTIONS ครบ 9 ตัว + field use/blocked/decide/needReceiver, REASON_CODES 12 รหัส) · `assets/docs.js` (revs snapshot ของ 0013/0015, เอกสาร 0017 Decimal string, ปรับ `upl` ของ 0012 เพื่อทดสอบ SoD) · `assets/style.css` (KPI งานของฉัน, .todo, .card.next, .blocked, .revsel, .hashc, .vbar)
+- แก้บั๊กที่ตรวจจาก log เดิม: `explain` ทำให้ workflow เป็น `undefined` (ตอนนี้ไม่แตะ wf, นับคำชี้แจง และส่งงานกลับฝ่ายบัญชี), `release_hold` ไม่มีใน action set, filter "งานของฉัน" ทำจาก KPI ไม่ได้
+- เพิ่มการตรวจ: `tools/smoke-test.js` จาก 46 → **60** การตรวจ (explain parity, SoD, ล็อกฝั่งบัญชี, on-hold + release_hold, idempotent replay/422, expected_document_revision 409, revision read-only, hash chain + CSV, คิวแบ่งหน้า/sort/งานของฉัน, viewer toolbar + access event)
+- รัน `node --check` (assets 4 + smoke-test) ผ่าน, `node tools/smoke-test.js` ผ่าน 60/60
+
+### `WORK-20261003-017` — ทำ browser-check เป็นเครื่องมือถาวร + เก็บกวาด + อัปเดต README/records
+- Timestamp: `2026-10-03T14:20:00+07:00`
+- ตรวจด้วย Chromium จริง (playwright 1.63 จาก `invoice-web-9054076/frontend`) แล้วแปลงสคริปต์ชั่วคราว `_bc.js` เป็น `tools/browser-check.js`: เปลี่ยนจาก "พิมพ์ log ให้อ่านเอง" เป็น assertion 14 รายการ + exit code, หา playwright จาก env/โฟลเดอร์ข้างเคียง (ไม่ hardcode), ข้ามอัตโนมัติเมื่อไม่มี playwright
+- ปรับการไล่หน้าจอให้เคารพ RBAC จริง: อ่านรายการหน้าจาก `#nav` หลังสลับผู้ใช้ (ADM ไม่มีคิว, audit เห็นเฉพาะ APR/ADM) → ครอบคลุม 22 จอที่ผู้ใช้กดได้ถึง แทน 3 หน้าที่ nav ของผู้ใช้ตั้งต้นเปิดให้
+- ผลรันจริง: ผ่าน 14/14 · console/page error 0 · 390px overflow 0px · pagination 1–8 จาก 17 · งานของฉัน 5 · CSV 19 บรรทัดพร้อม hash · deep link → AIVA-2609-0015
+- พยายามตรวจด้วย screenshot แต่โมเดลปัจจุบันอ่านรูปภาพไม่ได้ จึงยืนยันด้วย assertions ใน browser แทน (ลบ `_shot.js` และ `_shots/` ทิ้ง)
+- ลบไฟล์ชั่วคราว: `_bc.js`, `_bc.txt`, `_dbg*.js/.txt`, `tools/_patch_*.py` (ตรวจแล้วว่า apply ลง assets/ ครบ — smoke test ผ่าน) และเพิ่ม `.gitignore` กันการ repeats (`_*`, `_shots/`)
+- อัปเดต `invoice-webv3/README.md`: โครงสร้างไฟล์ + คำสั่งทดสอบใหม่, รายการพฤติกรรมรอบ 2, ตาราง 17 เคสที่ map กับ `docs.js` ทีละฉบับ (แก้สถานะเก่าที่ drift), ข้อจำกัดของ hash chain/post/download ที่ปิดไว้
+- อัปเดต canonical records: current-state, changelog (`CHG-20261003-015/016`), work-log, errors-and-solutions และ session ไฟล์
+- commit `cd76db0` เฉพาะโฟลเดอร์ mockup (records ใน `agent/` แยก commit) ยังไม่ได้ push รออนุญาตผู้ใช้
+- ยืนยันซ้ำ: `node --check` 6 ไฟล์ · smoke 60/60 · browser-check 14/14 · git status เหลือเฉพาะไฟล์ส่งมอบ (9 tracked + .gitignore + browser-check)

@@ -1,6 +1,6 @@
 # Current State
 
-Last verified: `2026-10-03T11:35:00+07:00`
+Last verified: `2026-10-03T14:20:00+07:00`
 
 ## Repository
 - Branch: `invoice-web`
@@ -10,23 +10,27 @@ Last verified: `2026-10-03T11:35:00+07:00`
   - `Web portal/invoice-web-9054076`: โค้ดจาก commit 9054076 สำหรับทดสอบเทียบเคียง (พอร์ต 5173 / 8010)
   - `Web portal/invoice-webv3`: mockup ใหม่แบบ no-build (plain classic script ไม่ต้อง build) สำหรับรีวิว UI + business rule
 - Existing OCR service and original HTML mockup remain unchanged this development session.
-- Agent records, central docs and invoice-web working tree are organized; latest commit `94d8cad` (invoice-webv3 mockup) pushed to `origin/invoice-web`.
+- Agent records, central docs and invoice-web working tree are organized; latest pushed commit `94d8cad`; local ahead ด้วย `cd76db0` (invoice-webv3 รอบ 2) ยังไม่ได้ push.
 - Repository-local skill `.agents/skills/aiva-invoice-core` สรุปขอบเขตระบบ field หลัก กฎ V-01–V-09, decision/routing, workflow/audit requirements และความขัดแย้งระหว่าง code, docs และ mockup เพื่อใช้เป็น domain reference ระหว่างพัฒนาต่อ.
 
 ## Mockup v3 (no-build) — `Web portal/invoice-webv3`
 
-สถานะ: สร้างใหม่ทั้งโฟลเดอร์ ยังไม่ต่อ backend — commit `94d8cad` และ push ไป `origin/invoice-web` แล้ว (2026-10-03)
+สถานะ: ใช้งานได้ครบรอบ 2 (action parity + revisions + audit chain + queue + viewer + decimal) — ยังไม่ต่อ backend; รอบแรก commit `94d8cad` (push แล้ว) ส่วนรอบ 2 commit แล้วเป็น `cd76db0` (local branch `invoice-web` ยังไม่ได้ push)
 
 - เปิดจาก `file://` ได้ทันที (ดเบิลคลิก `index.html`) ไม่ต้องมี `node_modules` หรือ bundler; ปุ่มคัดลอก JSON ต้องเปิดผ่าน `python -m http.server 5190`
 - โหลดสคริปต์คลาสสิก 4 ไฟล์ตามลำดับ `assets/data.js` → `assets/domain.js` → `assets/docs.js` → `assets/app.js`
 - `assets/data.js` ถูกรีเจเนอเรตด้วย `tools/build-domain-data.py` จาก `OCR service/n8n/app/core/master_data.py` (นิติบุคคล 48 แถว) และ `rules.py` (exception as-built 15 รหัส + ชุดรหัสฝั่ง user)
 - พฤติกรรมที่ฝังใน UI ตรงกับ as-built engine: decision order (manual_review → Manual Review, High → Hold, Medium → Review, ที่เหลือรวม Low → Auto-pass), ownership ตาม `owner_of()`, ladder จับคู่ M1–M4 (M4 = ต้องให้คนตรวจ)
-- ข้อมูลเอกสาร 16 ฉบับใน `assets/docs.js` เป็นข้อมูลสังเคราะห์ แต่โครงสร้าง field ตาม receiving contract (schema 1.0) และครอบคลุมเคส fail-safe/duplicate/revision/pipeline-fail
-- จำลอง workflow ตาม contract: reason code + required note + `expected_workflow_version` + Idempotency-Key → 409 Conflict เมื่อ version ไม่ตรง (ไม่แก้สถานะ), `rerun` สร้าง action outbox `waiting_revision` และกันการสั่งซ้ำ
-- RBAC page แสดงผู้ใช้ 6 คน/5 บทบาท ขอบเขต company ↔ receiver, ผัง Portal ↔ Entra ID ↔ Oracle `RECEIVER` ↔ บริษัท และตาราง Mockup ↔ Production gap
+- ข้อมูลเอกสาร 17 ฉบับใน `assets/docs.js` เป็นข้อมูลสังเคราะห์ แต่โครงสร้าง field ตาม receiving contract (schema 1.0) และครอบคลุมเคส fail-safe/duplicate/revision/pipeline-fail และ Decimal ↔ float (`AIVA-2609-0017` เก็บยอดเป็น string ตรงตาม snapshot)
+- workflow ครบ 9 action ตาม action parity (`explain` `resubmit` `rerun` `return` `hold` `release_hold` `reject` `confirm` `post`) และ `guards(doc)` เป็นความจริงชุดเดียวของ "ปุ่มไหนกดได้/ไม่ได้ + เพราะอะไร" ที่ใช้ร่วมกันทั้ง action bar, การ์ดขั้นตอนถัดไป และ modal; ทุกปุ่ม disabled ต้องมี `title` บอกเหตุผล
+- บังคับ separation of duties (ผู้แนบเอกสาร `upl` ตัดสินเองไม่ได้), ล็อกฝั่งบัญชีเมื่อ High exception ที่ engine มอบให้ผู้ใช้ยังไม่ปิด, ล็อก action ขณะ On Hold (ถอนพักได้เฉพาะผู้ถือ hold/เจ้าของงาน/ADM) และ `post` ปิดตายพร้อมเหตุผลจนกว่าจะมี AP acknowledgement contract
+- Revision snapshot: เลือกดู revision เก่าได้เป็นโหมดอ่านอย่างเดียว (banner + PDF/JSON/ผลตรวจตรงรุ่น + action ถูกบล็อก) และกลับสู่ revision ล่าสุดได้
+- คิว: KPI 7 ใบ (รวม "งานของฉัน"), คอลัมน์ "งานที่ต้องทำ" ทุกแถว, sort 3 แบบ, แบ่งหน้าละ 8 รายการ; viewer มี toolbar + คีย์ลัด `←/→` + บันทึก access event + ปิดดาวน์โหลด/พิมพ์พร้อมนโยบาย
+- audit ถูกผูกเป็น hash chain (`prev_hash`/`hash`) แบบจำลอง: ตรวจความต่อเนื่อง, จำลองการแก้ไขให้เห็น chain ขาด, deep link กลับเอกสาร, ส่งออก CSV พร้อม hash — hash เป็นของจำลองเพื่อการสาธิตเท่านั้น
+- RBAC page แสดงผู้ใช้ 7 คน/4 บทบาท (EU/ACC/APR/ADM) ขอบเขต company ↔ receiver, nav เองก็ถูกปิดตามสิทธิ์ (ADM ไม่มีคิว, audit เห็นเฉพาะ APR/ADM), ผัง Portal ↔ Entra ID ↔ Oracle `RECEIVER` ↔ บริษัท และตาราง Mockup ↔ Production gap
 - ความขัดแย้งของแหล่งข้อมูลแสดงต่อหน้าผู้ใช้ ไม่ถูกทำให้หาย: ผัง docs-catalog ↔ as-built, รหัสชนกัน (`E13`, `E34`), Tax ID `0107545000179` / ORG `222` / ORG `196` ที่ไม่มีใน master, ORG `556` ที่ master map แล้ว, ขีดจำกัด PDF portal ↔ Vision, `Decimal` ↔ JSON float
 - ตัดสินใจ design สำคัญ: เอกสารที่ map บริษัทไม่ได้ (ORG/Tax ID ว่างหรือไม่อยู่ใน master) ต้องขึ้นในคิวฝ่ายบัญชีพร้อมป้ายเตือน แทนการถูกกรองหายจากทุกคิว
-- `tools/smoke-test.js` เป็น DOM ปลอมสำหรับตรวจว่าทุกผู้ใช้/ทุกหน้า/ทุกแท็บ/ทุกเอกสาร/ทุก action เรนเดอร์ได้ และคง invariant ของ `decide()`
+- เครื่องมือตรวจ: `tools/smoke-test.js` (DOM ปลอม 60 การตรวจ — logic/invariant) และ `tools/browser-check.js` (Chromium จริง 14 การตรวจ — console error, คีย์ลัด, layout 390px, ตามหน้าที่ nav เปิดให้แต่ละบทบาท); `browser-check` หา playwright จาก env/โฟลเดอร์ข้างเคียงและข้ามตัวเองถ้าไม่มี
 
 ## Implemented Portal
 - `invoice-web/frontend`: React + TypeScript + Vite + TanStack Query; UI ถูกปรับให้ตรงตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html` อย่างสมบูรณ์ 100%:
@@ -59,8 +63,9 @@ Last verified: `2026-10-03T11:35:00+07:00`
 - Local preview runs at `http://127.0.0.1:8010`; API docs at `/api/docs`. One clearly labeled synthetic example with two JSON/PDF revisions was loaded for manual preview.
 
 ## Verified
-- Mockup v3: `node --check` ผ่านทั้ง 4 สคริปต์ใน `Web portal/invoice-webv3/assets/` และ `node tools/smoke-test.js` ผ่าน 46 การตรวจ (ครอบคลุม 409 ไม่แก้สถานะ, confirm เพิ่ม `wf_version`, rerun สร้าง outbox, บล็อก action เมื่อขาด note, KPI นับตรงข้อมูล, master 48 แถว / 15 exception code / 9 กฎ, สแกนรูปแบบ credential)
-- Mockup v3 เปิดตรวจด้วย Chromium จริง (Playwright ที่ใช้ package จาก `invoice-web-9054076/frontend`): ไล่ 6 ผู้ใช้ × 4 หน้า × ทุกเอกสาร × 6 แท็บ + viewer + modal → console/page error 0, ไม่มี `undefined`/`NaN`/`[object Object]`, viewport 390px ไม่มี horizontal overflow (0px), header 56px `rgb(13,39,77)`, KPI 6 ใบ, active tab underline `rgb(0,181,175)`, คิวของผู้ใช้ตั้งต้น (ACC) 11 ฉบับ
+- Mockup v3 (รอบ 2): `node --check` ผ่านทั้ง 6 สคริปต์, `node tools/smoke-test.js` ผ่าน **60** การตรวจ (เพิ่ม explain parity, SoD + ล็อกฝั่งบัญชี, on-hold/release_hold, idempotent replay + 422, expected_document_revision 409, revision read-only, audit hash chain + CSV, คิวแบ่งหน้า/sort/งานของฉัน, viewer toolbar + access event)
+- Mockup v3 Chromium จริง (`node tools/browser-check.js`) ผ่าน **14** การตรวจ: 7 ผู้ใช้ × nav ที่เปิดให้ตามสิทธิ์ (EU 3, ACC 3, APR 4 มี audit, ADM 3 ไม่มีคิว = 22 จอ), 17 ฉบับ × 6 แท็บ = 102 จอ, console/page error 0, 390px overflow 0px, pagination 1–8 จาก 17, "งานของฉัน" 5 ฉบับ, CSV พร้อม hash, deep link เปิดเอกสารตรงฉบับ
+- Mockup v3 (รอบแรก): เปิดด้วย Chromium แล้วแก้ first paint (`BOOT.user` ไม่เคยถูกsetค่าใน `<select>`), เพิ่ม STEP 4 "Portal ตรวจซ้ำ", highlight หลักฐานตาม `rule.page` และแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่หลุดจากตัวกรอง
 - ยังไม่ได้ทดสอบ Safari/Firefox และการเรนเดอร์ font จริงจาก Google Fonts ต้องใช้ network (offline แล้ว fallback เป็น system-ui/monospace ตามลำดับ)
 - Skill package ผ่าน `quick_validate.py` เมื่อรันด้วย UTF-8 mode; reference link และ source paths ที่ระบุมีอยู่จริงครบ.
 - Backend: 15 unittest tests passed (persistence, idempotency, conflicts, revisions, schema validation, versioned PDF, global audit, workflow action/version/idempotency/outbox/revision completion, compatibility backfill, origin, keys, filters, adapter, architecture boundaries).
@@ -78,6 +83,9 @@ Last verified: `2026-10-03T11:35:00+07:00`
 
 ## Constraints / Next Work
 - Mockup v3 เป็น in-memory ทั้งหมด (reload แล้วคืนค่าเดิม) ยังไม่เรียก `GET /api/portal/v1/documents`, `/documents/{id}`, `/kpis`, `/workflow/actions`, `/workflow/outbox`
+- Mockup v3: hash chain ของ audit, access event และ idempotency store เป็นการจำลองในเบราว์เซอร์ (hash สั้น คำนวณ client-side) — ใช้สาธิตพฤติกรรม ไม่ได้ใช้พิสูจน์ความถูกต้องของบันทึกใน production
+- Mockup v3: `post` (ส่งเข้า AP) และปุ่มดาวน์โหลด/พิมพ์ PDF ถูกปิดพร้อมเหตุผล ต้องได้ AP acknowledgement contract + signed URL/download policy จากปลายทางก่อนทำให้กดได้
+- พฤติกรรมรอบ 2 ของ mockup v3 (SoD, ล็อกฝั่งบัญชี, ใครถอนพักได้, ความหมายของ `explain`) ยังเป็นการตีความตาม docs/contract ที่เขียนไว้ในโค้ด — ต้องให้ฝ่ายบัญชีรับรองก่อนใช้เป็นสเปก
 - Current release is local/integration pilot, not company-scoped production: shared API keys are workspace-wide; Entra, user/receiver RBAC and immutable user audit remain unimplemented.
 - Workflow actions ใน shared-key pilot ไม่มีตัวตนรายบุคคล; ต้องเชื่อม Entra ก่อนบังคับ EU/ACC/APR และ separation of duties.
 - SQLite startup table creation currently used; PostgreSQL/Alembic and production backup/storage/retention/scan/rate limits remain future work.

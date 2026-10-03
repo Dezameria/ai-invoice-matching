@@ -136,3 +136,27 @@
   - คิวแสดงแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่ไม่ตรงกับตัวกรอง/KPI chip ปัจจุบัน พร้อมลิงก์ `resetFilt()` ล้างตัวกรอง (เดิมคือหายไปจากคิวโดยไม่มีคำอธิบาย)
 - ผลตรวจ Chromium: console/page error 0 รายการ, ไม่มีค่า `undefined`/`NaN`/`[object Object]` ในทุกผู้ใช้×ทุกหน้า×ทุกเอกสาร×ทุกแท็บ, ที่กว้าง 390px ไม่มี horizontal overflow (0px), header 56px สี `rgb(13,39,77)`, KPI 6 ใบ, แท็บ active ใช้เส้นใต้ `rgb(0,181,175)`
 - ไม่มีไฟล์ portal/backend/OCR เดิมถูกแก้ (ยังเป็นโฟลเดอร์ `invoice-webv3` ใหม่อย่างเดียว)
+
+### Changed — `CHG-20261003-015`
+- Timestamp: `2026-10-03T14:10:00+07:00`
+- ยกระดับ mockup v3 (`Web portal/invoice-webv3`) รอบที่ 2 ตามช่องว่างที่เก็บจาก log/เอกสาร parity ของ portal เดิม (`05-implementation-status.md`, `07-mockup-feature-parity.md`, `08-task-first-review-ux.md`):
+  - **action parity ครบ 9 action** (`explain` `resubmit` `rerun` `return` `hold` `release_hold` `reject` `confirm` `post`) แทนชุดเดิม 6 action ที่ขาด `release_hold`/`post` และบั๊ก `explain` ที่ทำให้ workflow กลายเป็น `undefined`
+  - เพิ่ม `guards(doc)` เป็น source of truth เดียวของ "ปุ่มไหนกดได้/ไม่ได้และเพราะอะไร" ใช้ร่วมกันทั้ง action bar, การ์ดขั้นตอนถัดไป และ modal — ทุกปุ่มที่ disabled ต้องมี `title` เป็นเหตุผล (สิทธิ์/403 ตาม scope/On Hold/คนถือ hold คนละฝั่ง/snapshot เก่า/ปิดสถานะ/ไม่มี Receiver/outbox ค้าง/ผลเป็น Hold-Manual Review/High ฝั่งผู้ใช้ยังไม่ปิด/SoD/post ยังไม่เปิด)
+  - เพิ่ม **การ์ด "ขั้นตอนถัดไป"** ตามลำดับข้อมูล task-first: งานที่ต้องทำ · ผู้รับผิดชอบ (เทียบ engine assigned) · หลักฐานหน้าที่ต้องเปิด · action ที่ทำได้ · ข้อพับ "ทำไมอีก N ปุ่มกดไม่ได้"
+  - บังคับ **separation of duties** (ผู้แนบเอกสาร `upl` ทำ action ประเภทตัดสินเองไม่ได้) + ล็อกฝั่งบัญชีเมื่อ High exception ที่ engine มอบให้ฝั่งผู้ใช้ยังไม่ถูกปิด + ล็อก action อื่นขณะ On Hold และให้ `release_hold` พา workflow กลับสถานะก่อนพัก
+  - เพิ่ม **revision snapshot**: เลือกดู revision เก่าได้จาก dropdown, banner "อ่านอย่างเดียว", PDF/JSON/ผลตรวจตรงรุ่นกัน, ทำ action กับ revision เก่าไม่ได้ (เหตุผลอ้าง immutable) และกลับสู่ revision ล่าสุดได้
+  - คิว: เพิ่มคอลัมน์ "งานที่ต้องทำ" ทุกแถว, ตัวเรียงลำดับ (ความเร่งด่วน/ยอดเงิน/วันที่), แบ่งหน้าละ 8 รายการ และ KPI ใบที่ 7 "งานของฉัน" (UI-02/UI-03)
+  - audit: ผูกบันทึกเป็น **hash chain (prev_hash/hash)** จำลอง tamper-evident พร้อมปุ่มตรวจความต่อเนื่อง + ปุ่มจำลองการแก้ไขเพื่อแสดง chain ขาด, deep link จากบันทึกไปยังเอกสาร, และส่งออก CSV พร้อมคอลัมน์ hash
+  - viewer: แถบเครื่องมือ (ย่อ/ขยาย, เล่มหน้าด้วยปุ่ม + คีย์ `←` `→`), บันทึก **access event** ทุกครั้งที่เปิดเอกสาร และปิดปุ่มดาวน์โหลด/พิมพ์พร้อมเหตุผลนโยบาย (production ต้องใช้ signed URL)
+  - เพิ่มเอกสาร `AIVA-2609-0017` เคส **Decimal ↔ float** ที่เก็บยอดเป็น string ตรงตาม snapshot (`600 × 30.666667 = 18,400.0002`) เพื่อสาธิตว่า portal ห้ามแปลงเป็น float แล้วทำให้ผลต่างหาย — ชุดเอกสารตั้งต้นเป็น 17 ฉบับ
+  - ขยาย RBAC เป็น 7 ผู้ใช้ (เพิ่ม ADM) และปิด nav ตามสิทธิ์จริง (ADM ไม่มีคิว, audit เห็นเฉพาะ APR/ADM)
+- ผลทดสอบจริง: `node --check` ผ่านครบทุกไฟล์ (6 ไฟล์ รวม browser-check) · `node tools/smoke-test.js` ผ่าน **60** การตรวจ (จาก 46) · `node tools/browser-check.js` ผ่าน **14** การตรวจด้วย Chromium จริง (7 ผู้ใช้ × nav ที่เปิดให้ = 22 จอ, 17 ฉบับ × 6 แท็บ = 102 จอ, console/page error 0, ที่ 390px overflow 0px)
+- ยังไม่แก้ `invoice-webV2`, `invoice-web1`, `invoice-web-9054076`, OCR engine หรือ backend ใด และยังไม่ต่อ API จริง
+
+### Added — `CHG-20261003-016`
+- Timestamp: `2026-10-03T14:15:00+07:00`
+- เพิ่ม `Web portal/invoice-webv3/tools/browser-check.js` เป็นเครื่องมือถาวร: ไล่หน้าจอ mockup ด้วย Chromium จริง แล้วตรวจสิ่งที่ DOM ปลอมมองไม่เห็น (console/page error, คีย์ลัด, ปุ่ม disabled + title, layout 390px, audit chain หลังทำ action) — รายงานเป็น "✓ ผ่าน N การตรวจ" และ exit code 1 เมื่อ fail
+- หา playwright จาก `$PLAYWRIGHT_PATH` หรือโฟลเดอร์ข้างเคียง ไม่ผูก path แบบ hardcode และข้ามอัตโนมัติ (exit 0) เมื่อเครื่องไม่มี playwright; รองรับ `$BASE_URL` เพื่อตรวจตอนเสิร์ฟผ่าน http
+- เพิ่ม `.gitignore` ในโฟลเดอร์ mockup: ไฟล์ขึ้นต้นด้วย `_` (สคริปต์/ผลตรวจชั่วคราว), `_shots/`, `node_modules/` เพื่อไม่ให้ไฟล์ชั่วคราวหลุดเข้า repo แบบรอบก่อน
+- ลบสคริปต์ชั่วคราวรอบก่อนหน้าออกจากโฟลเดอร์ส่งมอบ (`_bc.js`, `_dbg*.js/.txt`, `tools/_patch_*.py` — เป็น one-shot patch ที่ apply ลง assets/ ครบแล้ว)
+- แก้ตารางเคสและตัวเลขใน `invoice-webv3/README.md` ให้ตรงกับ `assets/docs.js` จริง (ตารางเดิมยังอ้างสถานะเก่า เช่น 0005/0006/0012, 16 ฉบับ → 17 ฉบับ, 6 ผู้ใช้ 5 บทบาท → 7 ผู้ใช้ 4 บทบาท, KPI 6 → 7 ใบ) และบันทึกข้อจำกัดของ hash chain ที่เป็นการจำลอง

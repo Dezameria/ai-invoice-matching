@@ -90,3 +90,36 @@
 - Prevention: ทุกครั้งที่ app state มี DOM counterpart ให้ถือว่า "สร้าง element แล้ว ≠ ตั้งค่าแล้ว" — ต้องเขียนค่าลง DOM ก่อนอ่านกลับ; และให้ตรวจ first paint ด้วย browser จริงเสมอ เพราะ unit/DOM-sim test มองไม่เห็นกรณีนี้
 - Evidence: Chromium check หลังแก้ได้ chips `ทุกบริษัท/AH/AHT/ยังไม่ map`, queueItems 11, `.qi.on` = rgb(238,248,248), console errors 0
 - Status: `resolved`
+
+### `ERR-20261003-006` — Workflow เปลี่ยนเป็น undefined เมื่อ action ไม่มีสถานะปลายทาง
+
+- Detected: `2026-10-03T13:10:00+07:00` (เก็บจาก log/พฤติกรรมของ portal รอบก่อน แล้วกันการเกิดซ้ำใน mockup v3)
+- Context: ฟอร์ม action ผูกสถานะปลายทางกับตาราง action (`d.wf = ACTIONS[k].wf`) และบาง action เช่น `explain` "ไม่เปลี่ยน workflow"
+- Symptom: หลังกด "ชี้แจง" สถานะ workflow กลายเป็น `undefined` badge ว่างเปล่า และคิว/KPI นับเอกสารใบนี้ไม่ตรง
+- Root Cause: แยก "action ที่ไม่เปลี่ยนสถานะ" ด้วยการ *ไม่ใส่ field* ทำให้ `a.wf` เป็น `undefined` แล้ว code assign ตรง ๆ ลง state — ความหมาย "ไม่เปลี่ยน" กับ "ไม่มีค่า" ถูกเขียนด้วยวิธีเดียวกัน
+- Solution: ประกาศ `wf: null` ให้ชัดใน `ACTIONS` (explain/release_hold = null) และ assign แบบ `if (a.wf) d.wf = a.wf` · เพิ่ม assertion ใน `smoke-test.js` ว่าหลัง `explain` ทุกเอกสารในขอบเขตยังต้องมี `wf` ใน `WF_LABEL` และผลตรวจคงเดิม
+- Prevention: state ที่เป็น enum ต้องไม่มี path ไหนเขียน `undefined` ลงไป — ให้ใช้ `null` + explicit branch และเขียน test ที่อ่านค่า state กลับหลังทำ action *ทุกตัว* ไม่ใช่เฉพาะ action ใหญ่
+- Evidence: `node tools/smoke-test.js` → ผ่าน 60 การตรวจ (มีเคส explain 3 user ขึ้นไป) และ browser-check ไม่มี `undefined` บนหน้าจอ
+- Status: `resolved`
+
+### `ERR-20261003-007` — Browser check ไล่ไม่ครบหน้า เพราะอ่าน nav จากผู้ใช้คนเดียว
+
+- Detected: `2026-10-03T14:05:00+07:00`
+- Context: `tools/browser-check.js` เก็บรายการหน้าจาก `#nav` ตอนโหลดครั้งแรก (ผู้ใช้ตั้งต้น = ACC) แล้ววนทุกผู้ใช้ด้วยรายการนั้น
+- Symptom: รายงาน "7 ผู้ใช้ × 3 หน้า" ทั้งที่ mockup มี 4 หน้า — หน้า audit (เปิดเฉพาะ APR/ADM) ไม่ถูกไล่หา `undefined`/`NaN` เลย และ ADM ที่ nav ไม่มีคิวก็ถูกทดสอบหน้าจอที่ไม่มีอยู่จริง
+- Root Cause: nav ถูก RBAC ปิด/เปิดตามสิทธิ์ การสลับผู้ใช้จึงเปลี่ยน "หน้าจอที่เข้าถึงได้" ไม่ใช่แค่ข้อมูล — การวัด coverage จาก DOM ครั้งเดียวจึงเท่ากับวัดขอบเขตของผู้ใช้คนเดียว
+- Solution: อ่าน `#nav a` ใหม่ทุกครั้งหลัง `switchUser()` แล้วไล่ตามรายการนั้น พร้อม assert ว่าบทบาทต่างกันต้องให้เห็น nav ต่างกัน (EU/ACC/APR/ADM) และจำนวนจอที่เข้าถึงได้ ≥ 18
+- Prevention: เวลาทดสอบ RBAC ให้ derive "สิ่งที่ผู้ใช้กดได้" จาก UI ณ ขณะนั้น ไม่ใช่จากค่าที่เก็บไว้ตอนต้น และให้ตรวจว่า coverage ที่รายงานมาจากการวนจริง
+- Evidence: หลังแก้ได้ "nav ของ EU 3 · ACC 3 · APR 4 (มี audit) · ADM 3 (ไม่มีคิว) · รวม 22 จอ" และผ่าน 14/14 การตรวจ
+- Status: `resolved`
+
+### `ERR-20261003-008` — ไฟล์ตรวจสอบชั่วคราวหลุดไปอยู่ในโฟลเดอร์ส่งมอบ
+
+- Detected: `2026-10-03T13:55:00+07:00`
+- Context: รอบพัฒนายกใหญ่ใช้สคริปต์ one-shot (`tools/_patch_a.py` … `_patch_m.py`) และผล debug (`_bc.js`, `_bc.txt`, `_dbg*`) วางไว้ในโฟลเดอร์ mockup แล้วจบ session โดยไม่ได้เก็บกวาดและไม่ได้อัปเดต records
+- Symptom: `git status` มี untracked 20 ไฟล์ปะปนกับโค้ดส่งมอบ, ผู้รีวิวเห็นไฟล์ debug ในโฟลเดอร์ "no-build mockup" และงานที่เสร็จจริงถูกตรวจซ้ำใหม่ทั้งหมดเพราะไม่มีการบันทึก
+- Root Cause: ไม่มี Convention/gitignore สำหรับไฟล์ชั่วคราว + เครื่องมือตรวจถูกเขียนเป็นสคริปต์ใช้แล้วทิ้ง จึงไม่มีใครเรียกใช้ซ้ำได้
+- Solution: ลบไฟล์ที่ apply แล้วออก, แปลงสคริปต์ตรวจเป็นเครื่องมือถาวร `tools/browser-check.js` (assertion + exit code), เพิ่ม `.gitignore` กันไฟล์ขึ้นต้นด้วย `_`, และปิดรอบงานด้วย canonical records ตาม `AGENTS.md`
+- Prevention: ไฟล์ชั่วคราวให้ขึ้นต้นด้วย `_` เสมอ (แล้ว ignore) — ถ้ามีค่าพอจะเก็บ ต้องตั้งชื่อใน `tools/` + อธิบายใน README ไม่งั้นให้ลบก่อนจบรอบ และห้ามจบรอบพัฒนาโดย `task-plan.md`/`changelog.md` ยังไม่อัปเดต
+- Evidence: หลังเก็บกวาดโฟลเดอร์มีเฉพาะ `index.html`, `README.md`, `.gitignore`, `assets/` (5 ไฟล์), `tools/` (3 ไฟล์) และ smoke 60 + browser-check 14 ผ่าน
+- Status: `resolved`
