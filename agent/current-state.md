@@ -10,11 +10,13 @@ Last verified: `2026-10-03T15:45:00+07:00`
   - `Web portal/invoice-web-9054076`: โค้ดจาก commit 9054076 สำหรับทดสอบเทียบเคียง (พอร์ต 5173 / 8010)
   - `Web portal/invoice-webv3`: mockup ใหม่แบบ no-build (plain classic script ไม่ต้อง build) สำหรับรีวิว UI + business rule
   - `Web portal/invoice-webV4`: web portal no-build แบบ ES modules ที่แยก layer จริง (domain/data/engine/ui/views) และ**แสดงผลจาก snapshot เท่านั้น** — ยังไม่ต่อ backend (untracked ใน `git status`)
+  - Web portal/invoice-webV5: repo-reference web portal no-build (ES modules) ซิงก์ข้อมูลอ้างอิงตรงจาก repo (	ools/sync.py) และแสดงผล snapshot เท่านั้น
 - Existing OCR service and original HTML mockup remain unchanged this development session.
 - Agent records, central docs and invoice-web working tree are organized; latest pushed commit `94d8cad`; local ahead ด้วย `cd76db0` (invoice-webv3 รอบ 2) ยังไม่ได้ push.
 - Repository-local skill `.agents/skills/aiva-invoice-core` สรุปขอบเขตระบบ field หลัก กฎ V-01–V-09, decision/routing, workflow/audit requirements และความขัดแย้งระหว่าง code, docs และ mockup เพื่อใช้เป็น domain reference ระหว่างพัฒนาต่อ.
 
 ## Web Portal V4 (no-build, snapshot-driven) — `Web portal/invoice-webV4`
+  - Web portal/invoice-webV5: repo-reference web portal no-build (ES modules) ซิงก์ข้อมูลอ้างอิงตรงจาก repo (	ools/sync.py) และแสดงผล snapshot เท่านั้น
 
 สถานะ: ใช้งาน/เดโมได้ครบ (22 เอกสาร / 24 snapshot) — `smoke-test` ผ่าน **107/107** และ `browser-check` ผ่าน **14/14** ด้วย Chromium จริง; ยังไม่ต่อ backend/OCR จริง และยังไม่ commit
 
@@ -83,6 +85,7 @@ Last verified: `2026-10-03T15:45:00+07:00`
 ## Verified
 - Web Portal V5 (`Web portal/invoice-webV5`): repo-reference portal (no-build ES modules) — `node tools/smoke-test.mjs` ผ่าน **31/31** ข้อ (hygiene, provenance, domain, ui), `node tools/browser-check.mjs` ผ่าน **29/29** ข้อ (Edge headless, console error 0), `python tools/sync.py --check` ผ่าน
 - Web Portal V4 (`Web portal/invoice-webV4`): snapshot-driven portal (no-build ES modules) — `node tools/smoke-test.mjs` ผ่าน **107/107** ข้อ (decimal, contract, policy, architecture), `node tools/browser-check.mjs` ผ่าน **14/14** ข้อ (Chromium, 1440px + 390px no overflow), `tools/build-fixtures.mjs --check` ผ่าน
+  - Web portal/invoice-webV5: repo-reference web portal no-build (ES modules) ซิงก์ข้อมูลอ้างอิงตรงจาก repo (	ools/sync.py) และแสดงผล snapshot เท่านั้น
 - Mockup v3 (รอบ 2): `node --check` ผ่านทั้ง 6 สคริปต์, `node tools/smoke-test.js` ผ่าน **60** การตรวจ (เพิ่ม explain parity, SoD + ล็อกฝั่งบัญชี, on-hold/release_hold, idempotent replay + 422, expected_document_revision 409, revision read-only, audit hash chain + CSV, คิวแบ่งหน้า/sort/งานของฉัน, viewer toolbar + access event)
 - Mockup v3 Chromium จริง (`node tools/browser-check.js`) ผ่าน **14** การตรวจ: 7 ผู้ใช้ × nav ที่เปิดให้ตามสิทธิ์ (EU 3, ACC 3, APR 4 มี audit, ADM 3 ไม่มีคิว = 22 จอ), 17 ฉบับ × 6 แท็บ = 102 จอ, console/page error 0, 390px overflow 0px, pagination 1–8 จาก 17, "งานของฉัน" 5 ฉบับ, CSV พร้อม hash, deep link เปิดเอกสารตรงฉบับ
 - Mockup v3 (รอบแรก): เปิดด้วย Chromium แล้วแก้ first paint (`BOOT.user` ไม่เคยถูกsetค่าใน `<select>`), เพิ่ม STEP 4 "Portal ตรวจซ้ำ", highlight หลักฐานตาม `rule.page` และแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่หลุดจากตัวกรอง
@@ -102,6 +105,8 @@ Last verified: `2026-10-03T15:45:00+07:00`
 - `docs/` remains original architecture reference; code/docs have known contract and rules-version differences recorded in invoice-web planning documents.
 
 ## Constraints / Next Work
+- n8n workflow v6.5 ยัง ctive: false และยังไม่เคยรัน end-to-end จริงกับ Paperless/LiteLLM/Portal; SQL ที่ใช้จริงบนเซิร์ฟเวอร์ยังไม่ถูกยิงกับ AH_DEV_RCV_PO_AP_MATCHING_V (ตรวจแค่ shape ผ่าน MCP oracle)
+- N7 ยัง hardcode Authorization header (ควรย้ายไป credential httpTemplatedCustomAuth ตามที่ n8n แนะนำ)
 - Mockup v3 เป็น in-memory ทั้งหมด (reload แล้วคืนค่าเดิม) ยังไม่เรียก `GET /api/portal/v1/documents`, `/documents/{id}`, `/kpis`, `/workflow/actions`, `/workflow/outbox`
 - Mockup v3: hash chain ของ audit, access event และ idempotency store เป็นการจำลองในเบราว์เซอร์ (hash สั้น คำนวณ client-side) — ใช้สาธิตพฤติกรรม ไม่ได้ใช้พิสูจน์ความถูกต้องของบันทึกใน production
 - Mockup v3: `post` (ส่งเข้า AP) และปุ่มดาวน์โหลด/พิมพ์ PDF ถูกปิดพร้อมเหตุผล ต้องได้ AP acknowledgement contract + signed URL/download policy จากปลายทางก่อนทำให้กดได้

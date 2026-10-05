@@ -12,7 +12,7 @@ from app.core.models import (
     ExtractedDocument,
     OracleReceipt
 )
-from app.core.master_data import MASTER_ENTITIES, CorporateEntity
+from app.services.master_data_service import get_master_data_service, CorporateEntity
 from app.core.rules import normalize_extracted_document
 from app.services.pipeline import VerificationPipeline
 from app.services.oracle_mcp import OracleMCPClient
@@ -152,11 +152,12 @@ async def verify_paperless_next(
 @router.get(
     "/master-entities",
     response_model=List[CorporateEntity],
-    summary="List 27 Corporate Master Entities"
+    summary="List Dynamic Corporate Master Entities from Oracle EBS"
 )
 async def list_master_entities():
-    """Retrieve list of 27 corporate entities (Master Table 4)."""
-    return MASTER_ENTITIES
+    """Retrieve list of corporate entities queried dynamically from Oracle EBS."""
+    mds = get_master_data_service()
+    return await mds.get_all_entities()
 
 
 @router.get(

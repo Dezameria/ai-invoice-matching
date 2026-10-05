@@ -1,6 +1,7 @@
 # Work Log
 
 บันทึกการดำเนินงานและผลตรวจสอบตามลำดับเวลา รายการใหม่ต้องเพิ่มด้านล่างเท่านั้น
+
 ## 2026-10-01
 
 ### `WORK-20261001-001` — Establish central architecture documentation in `docs/`
@@ -80,178 +81,49 @@
 - ตรวจสอบความถูกต้อง: Backend unittest 15 รายการผ่าน, TypeScript + Vite production build ผ่าน, Playwright E2E 6 รายการผ่าน (Edge browser 17.4s), ตรวจภาพจริงผ่าน Browser Subagent ทั้ง desktop และ mobile viewports
 - ไม่มี commit, push หรือ public deployment
 
-### `WORK-20261002-007` — Implement Master-Detail split layout matching Mockup v4.4
-- Timestamp: `2026-10-02T11:03:00+07:00`
-- ออกแบบและปรับปรุงโครงสร้างหน้าจอหลักตามคำขอของผู้ใช้และภาพ Mockup v4.4 ที่แนบมา โดยให้รายการเอกสารอยู่ด้านซ้าย และเมื่อคลิกดูข้อมูลจะแสดงรายละเอียดทันทีทางด้านขวา
-- ปรับ `App.tsx` ให้ส่งต่อ `selectedId` และ `revision` ไปยัง `QueuePage` เพื่อรวมหน้าจอเป็น Master-Detail Workspace เดียวกัน
-- ปรับ `QueuePage.tsx`:
-  - ด้านบน: เพิ่มแถบ KPI Cards 6 สถานะ (ทั้งหมด, Auto-pass, Review, Hold, Manual Review, ซ้ำ) และแถบ Scope & Company Chips สำหรับกรองข้อมูลทันที
-  - ด้านซ้าย (`.queue-sidebar`): แสดงหัวข้อคิวตรวจสอบ, จำนวนฉบับ, ช่องค้นหา (`ค้นหาเลขที่ใบแจ้งหนี้ / PO / ผู้ขาย`), และรายการเอกสาร (`.qi`) พร้อมแสดงเลขที่ใบเสร็จ, บริษัท, สถานะ, ผู้ขาย, PO, Receiver, รหัสข้อผิดพลาด และยอดเงิน
-  - ด้านขวา (`.detail-pane`): แสดงรายละเอียดเอกสารที่เลือกทันที (Document Workspace) พร้อมตัวอย่าง PDF หรือหน้าว่างเมื่อยังไม่ได้เลือกเอกสาร
-  - เพิ่มปุ่มสลับมุมมองระหว่าง "แยก 2 ฝั่ง (Master-Detail)" และ "ตารางสรุป (Table View)"
-- เพิ่มสไตล์ CSS ใน `mockup-parity.css`: `.kpis`, `.kpi`, `.scope`, `.chip`, `.wrap`, `.panel.queue-sidebar`, `.ph`, `.srch`, `.q`, `.qi`, `.detail-pane` และ responsive breakpoints
-- ตรวจสอบความถูกต้อง: Backend unittest 15/15 ผ่าน, Frontend production build ผ่าน, Playwright E2E 6/6 ผ่าน (Edge browser 18.9s), และตรวจภาพจริงผ่าน Browser Subagent สำเร็จ
-- ไม่มี commit, push หรือ public deployment
 
-### `WORK-20261002-008` — All-in-One Document Workspace and Redundancy Elimination
-- Timestamp: `2026-10-02T11:45:00+07:00`
-- วิเคราะห์และแก้ไขปัญหาที่ผู้ใช้แจ้งว่าข้อมูลดูยากและกระจัดกระจายหลายแท็บ รวมถึงมีข้อมูลซ้ำซ้อนหลายจุด
-- ปรับปรุง `SummaryTab.tsx` ให้เป็น All-in-One Executive Workspace:
-  1. บรรจุ 3-Way Verification Pipeline Stepper แบบ Compact Pills (STEP 1, STEP 2, STEP 3, Portal ตรวจซ้ำ)
-  2. บรรจุ Discrepancies & Exceptions Callout พร้อมปุ่มเปิดดูหลักฐาน PDF หน้าที่เกี่ยวข้องทันที
-  3. บรรจุตารางเปรียบเทียบรายการสินค้า 3 ทาง (Line Items 3-Way Match Table) ลงในแท็บเริ่มต้นโดยตรง
-  4. เพิ่มการสรุปยอดเงินทางบัญชีใน Table Footer (`tfoot`: ยอดก่อนภาษี Subtotal, VAT 7%, ยอดรวมสุทธิ Grand Total, ยอดใบรับสินค้า) ตรงตามรูปแบบเอกสารจริง
-  5. บรรจุ Checklist ผลการประเมิน 9 กฎมาตรฐาน (V-01 ถึง V-09) ในรูปแบบ Compact Card Grid ชัดเจนพร้อม Badge สถานะ ผ่าน/ไม่ผ่าน
-  6. ตัดกล่องสรุปข้อมูลซ้ำซ้อน 3 กล่องใหญ่ท้ายแท็บออก (Invoice Details, Receipt Details, Financial Summary)
-- ปรับปรุง `DocumentDetail.tsx`:
-  - ยกเลิกกล่องการ์ดใหญ่ 4 กล่องที่แสดงข้อมูลบริษัท, PO, ใบรับ และยอดรวมเงินซ้ำกับส่วนหัว
-  - รวมข้อมูลสำคัญไว้ใน Executive Metadata Strip บรรทัดเดียวความหนาแน่นสูง (`.document-meta.review-first.executive-meta-strip`)
-  - ปรับการจัดรูปแบบ Receiver ใน Header ให้ไม่ชนกับ Playwright exact text locator (`getByText('Example Receiver', {exact: true})`)
-- ปรับปรุง `mockup-parity.css`:
-  - เพิ่มสไตล์สำหรับ `.executive-meta-strip`, `.step-pipeline-strip`, `.pipeline-pill`, `.unified-section`, `.rules-compact-grid`, `.rule-compact-card`, และ `lines-table tfoot`
-  - ปรับความสูงและ padding ของ Review Action Panel และ Provenance Bar ให้กระชับขึ้น เพิ่มพื้นที่มองเห็นข้อมูลสำคัญในแนวตั้ง
-- ตรวจสอบความถูกต้อง:
-  - TypeScript strict and Vite production build ผ่านฉลุย (`tsc -b && vite build`)
-  - Backend unittest 15/15 ผ่าน 100%
-  - Playwright E2E 6/6 ผ่านสมบูรณ์ (Edge browser 16.0s) ครอบคลุม audit navigation และ mobile layout 390px
-  - Browser Subagent visual inspection: ตรวจสอบภาพจริงบนพอร์ต 8010 ยืนยันการแสดงผล All-in-One ในคลิกเดียว สะอาด สบายตา ไม่มีข้อมูลซ้ำซ้อน
-- ไม่มีการ commit, push หรือ public deployment
+### `WORK-20261002-007` — Extend synthetic invoice corpus to 155 PDFs with engine-derived answer key
+- Timestamp: `2026-10-02T18:40:00+07:00`
+- ศึกษา `app/core/rules.py` และ `app/services/pipeline.py` เพื่อทำ replay path ที่เหมือน production ทุกขั้น รวมถึง branch ที่ skip Oracle (E28) และ skip STEP 3 (E17/E35/safety cap)
+- ออกแบบ 100 เคสใหม่จากข้อมูล Oracle จริงใน `_raw/` โดยสร้าง `Picker` ที่เลือก receipt group แบบ deterministic (ใช้ครบทุก group ก่อนใช้ซ้ำ) และ scenario พิเศษ: ไม่มีใบรับ, หลายใบรับภายใต้ PO เดียว, price-swap, 50-row safety cap
+- ให้ engine เป็นผู้ผลิต expected_result ทั้งหมด แล้วเพิ่ม invariants ตรวจผลรายหมวด (F ต้อง Auto-pass, I ต้อง intercompany=true, H ต้องมีหลาย code ฯลฯ) และ warn เมื่อ description รายงาน code น้อยกว่าจริง
+- รัน `verify_dataset.py --fix` พบ drift 30 รายการของ wave 1 (ส่วนใหญ่คือ `halted_by` ที่เขียนเองและ E31 ที่เกิดพร้อม E34/E06) และ recalibrate จน drift = 0 / 155 เคส
+- Render PDF ครบ 155 ไฟล์ (Tahoma, 3 layout, watermark/speckle, ต่อบัญชี 2 หน้า) และรัน `check_pdfs.py` ผ่าน 155 ไฟล์ 157 หน้าไม่มี mismatch
+- ตรวจภาพจริง 3 หน้าด้วย pypdfium2 + Pillow: อักษรไทยถูกต้อง, watermark ไม่บังข้อมูล, พื้นที่ลายเซ็นผู้รับว่างตามเคส E26, หน้าต่อ (continuation) แสดงหัวเอกสารและเลขหน้า
+- ติดตั้ง `fpdf2` และ `pypdf` ใน `.venv` ของ service เพื่อรันชุดทดสอบ (ไม่ถูกเพิ่มใน `requirements.txt` ของ production)
+- ไม่มี commit, push หรือการเรียก Oracle/LiteLLM/Paperless จริง
 
-### `WORK-20261002-009` — Revert heavy All-in-One view and align with Mockup v4.4 directly
-- Timestamp: `2026-10-02T12:05:00+07:00`
-- รับฟังฟีดแบ็กจากผู้ใช้ ("ย้อนเลยหนักกว่าเดิมอีก เอาให้คล้ายกับ AIVA-Web-Portal-Mockup-v4.4-Release.html ไปเลย")
-- ตรวจสอบโค้ดต้นฉบับใน `Web portal/AIVA-Web-Portal-Mockup-v4.4-Release.html` เพื่อดึงสถาปัตยกรรม UI ที่สะอาด สบายตา และอ่านง่ายที่สุด:
-  1. ย้อนกลับจากการยัดตารางและกล่องการ์ดยาว 2,000px ในแท็บสรุป คืนโครงสร้าง Clean Tab Separation ตามต้นแบบ
-  2. ปรับ `DocumentDetail.tsx` ให้ใช้โครงสร้าง `.doc`, `.dh`, `.meta.document-meta`, `.flow`, `.tabs`, `.pane.on`
-  3. ปรับ `SummaryTab.tsx` ให้แสดงเฉพาะกล่อง Exception Cards (`.ex.High / .ex.Medium`) พร้อม `.code`, `.who`, `.ev`, และปุ่ม `เปิดหลักฐานหน้า {page} ↗`
-  4. ปรับ `ReviewActionPanel.tsx` ให้เป็นแถบ Sticky Action Bar ด้านล่าง (`.bar`) พร้อม `.hint`, `.review-heading` และปุ่ม `.bp`, `.bt`, `.bg`, `.br`, `.bw`
-  5. ปรับเลย์เอาต์ `.wrap` ให้เป็น Master-Detail 2 คอลัมน์ (ซ้าย: คิว 370px, ขวา: เอกสาร) ที่สามารถคลิกเลือกเอกสารข้างๆ แล้วเปิดข้อมูลทางขวาได้ทันที
-  6. จัดการ Mobile Responsive (390px): ซ่อน `.queue-sidebar` เมื่อเลือกเอกสาร ทำให้ไม่มี horizontal overflow
-- ตรวจสอบความถูกต้อง:
-  - TypeScript strict and Vite production build ผ่านฉลุย (`tsc -b && vite build` 5.2s)
-  - Backend unittest 15/15 ผ่าน 100%
-  - Playwright E2E 6/6 ผ่านสมบูรณ์ทุกการทดสอบ (Edge browser 15.2s)
-  - Visual Inspection ใน desktop screenshot ยืนยันเลย์เอาต์ซ้าย-ขวาและดีไซน์ตรงตาม Mockup v4.4
-- ไม่มีการ commit, push หรือ public deployment
+### `WORK-20261002-008` — Wire the invoice corpus into an offline pytest gate
+- Timestamp: `2026-10-02T19:05:00+07:00`
+- เปลี่ยน `check_pdfs.py`/`verify_dataset.py` จาก script ล้วนเป็น module ที่ import ได้ (`audit(dataset)`, `verify(dataset, fix)`) โดยคง CLI เดิมไว้ แล้วสร้าง `tests/test_invoice_corpus.py` 7 test ครอบคลุม shape, engine drift, coverage, wave-2 invariants และ PDF ↔ key
+- เพิ่ม `pytest.ini` + `tests/conftest.py` และ marker `live` เพื่อให้ `python -m pytest` รันเฉพาะชุด offline (ผลลัพธ์ `9 passed, 2 deselected in ~1.7s`) และรันจาก repo root ได้ผ่าน conftest path setup
+- เขียน mutation check 4 แบบ (โกหกว่าฟิลด์หาย, โกหกว่าฟิลด์มี, โกหกจำนวนหน้า, โกหก decision) เพื่อยืนยันว่า gate ไม่ใช่ test เปล่า — พบว่า branch "ฟิลด์ที่ต้องหาย" ไม่ทำงานกับ wave 1 จึงแก้ให้ไปอ่านค่าจริงจาก `_raw` แล้วตรวจซ้ำผ่านทั้งหมด
+- อัปเดต `OCR service/n8n/README.md` (หัวข้อ Offline Regression Suite) และ `tests/test_invoices/README.md` (หัวข้อ CI gate)
+- ไม่มี commit/push และไม่มีการเรียก endpoint ภายนอก
 
-### `WORK-20261002-010` — Fix Messy UI and Fully Reconstruct Authentic Mockup v4.4 Shell & Layout
-- Timestamp: `2026-10-02T12:15:00+07:00`
-- รับฟีดแบ็กจากผู้ใช้ ("ตอนนี้ ui เละเทะมากจัดการแก้ไข") และระบุสาเหตุรากเหง้า (Root Cause):
-  - โครงสร้าง App ยังคงมีแถบ Sidebar สีดำ 240px (`aside.sidebar`) จากโค้ด boilerplate เดิม ทำให้หน้าจอถูกบีบแคบลง และคิว 370px ไปซ้อนกลายเป็นสอง sidebar พร้อมกัน
-  - แถบ `.kpis` ใน `QueuePage.tsx` ถูกวางไว้ก่อน `.scope` และยังไม่มีสไตล์กรอบ grid ที่สมบูรณ์ ตัวเลขสถิติจึงลอยเทอะทะ
-- ปรับปรุงและประกอบโครงสร้างใหม่ทั้งหมดให้ตรงกับ `AIVA-Web-Portal-Mockup-v4.4-Release.html` 100%:
-  1. ลบ `aside.sidebar` 240px และ `.topbar` ใน `AppShell.tsx` ออกทั้งหมด
-  2. สร้างแถบ Header แท้ (`header.aiva-header`) สูง 56px สีกรมท่า `#0D274D`:
-     - โลโก้ AI สี่เหลี่ยมมนสีเขียวมรกต พร้อมชื่อ `AIVA Web Portal` และรุ่น `v4.4 · RBAC + DMS · Standard v6.6`
-     - เมนูนำทางแบบข้อความ 4 เมนู: `คิวตรวจสอบ`, `สิทธิ์และการเข้าถึง`, `บันทึกการเข้าถึง`, `เชื่อมต่อ API`
-     - Badge บทบาท `เจ้าหน้าที่บัญชี` และ Pill สถานะ `Local workspace`
-  3. ปรับ `QueuePage.tsx` ลำดับบนลงล่าง:
-     - แถบ Scope: `ขอบเขต: รายบริษัท`, Company chips, ปุ่มสลับ `แยก 2 ฝั่ง / ตารางสรุป`, และปุ่ม `+ นำเข้าเอกสาร`
-     - แถบ KPI Overview: 6 กล่องสถิติ พร้อมสีกรอบสถานะ (ทั้งหมด, Auto-pass, Review, Hold, Manual Review, ซ้ำ)
-     - แถบ Master-Detail Workspace (`.wrap`): คิว 370px ด้านซ้ายคู่กับ Document Workspace ด้านขวา
-  4. ปรับ CSS ครบถ้วนใน `mockup-parity.css` และเพิ่มกฎสำหรับ Mobile Responsive (< 900px, 390px):
-     - ป้องกัน horizontal overflow 100% (scrollWidth <= innerWidth)
-     - ให้ Navigation bar และ Stepper scroll แนวนอนอย่างปลอดภัย
-     - จัด KPI grid บนมือถือเป็น 3 คอลัมน์ / 2 คอลัมน์สวยงาม
-- ตรวจสอบความถูกต้องรอบสุดท้าย:
-  - Frontend production build (`tsc -b && vite build`) สำเร็จ 100% (5.3s)
-  - Backend unittests 15/15 ผ่านฉลุย (4.0s)
-  - Playwright E2E 6/6 ผ่านครบถ้วน (15.4s) ครอบคลุมการเช็ค Mobile layout 390px
-  - Visual inspection ยืนยันผ่าน `detail-desktop.png`, `queue-desktop.png`, `detail-mobile.png` ว่า UI สะอาด สวยงาม เป็นระเบียบ พรีเมียม และตรงตาม Mockup v4.4 ทุกประการ
-- ไม่มีการ commit, push หรือ public deployment
+## 2026-10-02 (รอบเย็น: n8n workflow)
 
-### `WORK-20261003-011` — Create AIVA Invoice Core repository skill
-- Timestamp: `2026-10-03T08:33:34+07:00`
-- อ่านและเทียบ Mockup v4.4, OCR models/rules/master data/Vision extraction, Portal receiving/workflow schemas และเอกสาร architecture/rules
-- สร้าง `.agents/skills/aiva-invoice-core/SKILL.md`, `references/core-domain.md` และ `agents/openai.yaml`
-- กำหนด source-of-truth precedence สำหรับพฤติกรรมปัจจุบัน และแยก executable behavior ออกจาก accounting policy ที่ยังต้องรับรอง
-- บันทึก field catalog, กฎ V-01–V-09, tolerance, exception, decision/routing, immutable snapshot, idempotency/revision และ production prerequisites
-- ตรวจรูปแบบด้วย `quick_validate.py`: ผ่าน (`Skill is valid!`) เมื่อเปิด Python UTF-8 mode
-- ตรวจ reference link และ source paths ที่ skill อ้างถึง: พบครบทั้งหมด
-- ไม่ได้แก้ OCR engine, Portal runtime, schema หรือ business rule ที่ใช้งานจริง
+### `WORK-20261002-009` — อัปเดต n8n workflow เป็น v6.5 ให้ตรงกับ Python engine ผ่าน MCP
+- Timestamp: `2026-10-02T20:20:00+07:00`
+- ตรวจสอบว่า `aiva-n8n` MCP ใช้งานได้ (connected + authenticated, 52 tools) แล้ว export workflow `aLUCmn3l0bZDjbVV` ตัวจริงลงมาอ่านทั้ง 23 nodes ก่อนแก้
+- อ่าน `app/core/rules.py`, `app/services/oracle_mcp.py`, `pipeline.py`, `vision_extractor.py`, `portal.py`, `paperless.py`, `master_data_service.py` ทั้งไฟล์ เพื่อเทียบ parity กับ n8n ทีละ node แล้วเก็บ JS ต้นฉบับไว้ที่ `tmp/nodes/*.js`
+- ยืนยัน SQL shape ด้วย MCP `oracle` (`oracle_sql_run`): invoice `112603974` ไม่ปรากฏใน `RCV_INV_NUM` (primary query คืน no rows) แต่ branch `PO_NUM='40121195'` คืนแถว → จึงใช้ `(Invoice+Tax) OR (PO_NUM)` ในคำสั่งเดียว และ scalar `SUPPLIER_IS_INTERNAL` จาก `financials_system_params_all` ตรวจ intercompany (tax `0145556001111` คืน 1)
+- อัปเดตด้วย `aiva-n8n_update_workflow` หลาย-call (atomic): `N2.4`, `HTTP Request`, `N4`, `N7` (jsonBody), `N7.1`, `N8`, `N9`, `N10`, `N12` (settings + options), `N13` และเปลี่ยนชื่อ workflow เป็น `AIVA PO-INV Matching Verification v6.5`; คง `N5`/`N11` ไว้เพราะตรงกับ Python แล้ว
+- พบว่า `setNodeParameter.path` สัมพัทธ์กับ `parameters` ทำให้ call แรกเขียน code ลง `parameters.parameters.jsCode` — แก้โดยเขียน path เป็น `/jsCode`, `/jsonBody`, `/options` และล้างค่าค้างด้วย `value: null` แล้ว export ซ้ำเทียบ byte-for-byte: **7 jsCode + N7 jsonBody ตรงกับไฟล์ต้นฉบับทุกตัวอักษร**
+- ตรวจ `jsCode` ทั้ง 12 Code nodes ด้วย `node --check` (ผ่านทั้งหมด) และเขียน harness `tmp/run_flow_sim.js` ที่ **รัน jsCode ที่ export จาก workflow จริง** กับ input จำลอง 7 เคส: Auto-pass, PO fallback, E28 bypass, E17, E06, E35, intercompany+E26 — ผลตรงกับ Python ทุกเคส และผ่าน N11 Schema Validate ครบ
+- แก้ `OCR service/n8n/n8n flow structure.md` เป็น v6.5: ตารางสิ่งที่เปลี่ยน, หลักการ D2/D3, ผัง mermaid, ตาราง node 8/9/13/14/15/17/20/21, SQL section ใหม่ (dual branch + โหมด `INVOICE/PO_FALLBACK/PO/NONE` + ข้อจำกัด `ORA-01791`), กฎ V-07, Python↔n8n Parity Map, ผล regression test และบันทึกข้อควรระวังของ MCP tool
+- Workflow ยัง `active: false` จึงไม่มีผลกระทบ production ระหว่างแก้; ไม่มีการเรียก LiteLLM/Paperless/Portal จริง และไม่มี commit/push ในรอบนี้
+- ก่อน commit: สร้าง `.gitignore` ของ repo (กัน archive, `tmp/`, `.pi/`, `.mcp.json`, ไฟล์ผลรัน batch ที่มีข้อมูล invoice จริง และ corpus ที่สังเคราะห์จาก Oracle extract) และเพิ่ม module-level skip ใน `tests/test_invoice_corpus.py` เพื่อให้ clone ที่ยังไม่มีข้อมูล corpus รัน pytest ผ่าน — ตรวจจริงทั้งตอนมีข้อมูล (`9 passed, 2 deselected`) และตอนถอดข้อมูลออก (`2 passed, 1 skipped`)
 
-### `WORK-20261003-012` — Archive commit 9054076 and commit workspace updates
-- Timestamp: `2026-10-03T09:58:00+07:00`
-- Export โค้ด commit `9054076` ไปยัง `Web portal/invoice-web-9054076` พร้อมเชื่อมต่อ `node_modules`
-- รัน Backend FastAPI บนพอร์ต 8010 และ Frontend Vite บนพอร์ต 5173 พร้อมทดสอบผ่านเบราว์เซอร์
-- รักษาโครงสร้าง `invoice-webV2`, `invoice-web1`, และ `invoice-web-9054076`
-- จัดการไฟล์ canonical records ใน `agent/` ให้ครบถ้วนตามข้อกำหนด `AGENTS.md`
-- ทำการ commit และ push ขึ้น `origin/invoice-web`
+## 2026-10-02T20:55:00+07:00 — TASK-20261002-009: Comprehensive .gitignore for Company Sensitive Data & Push to Remote
 
-
-### `WORK-20261003-013` — สร้าง Web portal mockup v3 แบบ no-build ใน `Web portal/invoice-webv3`
-- Timestamp: `2026-10-03T11:35:00+07:00`
-- อ่านแหล่งอ้างอิง: `Web portal/AIVA-Web-Portal-Mockup-v4.4-Release.html`, `docs/matching-rules-standard-v6.2.md`, `OCR service/n8n/app/core/` (master_data.py, rules.py, models.py), `.agents/skills/aiva-invoice-core/references/core-domain.md`, `invoice-web-9054076/docs/04-receiving-api.md`, `invoice-webV2/src/data/mockInvoices.ts`
-- สร้างไฟล์ใน `Web portal/invoice-webv3`: `index.html`, `README.md`, `assets/style.css`, `assets/data.js`, `assets/domain.js`, `assets/docs.js`, `assets/app.js`, `tools/build-domain-data.py`, `tools/smoke-test.js` (รวมประมาณ 2,293 บรรทัด)
-- เขียน `tools/build-domain-data.py` ให้ import `master_data.py` ตรง ๆ แล้ว emit `assets/data.js` เพื่อไม่ให้ master data ถูก copy แบบ manual และรันซ้ำได้
-- ทำ UI ให้โต้ตอบได้จริงแทนภาพนิ่ง: คิว + KPI + company chip + ค้นหา, 6 แท็บรายละเอียด, viewer จำลอง PDF/DMS (thumbnail, highlight หลักฐาน, กล่องลายเซ็นขาด, watermark ทุกหน้า), ฟอร์ม action พร้อม reason code/version/idempotency, 409 Conflict, outbox, audit search/pagination, JSON snapshot
-- หลักการออกแบบ: ไม่ relabel exception code ข้าม ruleset — ใช้รหัส as-built เป็นหลัก และแสดงชุดรหัสใน docs เป็นคำเตือน/ผัง mapping แยก
-- ตัดสินใจให้เอกสารที่ map บริษัทไม่ได้ (ORG/Tax ID ว่างหรือไม่อยู่ใน master) แสดงในคิวฝ่ายบัญชีพร้อมป้ายเตือน แทนการหายไปจากทุกคิว เพื่อให้ fail-safe มีผู้รับผิดชอบ
-- ตรวจด้วย `node --check` ทั้ง 4 สคริปต์ (ผ่าน) และ `node tools/smoke-test.js` → ผ่าน 46 การตรวจ
-- ไม่ได้รัน OCR/Oracle/Entra/backend จริง และไม่ได้ commit/push ในขั้นตอนนี้
-
-### `WORK-20261003-014` — ตรวจ mockup v3 ด้วย Chromium และแก้ first paint / evidence highlight
-- Timestamp: `2026-10-03T12:05:00+07:00`
-- รันสคริปต์ชั่วคราวด้วย Playwright chromium (ใช้ package จาก `Web portal/invoice-web-9054076/frontend/node_modules`) เพื่อ open `file://.../invoice-webv3/index.html` จริง, เก็บ console/pageerror, ไล่สลับ 6 ผู้ใช้ × 4 หน้า × ทุกเอกสาร × 6 แท็บ, เปิด viewer/modal และวัด layout ด้วย computed style
-- พบว่า `BOOT.user` ไม่มีผลจริง เพราะ `<select>` ยังไม่ถูกsetค่า → แกใน `boot()`; เปลี่ยน `BOOT.doc` ให้อยู่ใน scope ผู้ใช้ตั้งต้น
-- เพิ่มขั้นที่ 4 "Portal ตรวจซ้ำ / ตัดสิน" ในแถบสเต็ป, เพิ่ม highlight หลักฐานตาม `rule.page` ในหน้า PDF จำลอง และเพิ่มแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่หลุดจากตัวกรอง (พร้อม `resetFilt()`)
-- หลังแก้: console error 0, หน้า 390px ไม่มี overflow, ผู้ใช้ตั้งต้น (ACC) เห็นคิว 11 ฉบับ และ `.qi.on` ตรงกับเอกสารที่เปิด
-- ลบสคริปต์/ภาพ screenshot ชั่วคราวทั้งหมดออกจากโฟลเดอร์ mockup เหลือเฉพาะไฟล์ส่งมอบ (index.html, README.md, assets/4 ไฟล์+css, tools/2 ไฟล์)
-- ยืนยันซ้ำด้วย `node --check` (4 ไฟล์) และ `node tools/smoke-test.js` → ผ่าน 46 การตรวจ
-
-### `WORK-20261003-015` — Commit และ push mockup v3 ขึ้น `origin/invoice-web`
-- Timestamp: `2026-10-03T12:20:00+07:00`
-- ตรวจ staging ก่อน commit: มีเฉพาะ 9 ไฟล์ของ `Web portal/invoice-webv3` + canonical records 6 ไฟล์, ขนาดโฟลเดอร์ 192K, ไม่มีไฟล์ ชั่วคราว/screenshot/node_modules และ smoke test ยืนยันว่าไม่พบรูปแบบ credential
-- รัน `git fetch origin invoice-web` ก่อน เพื่อยืนยันว่า local ahead 1 (fast-forward) แล้ว commit `94d8cad` ด้วย message `feat(portal): add invoice-webv3 no-build mockup with as-built rules and conflict surfacing`
-- repo ไม่มี `user.email` ใน config จึงใส่ `-c user.email="aapico.intern07@aapico.com"` เฉพาะคำสั่ง commit (ไม่ได้แก้ global config) เพื่อคง author เดียวกับ commit ก่อนหน้า
-- push สำเร็จ `b248e7d..94d8cad` → `origin/invoice-web`; `git status -sb` clean และ sync กับ remote
-- ไม่ได้ push code ขึ้น branchอื่น ไม่มี deployment และไม่มี secret ถูกแนบขึ้นไป
-
-### `WORK-20261003-016` — ปิดงาน mockup v3 รอบ 2 (action parity, revisions, audit chain, queue, viewer, decimal)
-- Timestamp: `2026-10-03T14:10:00+07:00`
-- ต่อยอดงานค้างของ `TASK-20261003-005` ที่ยังไม่ได้ปิดรอบ (มี patch ชั่วคราว `_patch_a..m.py` + สคริปต์ debug ค้างในโฟลเดอร์ แต่ไม่มีการบันทึก records)
-- เขียนแบบแผนของรอบนี้: guard เดียวกัน (`guards(doc)`) → ใช้ทั้ง action bar / การ์ดขั้นตอนถัดไป / modal และทำให้ทุกปุ่มที่ปิดตอบ "ทำไม" ได้ ตามหลัก action parity ใน `08-task-first-review-ux.md`
-- ลงมือแก้ `assets/app.js` (state + guards + todoOf + nextCard + revision viewRev + queue sort/pagination + audit hash chain/CSV/deep link + viewer toolbar/access event) · `assets/domain.js` (ACTIONS ครบ 9 ตัว + field use/blocked/decide/needReceiver, REASON_CODES 12 รหัส) · `assets/docs.js` (revs snapshot ของ 0013/0015, เอกสาร 0017 Decimal string, ปรับ `upl` ของ 0012 เพื่อทดสอบ SoD) · `assets/style.css` (KPI งานของฉัน, .todo, .card.next, .blocked, .revsel, .hashc, .vbar)
-- แก้บั๊กที่ตรวจจาก log เดิม: `explain` ทำให้ workflow เป็น `undefined` (ตอนนี้ไม่แตะ wf, นับคำชี้แจง และส่งงานกลับฝ่ายบัญชี), `release_hold` ไม่มีใน action set, filter "งานของฉัน" ทำจาก KPI ไม่ได้
-- เพิ่มการตรวจ: `tools/smoke-test.js` จาก 46 → **60** การตรวจ (explain parity, SoD, ล็อกฝั่งบัญชี, on-hold + release_hold, idempotent replay/422, expected_document_revision 409, revision read-only, hash chain + CSV, คิวแบ่งหน้า/sort/งานของฉัน, viewer toolbar + access event)
-- รัน `node --check` (assets 4 + smoke-test) ผ่าน, `node tools/smoke-test.js` ผ่าน 60/60
-
-### `WORK-20261003-017` — ทำ browser-check เป็นเครื่องมือถาวร + เก็บกวาด + อัปเดต README/records
-- Timestamp: `2026-10-03T14:20:00+07:00`
-- ตรวจด้วย Chromium จริง (playwright 1.63 จาก `invoice-web-9054076/frontend`) แล้วแปลงสคริปต์ชั่วคราว `_bc.js` เป็น `tools/browser-check.js`: เปลี่ยนจาก "พิมพ์ log ให้อ่านเอง" เป็น assertion 14 รายการ + exit code, หา playwright จาก env/โฟลเดอร์ข้างเคียง (ไม่ hardcode), ข้ามอัตโนมัติเมื่อไม่มี playwright
-- ปรับการไล่หน้าจอให้เคารพ RBAC จริง: อ่านรายการหน้าจาก `#nav` หลังสลับผู้ใช้ (ADM ไม่มีคิว, audit เห็นเฉพาะ APR/ADM) → ครอบคลุม 22 จอที่ผู้ใช้กดได้ถึง แทน 3 หน้าที่ nav ของผู้ใช้ตั้งต้นเปิดให้
-- ผลรันจริง: ผ่าน 14/14 · console/page error 0 · 390px overflow 0px · pagination 1–8 จาก 17 · งานของฉัน 5 · CSV 19 บรรทัดพร้อม hash · deep link → AIVA-2609-0015
-- พยายามตรวจด้วย screenshot แต่โมเดลปัจจุบันอ่านรูปภาพไม่ได้ จึงยืนยันด้วย assertions ใน browser แทน (ลบ `_shot.js` และ `_shots/` ทิ้ง)
-- ลบไฟล์ชั่วคราว: `_bc.js`, `_bc.txt`, `_dbg*.js/.txt`, `tools/_patch_*.py` (ตรวจแล้วว่า apply ลง assets/ ครบ — smoke test ผ่าน) และเพิ่ม `.gitignore` กันการ repeats (`_*`, `_shots/`)
-- อัปเดต `invoice-webv3/README.md`: โครงสร้างไฟล์ + คำสั่งทดสอบใหม่, รายการพฤติกรรมรอบ 2, ตาราง 17 เคสที่ map กับ `docs.js` ทีละฉบับ (แก้สถานะเก่าที่ drift), ข้อจำกัดของ hash chain/post/download ที่ปิดไว้
-- อัปเดต canonical records: current-state, changelog (`CHG-20261003-015/016`), work-log, errors-and-solutions และ session ไฟล์
-- commit `cd76db0` เฉพาะโฟลเดอร์ mockup (records ใน `agent/` แยก commit) ยังไม่ได้ push รออนุญาตผู้ใช้
-- ยืนยันซ้ำ: `node --check` 6 ไฟล์ · smoke 60/60 · browser-check 14/14 · git status เหลือเฉพาะไฟล์ส่งมอบ (9 tracked + .gitignore + browser-check)
-
-### `WORK-20261003-018` — สร้าง `invoice-webV4` จากศูนย์: portal ที่อ่าน snapshot เท่านั้น
-- Timestamp: `2026-10-03T15:45:00+07:00`
-- สำรวจของก่อนเขียน: mockup v4.4 release + `index.html` + `invoice-review-demo.html`, `OCR service/n8n/app/core/{rules.py,master_data.py}`, skill `.agents/skills/aiva-invoice-core/references/core-domain.md` และบทเรียนจาก v1/v2/v3 (v3 ยังเป็นไฟล์เดียวโต + ไม่มี contract validation)
-- วางสถาปัตยกรรมก่อนโค้ด: ตัดสินใจ 6 ข้อ (portal ไม่ recompute / engine mirror แยกไว้ให้ tools / contract-first / extended field ต้องติดธง / UNMAPPED ไม่เดา / ทศนิยม BigInt) แล้วจดเป็น docs/01 + docs/02 เพื่อให้เทสต์ยึดตามเอกสาร
-- เขียนชั้น domain 10 ไฟล์ให้ pure ทั้งหมด (ไม่มี DOM/fetch) เพื่อให้ทดสอบใน node ตรง ๆ ได้ แล้วตามด้วย `ui/` + 6 views ที่ return HTML string และ `app.js` ที่รวม 3 ชั้น policy (`access → workflow → guards`) ก่อน action เกิดผลจริง
-- เขียน pipeline ข้อมูล: `cases-shared/a/b/c/d.mjs` (แยกไฟล์เพราะเคยเจอ write ไฟล์ใหญ่แล้วพัง) → `build-fixtures.mjs` รัน engine mirror → validate → golden → เขียน `snapshots.js`; `build-master-data.py` อ่าน master จาก OCR service ตรง ๆ
-- ใส่เคสให้ "ครอบคลุม policy ทุกข้อ" ไม่ใช่แค่ตัวเลขสวย: missing/stale evidence, outbox, hand-authored, not_evaluated, M4, safety cap, USD, duplicate, terminal, SoD, decimal
-
-### `WORK-20261003-019` — ทดสอบ/แก้บั๊กจริง + เขียนเอกสาร + ปิดรอบ records
-- Timestamp: `2026-10-03T15:45:00+07:00`
-- ทำให้ทุก module โหลดได้จริงก่อนเทสต์พฤติกรรม: เขียนสคริปต์ dynamic-import ตรวจ named export ทั้งโปรเจกต์ → เจอ `code` ไม่ได้อยู่ที่ `ui/dom.js` (ERR-009) และตามด้วย `table()` รับแถว string ไม่ได้ (ERR-010), decimal helper รับ string ตรง ๆ (ERR-011) — render ผ่านครบ 8 view/8 สถานะ
-- เขียน `smoke-test.mjs` ให้ครอบคลุม decimal, contract, fixture, store, state machine, guards, สถาปัตยกรรม, master data, views → ผ่าน 107/107; ปรับ guard ตัวตรวจอักษรภาษาต่างประเทศให้ไม่ เฝ้าเกิน (อนุโลม Greek `Σ`, ไม่จับ field ชื่อ `document`)
-- เขียน `browser-check.mjs` แล้วรันด้วย Chromium จริง (playwright จาก `invoice-web-9054076/frontend`) → เจอ 2 เรื่องที่ logic test มองไม่เห็น: pageerror `innerHTML`/blur ตอนพิมพ์ค้นหา (ERR-012) และ overflow 621px ที่ 390px ซึ่งมาจาก header ไม่ใช่ตาราง (ERR-013) → แก้ `mount()` ให้ blur ก่อน + เพิ่ม media query ≤860px → ผ่าน 14/14
-- ปรับ `build-fixtures.mjs --check` ให้จับ drift จริง (เดิมแค่ validate ไม่ได้เทียบไฟล์) และทดสอบทั้งกรณี clean (exit 0) กับ probe ที่แก้ข้อมูล (exit 1)
-- เขียนเอกสาร 00–07 แล้วรัน smoke ซ้ำ (group 7 สแกน `.md` ด้วย) → เจอ CJK หลุดใน docs (ERR-014) จึงเขียน `docs/07-demo-script.md` ให้ผูกฉากเดโมกับเอกสารจริง 22 ฉบับ (SoD, stale/missing evidence, outbox, hand-authored, ingest rejection, SQL cap, role switching)
-- ตรวจ API ใน `docs/03-domain-model.md` เทียบกับโค้ดทีละ function แล้วแก้ให้ตรงจริง (`canAct/canTransition → {ok, reasons[]}`, `guards(doc) → G[]`, `riskLevel → block|warn|ok`, `summarize → {list, codes, hasHigh, hasMedium, counts, userCodes, accountCodes}`, store ไม่มี `save()/overlay()` แต่มี `ingestRaw/seenEvents/_overlay`)
-- ปิดรอบด้วย canonical records: session `2026-10-03-006`, changelog `CHG-20261003-017/018`, work-log สองรายการนี้, errors `ERR-20261003-009…014`, current-state + task-plan
-- ยืนยันซ้ำครั้งสุดท้าย: `build-fixtures --check` exit 0 · `smoke-test` 107/107 · `browser-check` 14/14 · ไม่มีไฟล์นอก scope ถูกแก้
-
-### `WORK-20261003-020` — สร้างและทดสอบ `Web portal/invoice-webV5` (repo-reference portal)
-- Timestamp: `2026-10-03T16:50:00+07:00`
-- ออกแบบ v5 เพื่อแก้ปัญหา code/data duplication ของ v4: ใช้ `tools/sync.py` อ่าน master data, rules, models, design tokens จาก repo โดยตรงพร้อม header provenance และ SHA-256 integrity check
-- ยุบรวมหน้าจอที่ซ้ำซ้อนจาก v4 เหลือ 6 หน้า: `work`, `detail`, `rules`, `manual`, `sources`, `audit`
-- สถาปัตยกรรม portal เป็น pure view layer ห้าม recompute matching และใช้ BigInt Decimal string
-- รันการตรวจสอบจริง: `tools/smoke-test.mjs` ผ่าน **31/31**, `tools/browser-check.mjs` ผ่าน **29/29** (Edge headless), `tools/sync.py --check` ผ่าน
-- จัดทำเอกสาร `PORTAL-plan.md` และ `as-built-v5.md` พร้อม session `2026-10-03-007`
+- สำรวจความเสี่ยงข้อมูลความลับขององค์กรที่อาจหลุดขึ้น Git Repository: Environment variables, credentials/API keys, private keys, SSL certificates, Oracle database artifacts (wallet, net configs, sqlnet, tnsnames, dumps), ข้อมูลการเงิน/ใบแจ้งหนี้จริง (PDFs, Excel spreadsheets, CSV extracts), batch run reports/failed payloads, n8n automation local states, Python/Node runtime artifacts, IDE/Agent workspace files, OS metadata และ logs
+- ยกระดับ root .gitignore ให้เป็นชุดกฎที่ครอบคลุม 12 หมวดหมู่อย่างสมบูรณ์ พร้อมจัดหมวดหมู่อย่างเป็นระเบียบ และกำหนดข้อยกเว้นสำหรับ template (!.env.example) และ mock test fixture (!invoice-web/examples/invoice.pdf)
+- ตรวจสอบยืนยันด้วย git check-ignore -v เทียบกับ pattern จำลอง 25+ รายการ (.env, *.key, *.pem, *.pfx, cwallet.sso, tnsnames.ora, *.db, *.dmp, *.pdf, *.xlsx, *.csv, *.log, *.zip, .DS_Store, Thumbs.db) พบว่าถูก ignore ถูกต้อง 100%
+- ตรวจสอบยืนยันว่า invoice-web/examples/invoice.pdf และ .env.example ไม่ถูก ignore (exit code 1)
+- รัน regression tests ยืนยันว่าระบบทำงานปกติ:
+  - OCR service/n8n/.venv/Scripts/python -m pytest: 9 passed, 2 deselected in 1.28s
+  - invoice-web/backend unittest: 15 passed in 2.332s
+- ปรับปรุง canonical records: gent/current-state.md, gent/task-plan.md, gent/changelog.md, gent/work-log.md, gent/sessions/2026-10-02-009-comprehensive-gitignore-sensitive-data.md
+- เตรียม commit และ push สู่ origin/main
 

@@ -1,0 +1,5 @@
+# Test-only dependencies for the synthetic invoice corpus (not the service runtime).
+# Install into the service venv:  .venv/Scripts/python.exe -m pip install -r tests/test_invoices/requirements-test.txt
+fpdf2>=2.8.0      # generate_invoices.py
+pypdf>=5.0.0       # check_pdfs.py text/page audit
+# pypdfium2 + pillow are already in the service requirements and are used for visual previews

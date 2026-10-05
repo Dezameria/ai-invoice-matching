@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "description": "Real Oracle EBS Test Scenarios Matrix for AIVA PO-INV 3-Way Matching",
+  "oracle_named_query": "rcv_v01",
+  "scenarios": [
+    {
+      "id": "SCN-ORACLE-001",
+      "name": "Standard Auto-pass Case",
+      "category": "auto-pass",
+      "po_number": "42052835",
+      "invoice_num": "TLP-IV-69-09-0025",
+      "supplier_tax_id": "0205549020741",
+      "expected": {
+        "should_connect": true,
+        "min_receipts": 1,
+        "org_id": 352,
+        "receipt_num_present": true,
+        "item_number_present": true,
+        "decision_status": "Auto-pass"
+      },
+      "tags": ["live", "oracle", "auto-pass"]
+    },
+    {
+      "id": "SCN-ORACLE-002",
+      "name": "PO Fallback Query Case",
+      "category": "fallback",
+      "po_number": "42052835",
+      "invoice_num": "UNKNOWN-INV-9999",
+      "supplier_tax_id": "0205549020741",
+      "expected": {
+        "should_connect": true,
+        "min_receipts": 1,
+        "query_mode": "PO_FALLBACK",
+        "org_id": 352
+      },
+      "tags": ["live", "oracle", "fallback"]
+    },
+    {
+      "id": "SCN-ORACLE-003",
+      "name": "E17 No Receipt Found Case",
+      "category": "exception_e17",
+      "po_number": "99999999",
+      "invoice_num": "INV-NOT-FOUND-001",
+      "supplier_tax_id": "9999999999999",
+      "expected": {
+        "should_connect": true,
+        "receipt_count": 0,
+        "expected_code": "E17",
+        "decision_status": "Review"
+      },
+      "tags": ["live", "oracle", "e17"]
+    },
+    {
+      "id": "SCN-ORACLE-004",
+      "name": "Intercompany Dynamic Scalar Verification",
+      "category": "intercompany",
+      "po_number": "42052835",
+      "invoice_num": "TLP-IV-69-09-0025",
+      "supplier_tax_id": "0205549020741",
+      "expected": {
+        "should_connect": true,
+        "scalar_supplier_is_internal_present": true
+      },
+      "tags": ["live", "oracle", "intercompany"]
+    },
+    {
+      "id": "SCN-ORACLE-005",
+      "name": "E28 Line Math Error Oracle Bypass (Principle D3)",
+      "category": "e28_bypass",
+      "po_number": "42052835",
+      "invoice_num": "TLP-IV-69-09-0025",
+      "supplier_tax_id": "0205549020741",
+      "mock_line_math_error": true,
+      "expected": {
+        "oracle_queried": false,
+        "expected_code": "E28",
+        "bypass_reason": "Bypassed due to E28 Line Math Error"
+      },
+      "tags": ["offline", "e28", "rules"]
+    }
+  ]
+}

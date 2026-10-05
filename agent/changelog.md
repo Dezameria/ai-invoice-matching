@@ -56,48 +56,41 @@
 - จัดระเบียบ Detail Tabs 5 หมวดหมู่: สรุป 3-Way Match, ตารางเปรียบเทียบรายการสินค้า M1/M2 พร้อมตัวเลข tabular, 9 กฎการตรวจพร้อม STEP badge และรหัสข้อผิดพลาด, Activity Timeline, และข้อมูลแหล่งที่มาพร้อมสลับ Revision
 - อัปเกรด Design System ใน `global.css`, `mockup-parity.css`, `revisions.css` (Typography, HSL color tokens, card elevation, responsive layout ป้องกัน horizontal overflow) โดยรักษา selector และ ARIA attributes ให้ผ่าน Playwright E2E 100%
 
-### Changed — `CHG-20261002-007`
-- Timestamp: `2026-10-02T11:03:00+07:00`
-- ปรับโครงสร้างหน้าเอกสารหลักเป็น Master-Detail 2-Column Split View (`.wrap` = `370px 1fr`) ตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html`
-- แถบด้านซ้าย (`.queue-sidebar`): แสดงหัวข้อคิวตรวจสอบ, จำนวนฉบับ, ช่องค้นหา (`ค้นหาเลขที่ใบแจ้งหนี้ / PO / ผู้ขาย`), และรายการเอกสาร (`.qi`) ที่คลิกเลือกเพื่อดูรายละเอียดได้ทันทีโดยไม่ต้องสลับหน้า
-- ด้านขวา (`.detail-pane`): แสดงรายละเอียดเอกสารที่เลือกทันที (Document Workspace) พร้อมแท็บสรุปผล, รายการสินค้าเปรียบเทียบใบรับ, กฎ 9 ข้อ, ประวัติ, ข้อมูลเพิ่มเติม, การตัดสินใจ/ดำเนินการ และตัวอย่าง PDF
-- เพิ่มปุ่มสลับมุมมองระหว่าง "แยก 2 ฝั่ง (Master-Detail)" และ "ตารางสรุป (Table View)"
-- อัปเกรดแถบ KPI Cards 6 สถานะ (ทั้งหมด, Auto-pass, Review, Hold, Manual Review, ซ้ำ) และแถบ Scope & Company Chips ด้านบน
-- ปรับปรุงการแสดงผล Responsive สำหรับหน้าจอเล็ก (< 1024px) ให้สลับการแสดงผลระหว่างคิวและรายละเอียดอย่างราบรื่น ไม่มี horizontal overflow
 
-### Changed — `CHG-20261002-008`
-- Timestamp: `2026-10-02T11:45:00+07:00`
-- ปรับปรุง Document Workspace เป็น All-in-One Executive View: รวมข้อมูลผลตรวจ, ข้อผิดพลาด, รายการสินค้าเปรียบเทียบใบรับ (Line Items 3-Way Match), ยอดรวมเงินทางบัญชี และผลประเมิน 9 กฎมาตรฐาน ให้แสดงผลครบถ้วนในหน้าเดียวทันทีที่คลิกเลือกเอกสาร โดยไม่ต้องสลับแท็บไปมา
-- ตัดข้อมูลที่ซ้ำซ้อนออก (Redundancy Elimination):
-  - ยกเลิกกล่องสรุป 4 การ์ดใหญ่ที่แสดงชื่อบริษัท, PO, ใบรับ และยอดรวมเงินซ้ำกับส่วนหัว
-  - รวมข้อมูลสำคัญให้อยู่ใน Executive Metadata Strip บรรทัดเดียวความหนาแน่นสูง (`.document-meta.executive-meta-strip`)
-  - ยกเลิกกล่องสรุปข้อมูล 3 กล่องใหญ่ท้ายแท็บสรุป (Invoice Details, Receipt Details, Financial Summary)
-- รวมตารางเปรียบเทียบรายการสินค้า 3 ทาง (Line Items) บรรจุลงในแท็บเริ่มต้น พร้อมส่วนสรุปยอดเงินทางบัญชีใน Table Footer (`tfoot`: Subtotal, VAT 7%, Grand Total, ยอดใบรับ) ตามมาตรฐานเอกสารบัญชีจริง
-- รวม Checklist ผลการตรวจสอบรายกฎ 9 ข้อ (V-01 ถึง V-09) ในรูปแบบ Compact Card Grid ชัดเจนพร้อม Badge สถานะ ผ่าน/ไม่ผ่าน และลิงก์เปิดดูหลักฐาน PDF หน้าที่เกี่ยวข้อง
-- ปรับความกระชับของ Workflow Decision Hub และ Provenance Bar เพื่อเพิ่มพื้นที่การมองเห็นข้อมูลเอกสารในแนวตั้ง
-- ทดสอบ Playwright E2E 6/6 ผ่านสมบูรณ์, Backend unittest 15/15 ผ่าน 100%, และตรวจภาพจริงผ่าน browser subagent เรียบร้อย
+### Added — `CHG-20261002-007`
+- Timestamp: `2026-10-02T18:40:00+07:00`
+- เพิ่ม wave 2 ของชุดทดสอบ PDF สังเคราะห์ใน `OCR service/n8n/tests/test_invoices/`: `INV-F01`–`INV-J20` รวม 100 ไฟล์ (valid/tolerated 20, single-rule fail 25, multi-rule fail 25, intercompany 10, edge cases 20) ทำให้ corpus รวมเป็น 155 PDF + answer key
+- เพิ่ม `invoice_engine.py`: เรียก Standard v6.2 rules engine จริง (Step 1–4) แบบ offline ด้วยชุดแถว Oracle ที่เก็บต่อ invoice ทำให้ expected_result ทุกตัวตรงกับ logic ของ production และทำซ้ำได้โดยไม่พึ่ง Oracle MCP
+- เพิ่ม `build_test_dataset_wave2.py` (สร้าง 100 เคส + expectation จาก engine + self-check ระดับหมวด), `verify_dataset.py` (replay/recalibrate key ทั้ง 155 เคส), `check_pdfs.py` (ตรวจ PDF ↔ key), และ `tests/test_invoices/README.md` อธิบาย workflow
+- ครอบคลุม rule path ที่เคยไม่มีใน corpus: V-04 E17 (ไม่มีใบรับ), V-04 E35 (หลายใบรับ), V-04 MANUAL 50-row safety cap, V-05 E09 ระดับ Medium (ที่อยู่/รหัสไปรษณีย์), V-06 E26 ระดับ Medium (ผู้ส่งของ), V-07 E12 (UOM) และ E29 (price ในกรอบ), boundary 0.50/1.00/1% และ forgery ที่ตรวจไม่พบโดยเจตนา 2 เคส
+- `generate_invoices.py` รองรับ `pdf_hints` (scan noise/watermark, ต่อบัญชี 2 หน้า, เชิงอรรถหมายเหตุ, พิมพ์ `—` แทนฟิลด์ที่หาย) และ truncate รายละเอียดตามความกว้างคอลัมน์
+- Recalibrate `expected_result` ของ wave 1 จำนวน 30 รายการให้ตรงกับ engine (`halted_by` ที่เขียนเองถูกยกเลิก, partial billing A09–A11 เป็น Hold พร้อม E31+E34, B13/B14 เพิ่ม E31) และบันทึก `recalibrated: engine-v6.2` ไว้ใน record
 
-### Changed — `CHG-20261002-009`
-- Timestamp: `2026-10-02T12:05:00+07:00`
-- ปรับโครงสร้างหน้า Document Workspace ให้ตรงตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html` โดยตรง:
-  - ย้อนกลับจากมุมมอง All-in-One ที่เทอะทะและมีความยาวในแนวตั้งมากเกินไป กลับสู่สถาปัตยกรรมแบบแยกสัดส่วนที่สะอาด สบายตา ของ Mockup v4.4
-  - ส่วนหัวเอกสาร (`.dh`): แสดงเลขที่ใบแจ้งหนี้, Badge สถานะ, แท็กบริษัท (`.co`), ปุ่มแนบ PDF, ปุ่ม `📄 เปิด/ซ่อน PDF` และ Metadata แถวเดียว (`.meta.document-meta`: ผู้ขาย, PO, Release, ใบรับ, ORG_ID, Receiver, ยอดรวม `.total-number`, รอบตรวจ)
-  - แถบสเต็ปการตรวจ (`.flow`): 4 สเต็ป (`.st.ok / .st.warn / .st.bad / .st.skip`) สกัดและตรวจเอกสาร, ค้นใบรับและลูกค้า, เทียบกับใบรับ, และ Portal ตรวจซ้ำ
-  - แถบแท็บ (`.tabs`): แท็บแนวนอน 5 แท็บสะอาดตาพร้อมแถบสี teal แสดงแท็บที่เลือก (`.tab.on`)
-  - แท็บ "สรุปและดำเนินการ": แสดงเฉพาะข้อผิดพลาดและข้อสังเกต (`.ex.High / .ex.Medium`) พร้อมรหัส Exception Code, ผู้รับผิดชอบ (`.who`), กฎที่เกี่ยวข้อง, หลักฐาน (`.ev`) และปุ่มเปิดดูหน้า PDF ทันที ไม่ยัดตารางหรือการ์ดซ้ำซ้อน
-  - แท็บ "รายการสินค้า": บรรจุตาราง 3-Way Match และการ์ดเปรียบเทียบยอดรวม V-03 กับ V-09 (`.grid2 .card .kv`) ไว้อย่างเป็นระเบียบ
-  - แถบดำเนินการด้านล่าง (`.bar`): Sticky bar พร้อมข้อความระบุสถานะ/ผู้รับผิดชอบ (`.hint`) และปุ่ม Action (`.bp, .bt, .bg, .br, .bw`) พร้อม Modal ยืนยันการดำเนินการ
-  - ปรับเลย์เอาต์ `.wrap` เป็น 2 คอลัมน์ (ซ้าย 370px: คิวเอกสารพร้อมค้นหา, ขวา: รายละเอียดเอกสาร) ให้คลิกดูข้างๆ แล้วเปิดข้อมูลทางขวาทันทีตามความต้องการของผู้ใช้
-  - ตรวจสอบผ่าน Frontend production build, Backend unittests 15/15 และ Playwright E2E tests 6/6 ผ่าน 100%
+### Added — `CHG-20261002-008`
+- Timestamp: `2026-10-02T19:05:00+07:00`
+- เพิ่ม `OCR service/n8n/tests/test_invoice_corpus.py` เป็น offline regression gate ของ synthetic invoice corpus (replay 155 เคสผ่าน `app.core.rules`, ตรวจ key/PDF, ตรวจ wave-2 invariants และ code/decision coverage) — รันด้วย `python -m pytest` ใช้เวลา ~2 วินาที ไม่ต้องพึ่ง Oracle/LiteLLM
+- เพิ่ม `pytest.ini` (testpaths=tests, deselect marker `live`) และ `tests/conftest.py` (กัน pytest เก็บ `test_suite.py` ที่เป็นสคริปต์ async + เพิ่ม path ของ corpus tooling)
+- ให้ `tests/test_frontend_sse.py` 2 เคสที่ต้องยิง Paperless/LiteLLM จริงติด marker `live` ทำให้ค่าเริ่มต้นของ pytest เป็นชุดที่รันแบบ deterministic
+- `check_pdfs.py` และ `verify_dataset.py` ถูกแยก### Security / Changed — `CHG-20261002-011`
+- Timestamp: `2026-10-02T20:54:00+07:00`
+- ยกระดับ .gitignore ระดับ repository ให้ครอบคลุมข้อมูลความลับขององค์กรทั้งหมด (Company Sensitive Data, Credentials, ERP/Oracle configs, Database files, Financial spreadsheets, Live PDFs, Logs และ Runtimes)
+- เพิ่ม rules ครอบคลุม 12 หมวดหมู่:
+  1. Environment & Secrets: .env, .env.*, *.env (whitelist !.env.example), *.secret*, secrets/, vault/
+  2. Tokens & Credentials: credentials/, *credential*.json, *token*.json, token.json, *service_account*.json, client_secret*.json, *api_key*, *apikey* (whitelist !package.json, !package-lock.json)
+  3. Private Keys & SSL/SSH: *.key, *.pem, *.pfx, *.p12, *.pkcs12, *.cer, *.crt, *.der, id_rsa*, id_ed25519*, id_ecdsa*, id_dsa*
+  4. Oracle EBS & Databases: Oracle Wallet (cwallet.sso, ewallet.p12, *.wallet), Net config (*.ora, ojdbc.properties), Database files (*.db, *.sqlite*, data/, invoice-web/data/), Dumps/Backups (*.dmp, *.dump, *.bak, *.backup, *dump*.sql, *.sql.gz)
+  5. Company Financials & Invoices: Real PDFs (*.pdf ทั่วทั้ง repo ยกเว้น fixture !invoice-web/examples/invoice.pdf), Excel (*.xlsx, *.xls, *.xlsm, *.xlsb), CSV extracts (*export*.csv, *report*.csv, *receipt*.csv, *invoice*.csv, *entity*.csv, *oracle*.csv), Batch reports/payloads (*my_report*, *my_failed*, *batch_result*.json, paperless_downloads/, extracted_invoices/), Synthetic corpus จาก production extract (tests/test_invoices/_raw/, pdfs/, test_dataset.json)
+  6. Automation & n8n: .n8n/, n8n-local/, *n8n_export*.json, *workflow_export*.json
+  7. Python Environment: __pycache__/, *.py[cod], .venv/, venv/, build/, dist/, .pytest_cache/, coverage files
+  8. Node & Frontend: node_modules/, frontend/dist/, playwright-report/, test-results/, *.tsbuildinfo
+  9. IDE, Agent & Scratch: .vscode/* (whitelist !.vscode/extensions.json), .idea/, .agent/, .agents/, .pi/, .mcp.json, .gemini/, scratch/, /tmp/, tmp/, temp/
+  10. Archives: *.7z, *.zip, *.tar*, *.rar, *.gz, *.bz2, *.xz
+  11. Operating System: .DS_Store, Thumbs.db, desktop.ini, ehthumbs.db, $RECYCLE.BIN/
+  12. Logs: *.log, logs/
+- ตรวจยืนยันด้วย git check-ignore -v ครอบคลุม 25+ pattern ตัวอย่างของ sensitive data ทุกหมวดหมู่
+- รัน regression tests: pytest 9/11 passed (2 deselected), unittest 15/15 passed
 
-### Changed — `CHG-20261002-010`
-- Timestamp: `2026-10-02T12:15:00+07:00`
-- ปรับโครงสร้างระดับ Application Shell และ Header สู่รูปแบบ AIVA Web Portal Mockup v4.4 อย่างสมบูรณ์ 100% (แก้ไข UI เละเทะ):
-  - ลบ 240px Fixed Black Sidebar (`aside.sidebar`) และ Light Topbar (`.topbar`) เดิมทิ้ง เพื่อแก้ปัญหาจอแคบและแถบซ้อนสองชั้น
-  - เพิ่ม `header.aiva-header` (#0D274D, 56px) ที่มีโลโก้ AI สีเขียว, ลิงก์ Nav 4 หมวด (`คิวตรวจสอบ`, `สิทธิ์และการเข้าถึง`, `บันทึกการเข้าถึง`, `เชื่อมต่อ API`), Role badge "เจ้าหน้าที่บัญชี", และ Environment pill
-  - ปรับลำดับใน `QueuePage.tsx` ให้ถูกต้องตามแบบ v4.4: แถบ `.scope` อยู่บนสุด (พร้อม Company Chips, View Toggles, และปุ่มนำเข้าเอกสาร) ตามด้วย `.kpis` 6 ใบที่จัดสไตล์กรอบและตัวเลขสถิติชัดเจน และตามด้วย `.wrap` (คิว 370px ซ้ายมือ และ Document Workspace ขวามือ)
-  - เพิ่มและปรับแต่ง CSS เต็มรูปแบบใน `mockup-parity.css` รวมถึงกฎ Responsive สำหรับ Mobile (390px) แบบ 0 Horizontal Overflow
-  - ผ่านการทดสอบ: TypeScript strict build, Backend unittests 15/15 และ Playwright E2E 6/6 ผ่านครบถ้วน 100%
+## 2026-10-03
 
 ### Added — `CHG-20261003-011`
 - Timestamp: `2026-10-03T08:33:34+07:00`
@@ -111,8 +104,6 @@
 - Export และทดสอบโค้ดจาก commit 9054076 ไว้ที่ `Web portal/invoice-web-9054076` พร้อม Backend (พอร์ต 8010) และ Frontend (พอร์ต 5173)
 - รักษาและจัดโครงสร้าง Web Portal ทั้งหมด: `invoice-webV2` (เวอร์ชันใหม่ล่าสุด), `invoice-web1` (เวอร์ชันสำรอง), และ `invoice-web-9054076`
 - คืนค่าและอัปเดต Canonical Records ในโฟลเดอร์ราก `agent/` ตามข้อกำหนด `AGENTS.md`
-
-
 
 ### Added — `CHG-20261003-013`
 - Timestamp: `2026-10-03T11:35:00+07:00`
@@ -185,4 +176,3 @@
   - ยุบรวมหน้าจอที่ซ้ำซ้อนจาก v4 เหลือ 6 หน้า: `work`, `detail`, `rules`, `manual`, `sources`, `audit`
   - นโยบาย 3 ชั้น `access → workflow → guards` พร้อม BigInt Decimal string สำหรับตัวเลขเงิน
   - ผลทดสอบจริง: `tools/smoke-test.mjs` ผ่าน **31/31**, `tools/browser-check.mjs` ผ่าน **29/29** (Edge headless), `tools/sync.py --check` ผ่าน
-

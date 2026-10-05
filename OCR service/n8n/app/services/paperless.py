@@ -65,6 +65,35 @@ class PaperlessClient:
             logger.error(f"Paperless get_next_unprocessed_document failed: {e}")
             raise
 
+    async def get_all_documents_by_tag(
+        self,
+        tag_id: Optional[int] = None,
+        excluded_tag_id: Optional[int] = None,
+        page_size: int = 100
+    ) -> List[Dict[str, Any]]:
+        """Fetch all documents from Paperless matching the tag criteria."""
+        tag = tag_id or self.invoice_tag_id
+        url = f"{self.base_url}/api/documents/"
+        params: Dict[str, Any] = {
+            "tags__id__in": tag,
+            "ordering": "id",
+            "page_size": page_size
+        }
+        if excluded_tag_id is not None:
+            params["tags__id__none"] = excluded_tag_id
+
+        all_docs = []
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            while url:
+                response = await client.get(url, params=params, headers=self._headers())
+                response.raise_for_status()
+                data = response.json()
+                results = data.get("results") or []
+                all_docs.extend(results)
+                url = data.get("next")
+                params = None  # query params are already included in 'next' url
+        return all_docs
+
     async def download_document_pdf(self, doc_id: int) -> bytes:
         """Download document original PDF binary (Get a document)."""
         url = f"{self.base_url}/api/documents/{doc_id}/download/"

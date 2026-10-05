@@ -39,6 +39,7 @@ async def test_root_endpoint_includes_app_ui():
         assert data.get("status") == "ONLINE"
 
 
+@pytest.mark.live          # needs a reachable Paperless instance
 @pytest.mark.asyncio
 async def test_fe_documents_endpoint():
     """Verify GET /fe/documents handles Paperless proxy or returns expected structure."""
@@ -54,6 +55,7 @@ async def test_fe_documents_endpoint():
             assert resp.status_code in [500, 502, 503, 504]
 
 
+@pytest.mark.live          # needs a reachable LiteLLM vision model
 @pytest.mark.asyncio
 async def test_fe_verify_upload_sse_streaming():
     """Verify POST /fe/verify/upload streams SSE events with valid PDF bytes."""

@@ -79,6 +79,7 @@ class OracleReceipt(BaseModel):
     OU_NAME: Optional[str] = None
     CUSTOMER_POSTAL: Optional[str] = None
     CUSTOMER_LOC_CODE: Optional[str] = None
+    CUSTOMER_TAX_ID: Optional[str] = None
     SUPPLIER_NAME: Optional[str] = None
     SUPPLIER_TAX_ID: Optional[str] = None
 
@@ -138,6 +139,7 @@ class Table9Output(BaseModel):
     invoice_summary: InvoiceSummary
     rules: List[RuleResult]
     exceptions: List[ExceptionItem]
+    oracle_data: Optional[Dict[str, Any]] = Field(default=None, description="ข้อมูล Receipts ที่ได้จากการเปรียบเทียบกับ Oracle EBS")
 
 
 # =============================================================================

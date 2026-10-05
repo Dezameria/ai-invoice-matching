@@ -1,5 +1,6 @@
 # Task และ Plan
 
+<<<<<<< HEAD
 Last updated: `2026-10-03T16:50:00+07:00`
 
 ## Completed Task
@@ -114,63 +115,55 @@ Last updated: `2026-10-03T16:50:00+07:00`
   - เพิ่ม `references/core-domain.md` ครอบคลุม system boundary, field catalog, V-01–V-09, decision/routing, workflow, production requirements และ source conflicts
   - เพิ่ม `agents/openai.yaml` สำหรับการค้นพบและเรียกใช้ skill
   - ตรวจด้วย `quick_validate.py` ผ่าน และตรวจ source/reference paths ครบ
+=======
+Last updated: 2026-10-02T20:52:00+07:00
+>>>>>>> origin/invoice-web
 
 ## Active Task
-- Task ID: `TASK-20261003-003`
-- Title: จัดการ Commit และ Push โค้ดทั้งหมดขึ้น Git
-- Status: `completed`
-- Goal: บันทึกการเปลี่ยนแปลงใน Web portal (invoice-webV2, invoice-web1, invoice-web-9054076) และ Canonical records ใน agent/ ขึ้น GitHub
-- Result: Commit และ push เรียบร้อย
+- Task ID: TASK-20261002-009
+- Title: ยกระดับ .gitignore ให้ครอบคลุมข้อมูลความลับขององค์กรทั้งหมด (Company Sensitive Data, Credentials, Financials, ERP/Oracle Wallets & Dumps) พร้อม commit และ push ขึ้น git server
+- Status: completed
+- Goal: ตรวจสอบและปรับปรุง .gitignore ในระดับ repository root และ sub-projects ให้กันไฟล์ที่เป็นความลับของบริษัททุกรูปแบบ (Environment files, API tokens/keys, Private keys/certificates, Oracle wallets/configs/dumps, ฐานข้อมูล, PDF ใบแจ้งหนี้จริง, เอกสารรายงานการเงิน/บัญชี, logs, cache และ runtime artifacts) ไม่ให้รั่วไหลขึ้น git repository พร้อม commit และ push ขึ้น origin/main
 
-## Previous Tasks
-- Task ID: `TASK-20261003-001`
-- Title: พัฒนา Modern Frontend V2 ในโฟลเดอร์ Web portal/invoice-webV2
-- Status: `completed`
-- Goal: สร้าง Frontend ใหม่ด้วย React 19 + TypeScript + Vite ในโฟลเดอร์ Web portal/invoice-webV2 ตามสถาปัตยกรรม V2 ที่พรีเมียม สบายตา โมเดิร์น รองรับการทำงานแบบ Standalone (Mock data สมบูรณ์) พร้อมวางโครงสร้างโมดูลที่สะอาดเพื่อเชื่อมต่อ Real API และต่อยอดได้ง่าย
-- Plan:
-  - [x] Initialized Vite React + TypeScript ใน `Web portal/invoice-webV2`
-  - [x] ติดตั้ง dependencies พื้นฐานและ `lucide-react`
-  - [x] วางโครงสร้างสถาปัตยกรรม (Architecture & Type Definitions & API Client boundary)
-  - [x] จัดทำ Realistic Mock Data ครบถ้วน (Invoice summary, PO, GRN lines, 3-way matching, exceptions, rules, revisions, audit trail)
-  - [x] สร้าง Premium Design System (CSS tokens, Glassmorphism/Modern card styles, typography, micro-animations, responsive layout)
-  - [x] สร้าง Core Components & Features:
-    - Navigation Header (Logo, Nav items, Status indicator, User role)
-    - Scope Bar (Company filter chips, View switcher, Document import trigger)
-    - KPI Metrics Dashboard (Interactive filter cards with status counters)
-    - Master Document Queue (Search, multi-criteria filters, sorting, status badges)
-    - Detailed Document Inspector
-    - Document Import Modal
-  - [x] ทดสอบ TypeScript build (`npm run build`)
-  - [x] ทดสอบการเปิดดูและโต้ตอบด้วย Browser Subagent
-  - [x] บันทึก Canonical Records ตาม Agent Operating Protocol
-- Task ID: `TASK-20261002-010`
-- Title: ปรับปรุงโครงสร้างหลักของ Web Portal สู่ต้นแบบ AIVA Mockup v4.4 อย่างสมบูรณ์ 100% (แก้ไข UI เละเทะ)
-- Status: `completed`
+## Plan
+- [x] สำรวจและออกแบบชุด rules ของ .gitignore ให้ครอบคลุมทุกหมวดหมู่ของ company sensitive data
+- [x] ปรับปรุง root .gitignore ให้มี rules รัดกุมและเป็นหมวดหมู่ชัดเจน
+- [x] ปรับปรุง sub-directory .gitignore (OCR service/n8n/.gitignore, invoice-web/.gitignore) ให้สอดคล้องกัน
+- [x] ทดสอบด้วย git check-ignore เทียบกับ pattern ตัวอย่างของ sensitive data ทุกหมวดหมู่ (เช่น .env, oracle.wallet, *.pem, *.key, *.xlsx, *.pdf, credentials.json, data/, ฯลฯ) และตรวจยืนยันว่า mock fixture (invoice-web/examples/invoice.pdf) ยังคงอยู่
+- [x] รัน regression tests ทั้ง backend unittest (15 passed) และ pytest ใน OCR service/n8n (9 passed, 2 deselected)
+- [x] อัปเดต canonical records (current-state.md, changelog.md, work-log.md, sessions/) ตาม protocol
+- [x] ทำ git add, git commit และ git push ไปยัง remote server (origin/main) พร้อมตรวจผลยืนยัน
 
 ## Acceptance criteria
-- ลบ sidebar สีดำเดิมทิ้ง ทำให้ไม่มีแถบซ้อนสองชั้นอีกต่อไป (ผ่านการตรวจสอบ)
-- ส่วนหัวเป็น Header สี Navy เข้ม (#0D274D) พร้อมเมนูครบถ้วนตาม Mockup v4.4 (ผ่านการตรวจสอบ)
-- แถบ Scope และ KPI 6 กล่องวางเรียงสวยงาม ตัวเลขชัดเจน ไม่ลอย (ผ่านการตรวจสอบ)
-- คิว 370px อยู่ซ้ายมือ เปิดดูเอกสารด้านขวามือได้ทันที สะอาด สบายตา ตรงตาม Mockup v4.4 (ผ่านการตรวจสอบ)
-- รองรับ Mobile (390px) ไม่มี horizontal overflow และ Playwright E2E 6/6 ผ่าน 100% (ผ่านการตรวจสอบ)
+- .gitignore ระดับ root มี rules ครอบคลุม:
+  - Secrets & Environment: .env*, *.secret*, *credentials*.json, 	oken.json, *service_account*.json, API keys
+  - Cryptography & Certs: *.key, *.pem, *.pfx, *.p12, *.cer, *.crt, SSH keys (id_rsa*, id_ed25519*)
+  - Oracle & ERP: Oracle Wallet (cwallet.sso, *.wallet), Net config (*.ora, ojdbc.properties), Database files (*.db, *.sqlite*, data/), Dumps & Backups (*.dmp, *.dump, *.bak, *dump*.sql)
+  - Company & Financial Data: Real PDFs (*.pdf ยกเว้น fixture invoice-web/examples/invoice.pdf), Excel/Spreadsheets (*.xlsx, *.xls, *.xlsm), CSV exports/receipts/entities, Paperless OCR runtime payloads/reports
+  - Automation & Agents: n8n state/credentials, .agent/, .agents/, .pi/, .mcp.json, scratch directories
+  - Runtimes & OS: Python venv/cache, Node modules/dist/test results, OS metadata (.DS_Store, Thumbs.db), logs & archives
+- git check-ignore ตรวจจับ pattern ความลับได้ถูกต้องทุกหมวดหมู่
+- Test suites ที่มีอยู่ (pytest 9/11 และ unittest 15/15) ยังทำงานได้ตามปกติ
+- บันทึกการเปลี่ยนแปลงใน gent/ ครบถ้วนตาม AGENTS.md
+- Commit และ push ขึ้น origin/main สำเร็จอย่างปลอดภัย
+
 
 ## Result
-- **โครงสร้าง Shell และ Header ใหม่**:
-  - เปลี่ยนจาก Sidebar สีดำ 240px มาเป็น Full-width Layout พร้อมแถบ Header Navy เข้ม `#0D274D` ความสูง 56px ที่มีโลโก้ AI สีเขียว, Navigation Bar 4 รายการ, Role Badge เจ้าหน้าที่บัญชี และ Environment Pill ตรงตามต้นแบบ `AIVA-Web-Portal-Mockup-v4.4-Release.html`
-- **การจัดวางหน้ารายการ (Queue Page Layout)**:
-  - เรียงลำดับถูกต้อง: แถบ Scope ด้านบนสุด (พร้อม Company Chips, View Toggles, และปุ่มนำเข้าเอกสาร) -> แถบ KPI Summary 6 ใบพร้อมตัวเลขสถิติและสีระบุสถานะ -> แถบ Master-Detail Workspace 2 ฝั่ง (ซ้าย: คิว 370px, ขวา: เอกสารและ PDF)
-- **สไตล์และพื้นที่แสดงผล (Visual Excellence & Parity)**:
-  - ขยายพื้นที่การอ่านเอกสารให้กว้างขวาง สบายตา ปราศจากความอึดอัด คมชัด และตรงตาม Palette สีของต้นแบบ v4.4 100%
-- **การทดสอบความถูกต้อง**:
-  - Frontend production build (`tsc -b && vite build`) สำเร็จสมบูรณ์ (5.3s)
-  - Backend unittests ผ่าน 15/15 รายการ (4.0s)
-  - Playwright E2E tests ผ่านครบ 6/6 รายการ (รวม Mobile 390px zero-overflow check) (15.4s)
+- ยกระดับ root .gitignore ครอบคลุมข้อมูลความลับขององค์กร 12 หมวดหมู่: Environment variables, credentials/tokens/API keys, private keys & SSL certs, Oracle database artifacts (wallet, net configs, sqlnet, tnsnames, dumps), ข้อมูลการเงิน/ใบแจ้งหนี้จริง (PDFs, Excel spreadsheets, CSV extracts), batch run reports/failed payloads, n8n automation local states, Python/Node runtime artifacts, IDE/Agent workspace files, OS metadata และ logs
+- กำหนด whitelist อย่างปลอดภัยสำหรับ .env.example และ synthetic fixture invoice-web/examples/invoice.pdf
+- ทดสอบด้วย git check-ignore -v ครอบคลุม 25+ pattern ตัวแทนข้อมูลสำคัญของบริษัท ได้ผลสมบูรณ์ 100%
+- ทดสอบ regression tests ผ่านทั้งหมด:
+  - OCR service/n8n: 9 passed, 2 deselected in 1.28s
+  - invoice-web/backend: 15 passed in 2.332s
+- บันทึกการเปลี่ยนแปลงใน canonical records ครบถ้วนตาม protocol
+- Commit และ push ขึ้น origin/main บน git server สำเร็จ
 
 ## Previous Result
-- ปรับ Document Workspace ให้ตรงกับ AIVA Web Portal Mockup v4.4 Release โดยตรง (คิว 370px, ส่วนหัว .dh, แถบสเต็ป .flow, แท็บ 5 แท็บ, Exception Cards .ex, แถบ Sticky Action Bar .bar)
-- เพิ่ม explain/resubmit/rerun/return/reject/hold/confirm แบบ persistent โดยผลตรวจ snapshot ไม่ถูกแก้ไข
+- TASK-20261002-008 ปรับ n8n workflow LUCmn3l0bZDjbVV ให้ทำงานตรงกับ Python FastAPI engine (v6.5) ผ่าน MCP และอัปเดตเอกสาร flow structure — diff หลัง re-export รายงาน IDENTICAL สำหรับ 7 jsCode + N7 jsonBody, harness รัน code จาก export จริง: 7/7 เคสตรง Python
+- TASK-20261002-007 Synthetic invoice corpus: 	ests/test_invoices/ มี 155 PDF (157 หน้า) + answer key 155 รายการที่ผลิตจาก pp/core/rules จริง
+- Normalize UI ของ invoice-web ทั้งหมด: KPI cards + consolidated filter bar, high-contrast queue table, Executive 3-Way Match Snapshot, Provenance bar, 3-Step Verification Stepper, Discrepancies callout with PDF jump, Decision Hub และ 5 detail tabs
+- Backend unittest 15 ผ่าน, TypeScript + Vite production build ผ่าน, Playwright E2E 6 ผ่าน (desktop/mobile 390px)
 
 ## Outside this task
-- Entra user/company/receiver RBAC และ account mapping
-- AP submission/post และการรัน OCR/Oracle จริง
-- DMS signed sessions/watermark, PostgreSQL/Alembic production runtime
+- ไม่ลบหรือแก้ไข source code ฟังก์ชันการทำงานของ OCR/rules engine หรือ web portal
+- ไม่ push ข้อมูลความลับหรือ payload จริงขึ้น git repository
