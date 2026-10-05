@@ -205,7 +205,7 @@
 - รัน `git fetch origin invoice-web` ก่อน เพื่อยืนยันว่า local ahead 1 (fast-forward) แล้ว commit `94d8cad` ด้วย message `feat(portal): add invoice-webv3 no-build mockup with as-built rules and conflict surfacing`
 - repo ไม่มี `user.email` ใน config จึงใส่ `-c user.email="aapico.intern07@aapico.com"` เฉพาะคำสั่ง commit (ไม่ได้แก้ global config) เพื่อคง author เดียวกับ commit ก่อนหน้า
 - push สำเร็จ `b248e7d..94d8cad` → `origin/invoice-web`; `git status -sb` clean และ sync กับ remote
-- ไม่ได้ push code ขึ้น分支อื่น ไม่มี deployment และไม่มี secret ถูกแนบขึ้นไป
+- ไม่ได้ push code ขึ้น branchอื่น ไม่มี deployment และไม่มี secret ถูกแนบขึ้นไป
 
 ### `WORK-20261003-016` — ปิดงาน mockup v3 รอบ 2 (action parity, revisions, audit chain, queue, viewer, decimal)
 - Timestamp: `2026-10-03T14:10:00+07:00`
@@ -227,3 +227,31 @@
 - อัปเดต canonical records: current-state, changelog (`CHG-20261003-015/016`), work-log, errors-and-solutions และ session ไฟล์
 - commit `cd76db0` เฉพาะโฟลเดอร์ mockup (records ใน `agent/` แยก commit) ยังไม่ได้ push รออนุญาตผู้ใช้
 - ยืนยันซ้ำ: `node --check` 6 ไฟล์ · smoke 60/60 · browser-check 14/14 · git status เหลือเฉพาะไฟล์ส่งมอบ (9 tracked + .gitignore + browser-check)
+
+### `WORK-20261003-018` — สร้าง `invoice-webV4` จากศูนย์: portal ที่อ่าน snapshot เท่านั้น
+- Timestamp: `2026-10-03T15:45:00+07:00`
+- สำรวจของก่อนเขียน: mockup v4.4 release + `index.html` + `invoice-review-demo.html`, `OCR service/n8n/app/core/{rules.py,master_data.py}`, skill `.agents/skills/aiva-invoice-core/references/core-domain.md` และบทเรียนจาก v1/v2/v3 (v3 ยังเป็นไฟล์เดียวโต + ไม่มี contract validation)
+- วางสถาปัตยกรรมก่อนโค้ด: ตัดสินใจ 6 ข้อ (portal ไม่ recompute / engine mirror แยกไว้ให้ tools / contract-first / extended field ต้องติดธง / UNMAPPED ไม่เดา / ทศนิยม BigInt) แล้วจดเป็น docs/01 + docs/02 เพื่อให้เทสต์ยึดตามเอกสาร
+- เขียนชั้น domain 10 ไฟล์ให้ pure ทั้งหมด (ไม่มี DOM/fetch) เพื่อให้ทดสอบใน node ตรง ๆ ได้ แล้วตามด้วย `ui/` + 6 views ที่ return HTML string และ `app.js` ที่รวม 3 ชั้น policy (`access → workflow → guards`) ก่อน action เกิดผลจริง
+- เขียน pipeline ข้อมูล: `cases-shared/a/b/c/d.mjs` (แยกไฟล์เพราะเคยเจอ write ไฟล์ใหญ่แล้วพัง) → `build-fixtures.mjs` รัน engine mirror → validate → golden → เขียน `snapshots.js`; `build-master-data.py` อ่าน master จาก OCR service ตรง ๆ
+- ใส่เคสให้ "ครอบคลุม policy ทุกข้อ" ไม่ใช่แค่ตัวเลขสวย: missing/stale evidence, outbox, hand-authored, not_evaluated, M4, safety cap, USD, duplicate, terminal, SoD, decimal
+
+### `WORK-20261003-019` — ทดสอบ/แก้บั๊กจริง + เขียนเอกสาร + ปิดรอบ records
+- Timestamp: `2026-10-03T15:45:00+07:00`
+- ทำให้ทุก module โหลดได้จริงก่อนเทสต์พฤติกรรม: เขียนสคริปต์ dynamic-import ตรวจ named export ทั้งโปรเจกต์ → เจอ `code` ไม่ได้อยู่ที่ `ui/dom.js` (ERR-009) และตามด้วย `table()` รับแถว string ไม่ได้ (ERR-010), decimal helper รับ string ตรง ๆ (ERR-011) — render ผ่านครบ 8 view/8 สถานะ
+- เขียน `smoke-test.mjs` ให้ครอบคลุม decimal, contract, fixture, store, state machine, guards, สถาปัตยกรรม, master data, views → ผ่าน 107/107; ปรับ guard ตัวตรวจอักษรภาษาต่างประเทศให้ไม่ เฝ้าเกิน (อนุโลม Greek `Σ`, ไม่จับ field ชื่อ `document`)
+- เขียน `browser-check.mjs` แล้วรันด้วย Chromium จริง (playwright จาก `invoice-web-9054076/frontend`) → เจอ 2 เรื่องที่ logic test มองไม่เห็น: pageerror `innerHTML`/blur ตอนพิมพ์ค้นหา (ERR-012) และ overflow 621px ที่ 390px ซึ่งมาจาก header ไม่ใช่ตาราง (ERR-013) → แก้ `mount()` ให้ blur ก่อน + เพิ่ม media query ≤860px → ผ่าน 14/14
+- ปรับ `build-fixtures.mjs --check` ให้จับ drift จริง (เดิมแค่ validate ไม่ได้เทียบไฟล์) และทดสอบทั้งกรณี clean (exit 0) กับ probe ที่แก้ข้อมูล (exit 1)
+- เขียนเอกสาร 00–07 แล้วรัน smoke ซ้ำ (group 7 สแกน `.md` ด้วย) → เจอ CJK หลุดใน docs (ERR-014) จึงเขียน `docs/07-demo-script.md` ให้ผูกฉากเดโมกับเอกสารจริง 22 ฉบับ (SoD, stale/missing evidence, outbox, hand-authored, ingest rejection, SQL cap, role switching)
+- ตรวจ API ใน `docs/03-domain-model.md` เทียบกับโค้ดทีละ function แล้วแก้ให้ตรงจริง (`canAct/canTransition → {ok, reasons[]}`, `guards(doc) → G[]`, `riskLevel → block|warn|ok`, `summarize → {list, codes, hasHigh, hasMedium, counts, userCodes, accountCodes}`, store ไม่มี `save()/overlay()` แต่มี `ingestRaw/seenEvents/_overlay`)
+- ปิดรอบด้วย canonical records: session `2026-10-03-006`, changelog `CHG-20261003-017/018`, work-log สองรายการนี้, errors `ERR-20261003-009…014`, current-state + task-plan
+- ยืนยันซ้ำครั้งสุดท้าย: `build-fixtures --check` exit 0 · `smoke-test` 107/107 · `browser-check` 14/14 · ไม่มีไฟล์นอก scope ถูกแก้
+
+### `WORK-20261003-020` — สร้างและทดสอบ `Web portal/invoice-webV5` (repo-reference portal)
+- Timestamp: `2026-10-03T16:50:00+07:00`
+- ออกแบบ v5 เพื่อแก้ปัญหา code/data duplication ของ v4: ใช้ `tools/sync.py` อ่าน master data, rules, models, design tokens จาก repo โดยตรงพร้อม header provenance และ SHA-256 integrity check
+- ยุบรวมหน้าจอที่ซ้ำซ้อนจาก v4 เหลือ 6 หน้า: `work`, `detail`, `rules`, `manual`, `sources`, `audit`
+- สถาปัตยกรรม portal เป็น pure view layer ห้าม recompute matching และใช้ BigInt Decimal string
+- รันการตรวจสอบจริง: `tools/smoke-test.mjs` ผ่าน **31/31**, `tools/browser-check.mjs` ผ่าน **29/29** (Edge headless), `tools/sync.py --check` ผ่าน
+- จัดทำเอกสาร `PORTAL-plan.md` และ `as-built-v5.md` พร้อม session `2026-10-03-007`
+

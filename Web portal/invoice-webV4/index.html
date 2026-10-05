@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIVA · Invoice Review Portal v4</title>
+    <meta name="description" content="Portal ตรวจทานใบแจ้งหนี้แบบอ่าน snapshot จาก engine เท่านั้น — ไม่มีการตรวจซ้ำในเบราว์เซอร์" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles/app.css" />
+  </head>
+  <body>
+    <header id="topbar"></header>
+    <div id="ctxbar"></div>
+    <main id="view" aria-live="polite">
+      <noscript>Portal นี้ทำงานด้วย ES modules — กรุณาเปิด JavaScript</noscript>
+    </main>
+    <footer id="foot">
+      <span>AIVA Invoice Review Portal v4 · ข้อมูลทั้งหมดในชุดนี้เป็นข้อมูลสังเคราะห์ 🧪</span>
+      <span>โครงสร้าง: snapshot → schema check → store → UI · ไม่มี build step · ห้าม import engine ตอน runtime</span>
+    </footer>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="modal"></div>
+
+    <script type="module" src="./app.js"></script>
+    <script>
+      // fallback เมื่อไม่มี module (เปิดด้วย file://) → บอกวิธีเปิดที่ถูกต้อง
+      setTimeout(() => {
+        if (!document.getElementById("topbar").children.length) {
+          document.getElementById("view").innerHTML =
+            '<section class="card"><header class="card-head"><h1>เปิดด้วย file:// อยู่</h1></header><div class="card-body"><p>เบราว์เซอร์บล็อก ES modules เมื่อเปิดจากไฟล์โดยตรง กรุณารัน:</p><pre>python tools/serve.py\nแล้วเปิด http://127.0.0.1:8080</pre></div></section>';
+        }
+      }, 1500);
+    </script>
+  </body>
+</html>

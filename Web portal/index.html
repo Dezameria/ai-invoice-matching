@@ -1,0 +1,2243 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ClearMatch — Invoice Workspace Mockup</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+
+        :root {
+            --ink: #17211e;
+            --muted: #72807a;
+            --line: #e3e9e6;
+            --bg: #f4f7f5;
+            --surface: #fff;
+            --brand: #176349;
+            --brand-deep: #103c2e;
+            --brand-soft: #eaf5f0;
+            --green: #168052;
+            --green-bg: #edf8f2;
+            --red: #c44747;
+            --red-bg: #fff2f1;
+            --amber: #9b6719;
+            --amber-bg: #fff7e7;
+            --shadow: 0 18px 50px rgba(15, 49, 38, .13)
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Manrope, "Noto Sans Thai", sans-serif;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased
+        }
+
+        button,
+        input {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 236px minmax(0, 1fr)
+        }
+
+        .sidebar {
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            background: var(--brand-deep);
+            color: #fff;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 8
+        }
+
+        .brand {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 0 9px
+        }
+
+        .brand-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            background: #f0c85e;
+            color: #173d31;
+            display: grid;
+            place-items: center
+        }
+
+        .brand-mark svg {
+            width: 20px
+        }
+
+        .brand b {
+            font-size: 17px
+        }
+
+        .brand small {
+            display: block;
+            font-size: 9px;
+            color: #ffffff70
+        }
+
+        .nav-title {
+            font-size: 9px;
+            letter-spacing: 1.2px;
+            color: #ffffff60;
+            font-weight: 700;
+            margin: 31px 11px 9px
+        }
+
+        .nav {
+            display: grid;
+            gap: 5px
+        }
+
+        .nav button {
+            border: 0;
+            background: none;
+            color: #ffffffa0;
+            border-radius: 9px;
+            padding: 11px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            font-size: 11px
+        }
+
+        .nav button:hover,
+        .nav button.active {
+            background: #ffffff15;
+            color: #fff
+        }
+
+        .nav svg {
+            width: 16px
+        }
+
+        .nav .active:after {
+            content: "";
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #f0c85e;
+            margin-left: auto
+        }
+
+        .soon {
+            font-size: 7px;
+            border: 1px solid #ffffff22;
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin-left: auto;
+            color: #ffffff60
+        }
+
+        .profile {
+            margin-top: auto;
+            border-top: 1px solid #ffffff18;
+            padding: 14px 9px 0;
+            display: flex;
+            align-items: center;
+            gap: 9px
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0c85e;
+            color: #173d31;
+            display: grid;
+            place-items: center;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .profile b {
+            font-size: 10px
+        }
+
+        .profile small {
+            display: block;
+            color: #ffffff6c;
+            font-size: 8px
+        }
+
+        main {
+            min-width: 0
+        }
+
+        .topbar {
+            height: 67px;
+            padding: 0 32px;
+            background: #fffffff0;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 6;
+            backdrop-filter: blur(12px)
+        }
+
+        .crumb {
+            color: var(--muted);
+            font-size: 10px
+        }
+
+        .crumb b {
+            color: var(--ink)
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .system {
+            color: var(--green);
+            background: var(--green-bg);
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .system:before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: #20a36e;
+            border-radius: 50%
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: #fff;
+            color: #68736e;
+            display: grid;
+            place-items: center
+        }
+
+        .icon-btn svg {
+            width: 15px
+        }
+
+        .mobile {
+            display: none
+        }
+
+        .content {
+            max-width: 1600px;
+            margin: auto;
+            padding: 29px 32px 48px
+        }
+
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 22px
+        }
+
+        .heading h1 {
+            font-size: 25px;
+            letter-spacing: -.7px;
+            margin: 0
+        }
+
+        .heading p {
+            font-size: 10px;
+            color: var(--muted);
+            margin: 7px 0 0
+        }
+
+        .primary {
+            border: 0;
+            background: var(--brand);
+            color: #fff;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 7px 16px #17634923
+        }
+
+        .primary svg {
+            width: 14px
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 13px;
+            margin-bottom: 17px
+        }
+
+        .stat {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 15px 17px
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 9px
+        }
+
+        .stat-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #f1f5f3;
+            color: var(--brand);
+            display: grid;
+            place-items: center
+        }
+
+        .stat-icon svg {
+            width: 14px
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 22px;
+            margin-top: 6px;
+            letter-spacing: -.6px
+        }
+
+        .stat small {
+            font-size: 8px;
+            color: #929c97
+        }
+
+        .stat small b {
+            color: var(--green)
+        }
+
+        .stat.attention .stat-icon {
+            background: var(--red-bg);
+            color: var(--red)
+        }
+
+        .stat.attention strong {
+            color: var(--red)
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: visible
+        }
+
+        .toolbar {
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px
+        }
+
+        .tab {
+            border: 0;
+            background: none;
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font-size: 9px;
+            font-weight: 700
+        }
+
+        .tab.active {
+            background: var(--brand-soft);
+            color: var(--brand)
+        }
+
+        .tab span {
+            background: #0000000a;
+            padding: 1px 4px;
+            border-radius: 10px;
+            font-size: 7px;
+            margin-left: 3px
+        }
+
+        .tools {
+            display: flex;
+            gap: 7px;
+            position: relative
+        }
+
+        .search {
+            position: relative
+        }
+
+        .search svg {
+            position: absolute;
+            left: 9px;
+            top: 9px;
+            width: 13px;
+            color: #929b97
+        }
+
+        .search input {
+            width: 225px;
+            height: 32px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 0 9px 0 29px;
+            outline: 0;
+            font-size: 9px
+        }
+
+        .search input:focus {
+            border-color: #8cb6a5;
+            box-shadow: 0 0 0 3px #17634910
+        }
+
+        .outline-btn {
+            height: 32px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: #53615b;
+            border-radius: 8px;
+            padding: 0 10px;
+            font-size: 9px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .outline-btn:hover {
+            border-color: #a9bdb4;
+            color: var(--brand)
+        }
+
+        .outline-btn svg {
+            width: 13px
+        }
+
+        .outline-btn .count {
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background: var(--brand-soft);
+            color: var(--brand);
+            display: grid;
+            place-items: center;
+            font-size: 7px
+        }
+
+        .column-menu {
+            position: absolute;
+            right: 0;
+            top: 39px;
+            width: 310px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 12;
+            display: none;
+            overflow: hidden
+        }
+
+        .column-menu.open {
+            display: block
+        }
+
+        .column-head {
+            padding: 14px 15px 11px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start
+        }
+
+        .column-head b {
+            font-size: 11px
+        }
+
+        .column-head small {
+            display: block;
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 2px
+        }
+
+        .text-btn {
+            border: 0;
+            background: 0;
+            color: var(--brand);
+            font-weight: 700;
+            font-size: 8px;
+            padding: 2px
+        }
+
+        .column-list {
+            padding: 8px;
+            max-height: 365px;
+            overflow: auto
+        }
+
+        .column-option {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px;
+            border-radius: 7px;
+            font-size: 9px;
+            cursor: pointer
+        }
+
+        .column-option:hover {
+            background: #f6f9f7
+        }
+
+        .column-option input {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid #bdc8c3;
+            border-radius: 4px;
+            margin: 0;
+            display: grid;
+            place-content: center
+        }
+
+        .column-option input:checked {
+            background: var(--brand);
+            border-color: var(--brand)
+        }
+
+        .column-option input:checked:after {
+            content: "✓";
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .column-foot {
+            border-top: 1px solid var(--line);
+            padding: 10px 15px;
+            color: var(--muted);
+            font-size: 8px
+        }
+
+        .table-shell {
+            overflow: hidden;
+            border-radius: 0 0 14px 14px
+        }
+
+        .table-wrap {
+            overflow: auto;
+            max-height: 540px
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            min-width: max-content
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 10px 14px;
+            background: #fafbfa;
+            color: #7e8a84;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-size: 7px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap
+        }
+
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid #edf0ee;
+            font-size: 9px;
+            vertical-align: middle;
+            max-width: 250px
+        }
+
+        th:first-child,
+        td:first-child {
+            padding-left: 18px
+        }
+
+        tbody tr[data-id] {
+            cursor: pointer;
+            transition: .15s
+        }
+
+        tbody tr[data-id]:hover {
+            background: #f7fbf9
+        }
+
+        tbody tr[data-status="review"] {
+            box-shadow: inset 2px 0 0 #e07878
+        }
+
+        .cell-main {
+            font-weight: 700;
+            color: #34413c;
+            white-space: nowrap
+        }
+
+        .cell-sub {
+            display: block;
+            color: #929c97;
+            font-size: 7px;
+            margin-top: 2px
+        }
+
+        .wrap {
+            white-space: normal;
+            min-width: 190px
+        }
+
+        .items-cell {
+            min-width: 210px
+        }
+
+        .amount {
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .sign {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 20px;
+            padding: 5px 8px;
+            background: #e8f6ef;
+            color: #257653;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .sign:before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        .sign.missing {
+            background: var(--red-bg);
+            color: var(--red)
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 20px;
+            padding: 5px 8px;
+            font-size: 7px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .status:before {
+            content: "";
+            width: 5px;
+            height: 5px;
+            border-radius: 50%
+        }
+
+        .status.pass {
+            color: var(--green);
+            background: var(--green-bg)
+        }
+
+        .status.pass:before {
+            background: var(--green)
+        }
+
+        .status.review {
+            color: var(--red);
+            background: var(--red-bg)
+        }
+
+        .status.review:before {
+            background: var(--red)
+        }
+
+        .status.pending {
+            color: var(--amber);
+            background: var(--amber-bg)
+        }
+
+        .status.pending:before {
+            background: var(--amber)
+        }
+
+        .row-action {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            background: transparent;
+            color: #829089;
+            border-radius: 7px
+        }
+
+        .row-action:hover {
+            background: var(--brand-soft);
+            color: var(--brand)
+        }
+
+        .row-action svg {
+            width: 13px
+        }
+
+        .empty {
+            text-align: center !important;
+            padding: 45px !important;
+            color: var(--muted)
+        }
+
+        .table-foot {
+            background: #fcfdfc;
+            padding: 11px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 8px;
+            border-radius: 0 0 14px 14px
+        }
+
+        .table-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .table-hint svg {
+            width: 12px
+        }
+
+        .pages {
+            display: flex;
+            gap: 4px
+        }
+
+        .pages button {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 6px;
+            color: var(--muted);
+            font-size: 8px
+        }
+
+        .pages .active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff
+        }
+
+        .detail {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 236px;
+            background: var(--bg);
+            z-index: 7;
+            display: grid;
+            grid-template-rows: 68px minmax(0, 1fr);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px);
+            transition: .2s
+        }
+
+        .detail.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: none
+        }
+
+        .detail-head {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            padding: 0 22px
+        }
+
+        .back {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: #fff;
+            color: #4f5d57;
+            display: grid;
+            place-items: center
+        }
+
+        .back svg {
+            width: 17px
+        }
+
+        .detail-title {
+            min-width: 0
+        }
+
+        .detail-title h2 {
+            font-size: 16px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .detail-title p {
+            font-size: 8px;
+            color: var(--muted);
+            margin: 3px 0 0
+        }
+
+        .detail-status {
+            margin-left: 4px
+        }
+
+        .detail-head-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .updated {
+            font-size: 8px;
+            color: var(--muted);
+            margin-right: 5px
+        }
+
+        .detail-layout {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 400px minmax(0, 1fr)
+        }
+
+        .info-pane {
+            background: #fff;
+            border-right: 1px solid var(--line);
+            overflow: auto;
+            padding: 20px
+        }
+
+        .section-kicker {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: .75px;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 11px
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            overflow: hidden;
+            margin-bottom: 17px
+        }
+
+        .info-field {
+            padding: 11px 12px;
+            min-height: 62px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .info-field:nth-child(odd) {
+            border-right: 1px solid var(--line)
+        }
+
+        .info-field:nth-last-child(-n+2) {
+            border-bottom: 0
+        }
+
+        .info-field.wide {
+            grid-column: 1/-1;
+            border-right: 0
+        }
+
+        .info-field.wide:not(:last-child) {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .info-field label {
+            font-size: 7px;
+            color: #85918b;
+            text-transform: uppercase;
+            letter-spacing: .35px
+        }
+
+        .info-field strong {
+            display: block;
+            font-size: 9px;
+            margin-top: 5px;
+            line-height: 1.45
+        }
+
+        .info-field .large {
+            font-size: 13px
+        }
+
+        .line-items {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            overflow: hidden;
+            margin-bottom: 17px
+        }
+
+        .line-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 48px 82px;
+            gap: 8px;
+            padding: 10px 11px;
+            border-bottom: 1px solid var(--line);
+            align-items: center;
+            font-size: 8px
+        }
+
+        .line-item:last-child {
+            border: 0
+        }
+
+        .line-item.head {
+            background: #fafbfa;
+            color: #85918b;
+            text-transform: uppercase;
+            font-size: 7px
+        }
+
+        .line-item b {
+            font-size: 8px
+        }
+
+        .line-item small {
+            display: block;
+            color: var(--muted);
+            font-size: 7px;
+            margin-top: 2px
+        }
+
+        .right {
+            text-align: right
+        }
+
+        .total-box {
+            background: var(--brand-deep);
+            color: #fff;
+            border-radius: 11px;
+            padding: 13px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .total-box span {
+            font-size: 8px;
+            color: #ffffffa8
+        }
+
+        .total-box strong {
+            font-size: 16px
+        }
+
+        .service-note {
+            margin-top: 14px;
+            padding: 10px 11px;
+            background: #f5f8f6;
+            border-radius: 9px;
+            color: var(--muted);
+            font-size: 8px;
+            line-height: 1.5;
+            display: flex;
+            gap: 7px
+        }
+
+        .service-note svg {
+            width: 14px;
+            flex: none;
+            color: var(--brand)
+        }
+
+        .document-pane {
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            background: #eef2f0
+        }
+
+        .document-bar {
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0
+        }
+
+        .doc-tabs {
+            display: flex;
+            gap: 6px;
+            min-width: 0;
+            overflow: hidden;
+            padding: 1px
+        }
+
+        .doc-tab {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 9px;
+            padding: 7px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #5c6963;
+            min-width: 0;
+            white-space: nowrap
+        }
+
+        .doc-tab:hover {
+            border-color: #aac3b8
+        }
+
+        .doc-tab.active {
+            border-color: #8db7a6;
+            background: var(--brand-soft);
+            color: var(--brand)
+        }
+
+        .doc-tab.marked:after {
+            content: "★";
+            color: #d09a20;
+            font-size: 9px;
+            margin-left: 1px
+        }
+
+        .doc-icon {
+            width: 24px;
+            height: 27px;
+            border-radius: 5px;
+            background: #feecec;
+            color: #c64b4b;
+            display: grid;
+            place-items: center;
+            font-size: 6px;
+            font-weight: 700;
+            flex: none
+        }
+
+        .doc-tab b {
+            font-size: 8px;
+            display: block;
+            max-width: 135px;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .doc-tab small {
+            font-size: 7px;
+            color: var(--muted);
+            display: block;
+            margin-top: 1px
+        }
+
+        .doc-all {
+            height: 43px;
+            border: 1px solid #b9cbc3;
+            background: #f8fbf9;
+            color: var(--brand);
+            border-radius: 9px;
+            padding: 0 11px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 8px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .doc-all:hover,
+        .doc-all.active {
+            background: var(--brand-soft);
+            border-color: #84b09e
+        }
+
+        .doc-all svg {
+            width: 14px
+        }
+
+        .doc-all .doc-count {
+            height: 18px;
+            min-width: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: var(--brand);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: 7px
+        }
+
+        .more-docs {
+            height: 43px;
+            border: 1px dashed #b9c6c0;
+            background: #fff;
+            color: var(--muted);
+            border-radius: 9px;
+            padding: 0 9px;
+            font-size: 8px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .more-docs:hover {
+            color: var(--brand);
+            border-color: #84b09e
+        }
+
+        .doc-tools {
+            margin-left: auto;
+            display: flex;
+            gap: 5px
+        }
+
+        .tool-btn {
+            height: 30px;
+            min-width: 30px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            color: #59665f;
+            padding: 0 8px;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px
+        }
+
+        .tool-btn svg {
+            width: 13px
+        }
+
+        .tool-btn:hover {
+            color: var(--brand);
+            border-color: #aac3b8
+        }
+
+        .doc-browser-layer {
+            position: absolute;
+            inset: 64px 0 0;
+            z-index: 8;
+            background: rgba(21, 43, 34, .22);
+            backdrop-filter: blur(1px);
+            opacity: 0;
+            pointer-events: none;
+            transition: .16s
+        }
+
+        .doc-browser-layer.open {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        .doc-browser {
+            width: 100%;
+            max-height: min(560px, 100%);
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 18px 40px rgba(20, 49, 39, .18);
+            transform: translateY(-102%);
+            transition: .24s cubic-bezier(.2, .8, .2, 1);
+            display: flex;
+            flex-direction: column
+        }
+
+        .doc-browser-layer.open .doc-browser {
+            transform: none
+        }
+
+        .doc-browser-head {
+            padding: 14px 16px 11px;
+            border-bottom: 1px solid var(--line);
+            display: grid;
+            grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.3fr) auto;
+            gap: 12px;
+            align-items: center
+        }
+
+        .doc-browser-title {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin: 0
+        }
+
+        .doc-browser-title b {
+            font-size: 12px
+        }
+
+        .doc-browser-title small {
+            display: block;
+            font-size: 8px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .doc-browser-close {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 7px;
+            background: #f2f5f3;
+            color: #65716b;
+            font-size: 15px;
+            position: absolute;
+            right: 14px;
+            top: 13px
+        }
+
+        .doc-search {
+            position: relative;
+            display: block
+        }
+
+        .doc-search svg {
+            position: absolute;
+            left: 10px;
+            top: 9px;
+            width: 13px;
+            color: #8a9690
+        }
+
+        .doc-search input {
+            height: 34px;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 0 10px 0 30px;
+            outline: 0;
+            font-size: 9px
+        }
+
+        .doc-search input:focus {
+            border-color: #8cb6a5;
+            box-shadow: 0 0 0 3px #17634910
+        }
+
+        .doc-filters {
+            display: flex;
+            gap: 5px;
+            margin: 0 38px 0 0;
+            overflow: auto
+        }
+
+        .doc-filter {
+            border: 0;
+            background: #f2f5f3;
+            color: #68746e;
+            border-radius: 16px;
+            padding: 6px 9px;
+            font-size: 8px;
+            white-space: nowrap
+        }
+
+        .doc-filter.active {
+            background: var(--brand);
+            color: #fff
+        }
+
+        .doc-browser-list {
+            padding: 10px 14px 16px;
+            overflow: auto;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            align-items: start
+        }
+
+        .doc-group {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 5px;
+            background: #fff
+        }
+
+        .doc-group-title {
+            font-size: 7px;
+            color: #8a9690;
+            text-transform: uppercase;
+            letter-spacing: .65px;
+            font-weight: 700;
+            padding: 7px
+        }
+
+        .doc-list-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 30px;
+            gap: 4px;
+            align-items: center
+        }
+
+        .doc-list-item {
+            width: 100%;
+            border: 0;
+            background: #fff;
+            border-radius: 8px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            text-align: left;
+            color: var(--ink)
+        }
+
+        .doc-list-item:hover {
+            background: #f5f8f6
+        }
+
+        .doc-list-item.active {
+            background: var(--brand-soft)
+        }
+
+        .doc-list-item .doc-icon {
+            width: 28px;
+            height: 31px
+        }
+
+        .doc-list-copy {
+            min-width: 0
+        }
+
+        .doc-list-copy b {
+            display: block;
+            font-size: 9px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .doc-list-copy small {
+            display: block;
+            color: var(--muted);
+            font-size: 7px;
+            margin-top: 3px
+        }
+
+        .doc-state {
+            font-size: 7px;
+            color: var(--green);
+            background: var(--green-bg);
+            padding: 4px 6px;
+            border-radius: 9px;
+            white-space: nowrap
+        }
+
+        .doc-state.new {
+            color: var(--amber);
+            background: var(--amber-bg)
+        }
+
+        .doc-mark {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #a5aea9;
+            font-size: 14px;
+            display: grid;
+            place-items: center
+        }
+
+        .doc-mark:hover {
+            background: #fff7e1;
+            color: #c28a12
+        }
+
+        .doc-mark.marked {
+            color: #d39a18;
+            background: #fff7e1
+        }
+
+        .doc-empty-list {
+            text-align: center;
+            padding: 35px 15px;
+            color: var(--muted);
+            font-size: 9px;
+            grid-column: 1/-1
+        }
+
+        .viewer {
+            min-height: 0;
+            overflow: auto;
+            padding: 26px;
+            display: grid;
+            place-items: start center
+        }
+
+        .paper {
+            width: min(760px, 100%);
+            min-height: 1010px;
+            background: #fff;
+            box-shadow: 0 7px 28px rgba(27, 48, 40, .16);
+            padding: 64px 62px;
+            color: #26332e;
+            transform-origin: top center;
+            transition: .15s
+        }
+
+        .paper.invoice-doc .paper-brand {
+            color: #1e5b8d
+        }
+
+        .paper.receive-doc .paper-brand {
+            color: #176349
+        }
+
+        .paper.delivery-doc .paper-brand {
+            color: #854f21
+        }
+
+        .paper-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            border-bottom: 2px solid #24332d;
+            padding-bottom: 20px
+        }
+
+        .paper-brand {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -.5px
+        }
+
+        .paper-brand small {
+            display: block;
+            color: #65716c;
+            font-size: 8px;
+            letter-spacing: 1.4px;
+            margin-top: 4px
+        }
+
+        .paper-type {
+            text-align: right
+        }
+
+        .paper-type h3 {
+            font-size: 22px;
+            margin: 0
+        }
+
+        .paper-type p {
+            font-size: 9px;
+            color: #69756f;
+            margin: 5px 0 0
+        }
+
+        .paper-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 25px 0
+        }
+
+        .paper-meta h4 {
+            font-size: 8px;
+            color: #77827d;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin: 0 0 8px
+        }
+
+        .paper-meta p {
+            font-size: 9px;
+            line-height: 1.7;
+            margin: 0
+        }
+
+        .paper-meta .right {
+            text-align: right
+        }
+
+        .paper table {
+            min-width: 0;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 8px
+        }
+
+        .paper th {
+            position: static;
+            background: #f2f5f3;
+            color: #58645e;
+            font-size: 7px;
+            padding: 9px;
+            text-align: left
+        }
+
+        .paper td {
+            font-size: 8px;
+            padding: 10px 9px;
+            border-bottom: 1px solid #e7ebe9
+        }
+
+        .paper .num {
+            text-align: right
+        }
+
+        .paper-summary {
+            width: 260px;
+            margin: 22px 0 0 auto
+        }
+
+        .sum-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 9px
+        }
+
+        .sum-row.total {
+            border-top: 2px solid #293831;
+            margin-top: 6px;
+            padding-top: 10px;
+            font-size: 13px;
+            font-weight: 700
+        }
+
+        .paper-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 75px;
+            padding-top: 18px;
+            border-top: 1px solid #dfe5e2;
+            font-size: 8px;
+            color: #77827d
+        }
+
+        .signature {
+            width: 170px;
+            text-align: center;
+            color: #35433d
+        }
+
+        .signature .scribble {
+            font-family: cursive;
+            font-size: 23px;
+            color: #2f5681;
+            transform: rotate(-5deg);
+            margin: 0 0 4px
+        }
+
+        .signature-line {
+            border-top: 1px solid #69756f;
+            padding-top: 5px
+        }
+
+        .doc-empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 60px
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translate(-50%, 18px);
+            opacity: 0;
+            pointer-events: none;
+            background: #173d31;
+            color: #fff;
+            padding: 9px 13px;
+            border-radius: 8px;
+            font-size: 8px;
+            z-index: 60;
+            transition: .2s
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1
+        }
+
+        @media(max-width:1100px) {
+            .app {
+                grid-template-columns: 74px minmax(0, 1fr)
+            }
+
+            .sidebar {
+                padding: 24px 11px
+            }
+
+            .brand-copy,
+            .nav-title,
+            .nav span,
+            .profile>div:not(.avatar),
+            .soon {
+                display: none
+            }
+
+            .nav button,
+            .profile {
+                justify-content: center
+            }
+
+            .detail {
+                left: 74px
+            }
+
+            .detail-layout {
+                grid-template-columns: 360px minmax(0, 1fr)
+            }
+        }
+
+        @media(max-width:800px) {
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .toolbar {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .tools {
+                width: 100%
+            }
+
+            .search {
+                flex: 1
+            }
+
+            .search input {
+                width: 100%
+            }
+
+            .detail-layout {
+                grid-template-columns: 1fr
+            }
+
+            .info-pane {
+                border-right: 0
+            }
+
+            .document-pane {
+                min-height: 75vh
+            }
+
+            .detail {
+                overflow: auto;
+                display: block
+            }
+
+            .detail-head {
+                height: 68px;
+                position: sticky;
+                top: 0;
+                z-index: 5
+            }
+
+            .updated {
+                display: none
+            }
+
+            .paper {
+                min-height: 850px;
+                padding: 45px 36px
+            }
+
+            .column-menu {
+                left: auto;
+                right: 0
+            }
+
+            .doc-browser-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+
+            .doc-browser-head {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .doc-filters {
+                grid-column: 1/-1;
+                margin-right: 38px
+            }
+        }
+
+        @media(max-width:560px) {
+            .app {
+                display: block
+            }
+
+            .sidebar {
+                display: none
+            }
+
+            .topbar {
+                padding: 0 15px;
+                height: 60px
+            }
+
+            .mobile {
+                display: grid
+            }
+
+            .crumb {
+                display: none
+            }
+
+            .content {
+                padding: 20px 13px
+            }
+
+            .heading {
+                align-items: flex-start
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .stat:nth-child(n+3) {
+                display: none
+            }
+
+            .tabs {
+                overflow: auto;
+                max-width: 100%
+            }
+
+            .tools {
+                flex-wrap: wrap
+            }
+
+            .search {
+                flex-basis: 100%
+            }
+
+            .column-menu {
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                top: 165px;
+                width: auto
+            }
+
+            .detail {
+                left: 0
+            }
+
+            .detail-head {
+                padding: 0 12px
+            }
+
+            .detail-head-actions .outline-btn {
+                display: none
+            }
+
+            .detail-layout {
+                display: block
+            }
+
+            .info-pane {
+                padding: 15px
+            }
+
+            .document-bar {
+                align-items: center;
+                flex-wrap: wrap
+            }
+
+            .doc-tabs {
+                order: 3;
+                width: 100%
+            }
+
+            .doc-tools {
+                margin-left: auto
+            }
+
+            .doc-browser-layer {
+                top: 107px
+            }
+
+            .doc-browser {
+                max-height: calc(100vh - 175px)
+            }
+
+            .doc-browser-head {
+                grid-template-columns: 1fr;
+                padding-right: 50px
+            }
+
+            .doc-filters {
+                grid-column: auto;
+                margin: 0
+            }
+
+            .doc-browser-list {
+                grid-template-columns: 1fr
+            }
+
+            .viewer {
+                padding: 14px
+            }
+
+            .paper {
+                padding: 32px 24px;
+                min-width: 620px
+            }
+
+            .document-pane {
+                overflow: hidden
+            }
+
+            .viewer {
+                place-items: start
+            }
+
+            .system {
+                display: none
+            }
+        }
+
+        .document-pane {
+            overflow: hidden
+        }
+
+        .document-bar {
+            position: relative;
+            z-index: 12;
+            box-shadow: 0 1px 0 var(--line)
+        }
+
+        .doc-browser-layer {
+            z-index: 9;
+            overflow: hidden
+        }
+
+        .doc-browser {
+            position: relative
+        }
+
+        .doc-browser-head.simple {
+            grid-template-columns: minmax(180px, 1fr) minmax(240px, 1fr);
+            padding-right: 56px
+        }
+
+        .doc-browser-list.simple {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px
+        }
+
+        .doc-browser-list.simple .doc-list-item {
+            border: 1px solid var(--line);
+            grid-template-columns: 28px minmax(0, 1fr);
+            min-width: 0
+        }
+
+        .receive-no {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 9px;
+            border-radius: 7px;
+            background: var(--brand-soft);
+            color: var(--brand);
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid #cce1d8
+        }
+
+        .receive-no:before {
+            content: "RCV";
+            font-size: 6px;
+            letter-spacing: .5px;
+            color: #fff;
+            background: var(--brand);
+            padding: 2px 4px;
+            border-radius: 4px
+        }
+
+        td.data-error {
+            color: var(--red)
+        }
+
+        td.data-error .cell-main,
+        td.data-error .amount,
+        td.data-error .sign {
+            color: var(--red)
+        }
+
+        td.data-error .receive-no {
+            background: var(--red-bg);
+            border-color: #efc4c1;
+            color: var(--red)
+        }
+
+        td.data-error .receive-no:before {
+            content: "!";
+            background: var(--red)
+        }
+
+        .info-field.data-error {
+            background: var(--red-bg);
+            box-shadow: inset 3px 0 0 var(--red)
+        }
+
+        .info-field.data-error label,
+        .info-field.data-error strong {
+            color: var(--red)
+        }
+
+        .field-alert {
+            display: inline-flex;
+            margin-left: 5px;
+            padding: 2px 5px;
+            border-radius: 8px;
+            background: #f8d8d5;
+            color: var(--red);
+            font-size: 6px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: none
+        }
+
+        .info-field.receive-highlight {
+            background: #f3faf6;
+            box-shadow: inset 3px 0 0 var(--brand)
+        }
+
+        .info-field.receive-highlight label {
+            color: var(--brand);
+            font-weight: 700
+        }
+
+        .info-field.receive-highlight strong {
+            font-size: 12px;
+            color: var(--brand);
+            letter-spacing: .15px
+        }
+
+        .total-box.data-error {
+            background: #a83d3d;
+            box-shadow: 0 6px 16px rgba(196, 71, 71, .2)
+        }
+
+        @media(max-width:800px) {
+            .doc-browser-list.simple {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+        }
+
+        @media(max-width:560px) {
+            .doc-browser-head.simple {
+                grid-template-columns: 1fr
+            }
+
+            .doc-browser-list.simple {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="m6 12 4 4 8-9" />
+                        <path d="M20 12a8 8 0 1 1-4-6.9" />
+                    </svg></div>
+                <div class="brand-copy"><b>ClearMatch</b><small>Invoice Review Hub</small></div>
+            </div>
+            <div class="nav-title">WORKSPACE</div>
+            <nav class="nav">
+                <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
+                        <rect x="14" y="14" width="7" height="7" rx="1" />
+                    </svg><span>ภาพรวม</span></button>
+                <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M14 2H6v20h12V6zM14 2v5h5M8 12h7M8 16h7" />
+                    </svg><span>รายการใบแจ้งหนี้</span></button>
+            </nav>
+            <div class="nav-title">MANAGEMENT</div>
+            <nav class="nav"><button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h2M13 10h2M9 14h2M13 14h2" />
+                    </svg><span>บริษัทและคู่ค้า</span><i class="soon">SOON</i></button><button><svg viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="12" r="3" />
+                        <circle cx="12" cy="12" r="9" stroke-dasharray="5 3" />
+                    </svg><span>ตั้งค่าระบบ</span><i class="soon">SOON</i></button></nav>
+            <div class="profile">
+                <div class="avatar">AK</div>
+                <div><b>Anan K.</b><small>Finance Admin</small></div>
+            </div>
+        </aside>
+        <main>
+            <header class="topbar"><button class="icon-btn mobile"><svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M4 7h16M4 12h16M4 17h16" />
+                    </svg></button>
+                <div class="crumb">ClearMatch &nbsp;/&nbsp; <b>รายการใบแจ้งหนี้</b></div>
+                <div class="top-actions"><span class="system">เชื่อมต่อ Central Service แล้ว</span><button
+                        class="icon-btn" aria-label="การแจ้งเตือน"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+                        </svg></button></div>
+            </header>
+            <div class="content">
+                <div class="heading">
+                    <div>
+                        <h1>รายการใบแจ้งหนี้</h1>
+                        <p>ตรวจสอบข้อมูลและเอกสารที่ได้รับจาก Central Service</p>
+                    </div><button class="primary" id="refresh"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M20 11a8 8 0 0 0-15-3M4 4v5h5M4 13a8 8 0 0 0 15 3M20 20v-5h-5" />
+                        </svg>ดึงข้อมูลล่าสุด</button>
+                </div>
+                <section class="stats">
+                    <div class="stat">
+                        <div class="stat-top">รายการทั้งหมด<i class="stat-icon">▤</i></div>
+                        <strong>248</strong><small><b>+12</b> รายการวันนี้</small>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top">ตรวจสอบผ่าน<i class="stat-icon">✓</i></div>
+                        <strong>231</strong><small><b>93.1%</b> ของรายการทั้งหมด</small>
+                    </div>
+                    <div class="stat attention">
+                        <div class="stat-top">ต้องตรวจสอบ<i class="stat-icon">!</i></div>
+                        <strong>17</strong><small>รอผู้ใช้งานดำเนินการ</small>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-top">มูลค่ารวม<i class="stat-icon">฿</i></div>
+                        <strong>฿3.82M</strong><small>ข้อมูลประจำเดือน ก.ย. 2026</small>
+                    </div>
+                </section>
+                <section class="panel">
+                    <div class="toolbar">
+                        <div class="tabs"><button class="tab active" data-filter="all">ทั้งหมด
+                                <span>8</span></button><button class="tab" data-filter="pass">ผ่าน
+                                <span>5</span></button><button class="tab" data-filter="review">ต้องตรวจสอบ
+                                <span>2</span></button><button class="tab" data-filter="pending">รอข้อมูล
+                                <span>1</span></button></div>
+                        <div class="tools">
+                            <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="11" cy="11" r="7" />
+                                    <path d="m20 20-4-4" />
+                                </svg><input id="search" placeholder="ค้นหา Supplier, PO, Invoice..."></label>
+                            <button class="outline-btn" id="columnButton" aria-expanded="false"><svg viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M4 5h16v14H4zM9 5v14M15 5v14" />
+                                </svg>คอลัมน์ <span class="count" id="visibleCount">7</span></button>
+                            <div class="column-menu" id="columnMenu">
+                                <div class="column-head">
+                                    <div>
+                                        <b>เลือกคอลัมน์ที่ต้องการแสดง</b><small>ปรับมุมมองตารางให้เหมาะกับงานของคุณ</small>
+                                    </div><button class="text-btn" id="resetColumns">ค่าเริ่มต้น</button>
+                                </div>
+                                <div class="column-list" id="columnList"></div>
+                                <div class="column-foot">การตั้งค่าจะถูกจดจำในเบราว์เซอร์นี้</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-shell">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr id="tableHead"></tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="table-foot"><span id="resultCount">แสดง 8 จาก 248 รายการ</span><span
+                                class="table-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M5 12h14M5 12l4-4M5 12l4 4M19 12l-4-4M19 12l-4 4" />
+                                </svg>เลื่อนตารางเพื่อดูคอลัมน์เพิ่มเติม</span>
+                            <div class="pages"><button>‹</button><button
+                                    class="active">1</button><button>2</button><button>3</button><button>›</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <section class="detail" id="detail" aria-hidden="true">
+        <header class="detail-head"><button class="back" id="closeDetail" aria-label="กลับไปยังรายการ"><svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6" />
+                </svg></button>
+            <div class="detail-title">
+                <h2 id="detailInvoice">INV-2026-09184</h2>
+                <p id="detailSub">Siam Steel Co., Ltd. · PO-4500128471</p>
+            </div><span class="status pass detail-status" id="detailStatus">ตรวจสอบผ่าน</span>
+            <div class="detail-head-actions"><span class="updated">อัปเดตจาก Central Service · 2
+                    นาทีที่แล้ว</span><button class="outline-btn" id="copyNumber">คัดลอกเลข Invoice</button><button
+                    class="primary" id="approveButton">ยืนยันข้อมูล</button></div>
+        </header>
+        <div class="detail-layout">
+            <aside class="info-pane">
+                <div class="section-kicker">ข้อมูลใบแจ้งหนี้</div>
+                <div class="info-grid" id="infoGrid"></div>
+                <div class="section-kicker">Items and quantity</div>
+                <div class="line-items" id="lineItems"></div>
+                <div class="total-box"><span>Total amount</span><strong id="detailTotal">฿124,850.00</strong></div>
+                <div class="service-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 11v5M12 8h.01" />
+                    </svg><span>ข้อมูลและเอกสารถูกจำลองจาก Central Service สำหรับนำเสนอหน้าจอเท่านั้น
+                        โดยยังไม่มีการเชื่อมต่อระบบภายนอกจริง</span></div>
+            </aside>
+            <section class="document-pane">
+                <div class="document-bar"><button class="doc-all" id="docAllButton"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>ดูเอกสารทั้งหมด <span class="doc-count" id="docCount">3</span></button>
+                    <div class="doc-tools"><button class="tool-btn" id="zoomOut" title="ย่อ">−</button><button
+                            class="tool-btn" id="zoomLabel">100%</button><button class="tool-btn" id="zoomIn"
+                            title="ขยาย">+</button><button class="tool-btn" id="openDoc"><svg viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M14 4h6v6M20 4l-9 9M18 13v6H5V6h6" />
+                            </svg>เปิดแยก</button></div>
+                </div>
+                <div class="doc-browser-layer" id="docBrowserLayer">
+                    <aside class="doc-browser" id="docBrowser">
+                        <div class="doc-browser-head simple">
+                            <div class="doc-browser-title">
+                                <div><b id="docBrowserTitle">เอกสารทั้งหมด</b><small>เลือกเอกสารที่ต้องการเปิดดู</small>
+                                </div><button class="doc-browser-close" id="docBrowserClose" aria-label="ปิด">×</button>
+                            </div><label class="doc-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="11" cy="11" r="7" />
+                                    <path d="m20 20-4-4" />
+                                </svg><input id="docSearch" placeholder="ค้นหาชื่อไฟล์..."></label>
+                        </div>
+                        <div class="doc-browser-list simple" id="docBrowserList"></div>
+                    </aside>
+                </div>
+                <div class="viewer" id="viewer">
+                    <article class="paper" id="paper"></article>
+                </div>
+            </section>
+        </div>
+    </section>
+    <div class="toast" id="toast"></div>
+    <script>
+        const columns = [
+            { key: 'supplier', label: 'Supplier name', default: true }, { key: 'receive', label: 'Receive number', default: true }, { key: 'supplierTax', label: 'Supplier Tax ID', default: false }, { key: 'po', label: 'PO number', default: true }, { key: 'invoice', label: 'Invoice number', default: true }, { key: 'date', label: 'Invoice date', default: true }, { key: 'customerAddress', label: 'Customer Address', default: false }, { key: 'customerTax', label: 'Customer Tax ID', default: false }, { key: 'terms', label: 'Credit Term/Payment Term', default: false }, { key: 'items', label: 'Items and quantity', default: false }, { key: 'itemTotals', label: 'Total/amount of each item', default: false }, { key: 'total', label: 'Total amount', default: true }, { key: 'receiverSign', label: 'receiverSign', default: true }
+        ];
+        const invoices = [
+            { supplier: 'Siam Steel Co., Ltd.', supplierTax: '0105548123456', po: 'PO-4500128471', invoice: 'INV-2026-09184', date: '21 ก.ย. 2026', customerAddress: '99 หมู่ 9 นิคมอุตสาหกรรมอมตะซิตี้ จ.ชลบุรี 20160', customerTax: '0105557012345', terms: 'Net 30 days', items: ['Steel Plate SPHC 2.3mm × 120 pcs', 'Steel Coil SAPH440 × 80 pcs'], itemTotals: ['฿64,080.00', '฿60,770.00'], total: '฿124,850.00', receive: 'RCV-260921-0184', receiverSign: true, status: 'pass', docs: [['invoice', 'Invoice_09184.pdf', '2 หน้า'], ['delivery', 'Delivery_Note.pdf', '1 หน้า'], ['receive', 'Receiving_Report.pdf', '1 หน้า'], ['invoice', 'Tax_Invoice_Copy.pdf', '2 หน้า'], ['delivery', 'Packing_List.pdf', '3 หน้า'], ['delivery', 'Bill_of_Lading.pdf', '4 หน้า'], ['receive', 'Inspection_Report.pdf', '2 หน้า'], ['receive', 'Warehouse_Photo.pdf', '5 หน้า'], ['invoice', 'Credit_Note_0184.pdf', '1 หน้า'], ['delivery', 'Certificate_of_Origin.pdf', '2 หน้า'], ['receive', 'Quality_Certificate.pdf', '3 หน้า'], ['delivery', 'Shipment_Summary.pdf', '1 หน้า']] },
+            { supplier: 'Thai Summit Parts Co., Ltd.', supplierTax: '0105531098765', po: 'PO-4500128529', invoice: 'TS-2569-0441', date: '21 ก.ย. 2026', customerAddress: '700/316 หมู่ 6 นิคมอมตะนคร จ.ชลบุรี 20000', customerTax: '0105557012345', terms: 'Net 45 days', items: ['Bracket Assy LH × 240 pcs', 'Bracket Assy RH × 240 pcs'], itemTotals: ['฿44,710.00', '฿44,710.00'], total: '฿89,420.00', receive: 'RCV-260921-0179', receiverSign: true, status: 'review', errors: ['total'], docs: [['invoice', 'TS-2569-0441.pdf', '3 หน้า'], ['receive', 'GRN_0179.pdf', '1 หน้า']] },
+            { supplier: 'Denso (Thailand) Co., Ltd.', supplierTax: '0105535001122', po: 'PO-4500127308', invoice: 'DN-TH-883092', date: '20 ก.ย. 2026', customerAddress: '700/87 หมู่ 1 อ.บางปะกง จ.ฉะเชิงเทรา 24180', customerTax: '0105557012345', terms: 'Net 60 days', items: ['ECU Control Unit × 50 pcs'], itemTotals: ['฿342,100.00'], total: '฿342,100.00', receive: 'RCV-260920-0162', receiverSign: true, status: 'pass', docs: [['invoice', 'Denso_Invoice.pdf', '2 หน้า']] },
+            { supplier: 'Nippon Express Logistics', supplierTax: '0105544067890', po: 'PO-4500127261', invoice: 'NE-2026-7208', date: '20 ก.ย. 2026', customerAddress: '99 หมู่ 9 นิคมอุตสาหกรรมอมตะซิตี้ จ.ชลบุรี 20160', customerTax: '0105557012345', terms: 'Due on receipt', items: ['International freight service × 1 lot'], itemTotals: ['฿56,900.00'], total: '฿56,900.00', receive: 'RCV-260920-0151', receiverSign: false, status: 'review', errors: ['receiverSign'], docs: [['invoice', 'NE_Invoice_7208.pdf', '1 หน้า'], ['delivery', 'Shipping_Document.pdf', '4 หน้า']] },
+            { supplier: 'Hitachi Astemo Chonburi', supplierTax: '0205554007788', po: 'PO-4500126984', invoice: 'HA-98002114', date: '19 ก.ย. 2026', customerAddress: '700/316 หมู่ 6 นิคมอมตะนคร จ.ชลบุรี 20000', customerTax: '0105557012345', terms: 'Net 30 days', items: ['Brake Master Cylinder × 72 pcs'], itemTotals: ['฿218,760.00'], total: '฿218,760.00', receive: 'RCV-260919-0138', receiverSign: true, status: 'pass', docs: [['invoice', 'HA-98002114.pdf', '2 หน้า'], ['receive', 'Goods_Receipt.pdf', '1 หน้า']] },
+            { supplier: 'Kobelco Millcon Steel', supplierTax: '0105537099123', po: 'PO-4500126770', invoice: 'KM-670192', date: '19 ก.ย. 2026', customerAddress: '99 หมู่ 9 นิคมอุตสาหกรรมอมตะซิตี้ จ.ชลบุรี 20160', customerTax: '0105557012345', terms: 'Net 45 days', items: ['Steel Bar SCM440 × 15 ton'], itemTotals: ['฿476,250.00'], total: '฿476,250.00', receive: 'RCV-260919-0122', receiverSign: true, status: 'pass', docs: [['invoice', 'KM_670192.pdf', '2 หน้า']] },
+            { supplier: 'Bosch Automotive Thailand', supplierTax: '0105549023456', po: 'PO-4500126419', invoice: 'BOS-TH-11903', date: '18 ก.ย. 2026', customerAddress: '700/87 หมู่ 1 อ.บางปะกง จ.ฉะเชิงเทรา 24180', customerTax: '0105557012345', terms: 'Net 60 days', items: ['ABS Sensor × 300 pcs'], itemTotals: ['฿177,030.00'], total: '฿177,030.00', receive: 'ไม่พบข้อมูล', receiverSign: false, status: 'pending', errors: ['receive', 'receiverSign'], docs: [['invoice', 'BOS-TH-11903.pdf', '2 หน้า']] },
+            { supplier: 'Mitsubishi Electric Asia', supplierTax: '0105528011189', po: 'PO-4500126205', invoice: 'ME-202609-787', date: '18 ก.ย. 2026', customerAddress: '99 หมู่ 9 นิคมอุตสาหกรรมอมตะซิตี้ จ.ชลบุรี 20160', customerTax: '0105557012345', terms: 'Net 30 days', items: ['Servo Motor HG-KR × 3 pcs'], itemTotals: ['฿94,650.00'], total: '฿94,650.00', receive: 'RCV-260918-0104', receiverSign: true, status: 'pass', docs: [['invoice', 'ME-202609-787.pdf', '1 หน้า'], ['delivery', 'Packing_List.pdf', '2 หน้า']] }
+        ];
+        const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+        const escapeHtml = v => typeof v === 'boolean' ? (v ? 'มีลายเซ็น' : 'ไม่มีลายเซ็น') : String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+        let visible = new Set(JSON.parse(localStorage.getItem('clearmatch-columns') || 'null') || columns.filter(c => c.default).map(c => c.key));
+        let filter = 'all', current = null, currentDoc = 0, zoom = 1;
+        function displayValue(x, key) { if (key === 'items') return `<div class="items-cell"><span class="cell-main">${escapeHtml(x.items[0])}</span>${x.items.length > 1 ? `<span class="cell-sub">+${x.items.length - 1} รายการเพิ่มเติม</span>` : ''}</div>`; if (key === 'itemTotals') return x.itemTotals.map(v => `<span class="cell-main">${escapeHtml(v)}</span>`).join('<br>'); if (key === 'supplier') return `<span class="cell-main">${escapeHtml(x[key])}</span><span class="cell-sub">${escapeHtml(x.supplierTax)}</span>`; if (key === 'invoice' || key === 'po' || key === 'receive') return `<span class="cell-main">${escapeHtml(x[key])}</span>`; if (key === 'total') return `<span class="amount">${escapeHtml(x[key])}</span>`; if (key === 'customerAddress') return `<span class="wrap">${escapeHtml(x[key])}</span>`; if (key === 'receiverSign') return `<span class="sign ${x[key] ? '' : 'missing'}">${x[key] ? 'มีลายเซ็น' : 'ไม่มีลายเซ็น'}</span>`; return escapeHtml(x[key]); }
+        function statusLabel(s) { return s === 'pass' ? 'ตรวจสอบผ่าน' : s === 'review' ? 'ต้องตรวจสอบ' : 'รอข้อมูล' }
+        function renderColumns() { let list = columns.filter(c => visible.has(c.key)); $('#tableHead').innerHTML = list.map(c => `<th data-key="${c.key}">${c.label}</th>`).join('') + '<th>สถานะ</th><th></th>'; $('#visibleCount').textContent = list.length; $('#columnList').innerHTML = columns.map(c => `<label class="column-option"><input type="checkbox" data-column="${c.key}" ${visible.has(c.key) ? 'checked' : ''}><span>${c.label}</span></label>`).join(''); $$('[data-column]').forEach(box => box.onchange = () => { if (box.checked) visible.add(box.dataset.column); else if (visible.size > 1) visible.delete(box.dataset.column); else { box.checked = true; toast('ต้องแสดงอย่างน้อย 1 คอลัมน์') } saveAndRender() }); renderTable() }
+        function saveAndRender() { localStorage.setItem('clearmatch-columns', JSON.stringify([...visible])); renderColumns() }
+        function renderTable() { let q = $('#search').value.trim().toLowerCase(); let rows = invoices.map((x, i) => ({ x, i })).filter(({ x }) => (filter === 'all' || x.status === filter) && Object.values(x).flat().join(' ').toLowerCase().includes(q)); let cols = columns.filter(c => visible.has(c.key)); $('#tableBody').innerHTML = rows.length ? rows.map(({ x, i }) => `<tr data-id="${i}" data-status="${x.status}">${cols.map(c => `<td class="${x.errors?.includes(c.key) ? 'data-error' : ''}">${displayValue(x, c.key)}</td>`).join('')}<td><span class="status ${x.status}">${statusLabel(x.status)}</span></td><td><button class="row-action" aria-label="ดูรายละเอียด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button></td></tr>`).join('') : `<tr><td colspan="${cols.length + 2}" class="empty">ไม่พบรายการที่ค้นหา</td></tr>`; $('#resultCount').textContent = `แสดง ${rows.length} จาก 248 รายการ`; $$('tr[data-id]').forEach(row => row.onclick = () => openDetail(+row.dataset.id)) }
+        function openDetail(index) { current = invoices[index]; currentDoc = 0; zoom = 1; closeDocBrowser(); $('#docSearch').value = ''; $('#detailInvoice').textContent = current.invoice; $('#detailSub').textContent = `${current.supplier} · ${current.po}`; let st = $('#detailStatus'); st.className = `status ${current.status} detail-status`; st.textContent = statusLabel(current.status); $('#approveButton').style.display = current.status === 'pass' ? 'none' : 'flex'; let fields = [['supplier', 'Supplier name', current.supplier, 'wide'], ['supplierTax', 'Supplier Tax ID', current.supplierTax], ['po', 'PO number', current.po], ['invoice', 'Invoice number', current.invoice], ['date', 'Invoice date', current.date], ['customerAddress', 'Customer Address', current.customerAddress, 'wide'], ['customerTax', 'Customer Tax ID', current.customerTax], ['terms', 'Payment Term', current.terms], ['receive', 'Receive number', current.receive], ['receiverSign', 'receiverSign', current.receiverSign]]; $('#infoGrid').innerHTML = fields.map(([key, label, value, wide]) => `<div class="info-field ${wide || ''} ${current.errors?.includes(key) ? 'data-error' : ''} ${key === 'receive' && !current.errors?.includes(key) ? 'receive-highlight' : ''}"><label>${label}${current.errors?.includes(key) ? '<span class="field-alert">ข้อมูลผิดปกติ</span>' : ''}</label><strong class="${key === 'invoice' ? 'large' : ''}">${escapeHtml(value)}</strong></div>`).join(''); $('#lineItems').innerHTML = '<div class="line-item head"><span>รายการ</span><span class="right">จำนวน</span><span class="right">ยอดรวม</span></div>' + current.items.map((item, i) => { let parts = item.split(' × '); return `<div class="line-item"><span><b>${escapeHtml(parts[0])}</b><small>ITEM-${String(i + 1).padStart(3, '0')}</small></span><span class="right">${escapeHtml(parts[1] || '1')}</span><b class="right">${escapeHtml(current.itemTotals[i])}</b></div>` }).join(''); $('#detailTotal').textContent = current.total; $('#detailTotal').parentElement.classList.toggle('data-error', current.errors?.includes('total')); renderDocuments(); $('#detail').classList.add('open'); $('#detail').setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden' }
+        function renderDocuments() { if (!current) return; let q = $('#docSearch').value.trim().toLowerCase(), docs = current.docs.map((doc, index) => ({ doc, index })).filter(({ doc }) => doc[1].toLowerCase().includes(q)); $('#docCount').textContent = current.docs.length; $('#docBrowserTitle').textContent = `เอกสารทั้งหมด ${current.docs.length} ฉบับ`; $('#docBrowserList').innerHTML = docs.length ? docs.map(({ doc, index }) => `<button class="doc-list-item ${index === currentDoc ? 'active' : ''}" data-list-doc="${index}"><span class="doc-icon">PDF</span><span class="doc-list-copy"><b>${escapeHtml(doc[1])}</b><small>${escapeHtml(doc[2])} · ${escapeHtml(current.date)}</small></span></button>`).join('') : '<div class="doc-empty-list">ไม่พบเอกสารที่ค้นหา</div>'; $$('[data-list-doc]').forEach(button => button.onclick = () => { currentDoc = +button.dataset.listDoc; renderDocuments() }); renderPaper() }
+        function openDocBrowser() { $('#docBrowserLayer').classList.add('open'); $('#docAllButton').classList.add('active'); renderDocuments(); setTimeout(() => $('#docSearch').focus(), 180) }
+        function closeDocBrowser() { $('#docBrowserLayer').classList.remove('open'); $('#docAllButton').classList.remove('active') }
+        function renderPaper() { let [type, name] = current.docs[currentDoc], typeName = type === 'invoice' ? 'TAX INVOICE' : type === 'delivery' ? 'DELIVERY NOTE' : 'GOODS RECEIPT', brand = type === 'invoice' ? current.supplier : type === 'delivery' ? 'LOGISTICS DOCUMENT' : 'RECEIVING DEPARTMENT'; let itemRows = current.items.map((item, i) => { let p = item.split(' × '); return `<tr><td>${i + 1}</td><td><b>${escapeHtml(p[0])}</b><br><span style="color:#7b8781">Material / service description</span></td><td class="num">${escapeHtml(p[1] || '1')}</td><td class="num">${escapeHtml(current.itemTotals[i])}</td></tr>` }).join(''); $('#paper').className = `paper ${type}-doc`; $('#paper').style.transform = `scale(${zoom})`; $('#paper').style.marginBottom = `${(zoom - 1) * 1010}px`; $('#zoomLabel').textContent = `${Math.round(zoom * 100)}%`; $('#paper').innerHTML = `<div class="paper-head"><div class="paper-brand">${escapeHtml(brand)}<small>OFFICIAL BUSINESS DOCUMENT</small></div><div class="paper-type"><h3>${typeName}</h3><p>${escapeHtml(name)}</p></div></div><div class="paper-meta"><div><h4>Supplier</h4><p><b>${escapeHtml(current.supplier)}</b><br>Tax ID: ${escapeHtml(current.supplierTax)}<br>Bangkok, Thailand 10260</p></div><div class="right"><h4>Document details</h4><p>Invoice: <b>${escapeHtml(current.invoice)}</b><br>PO: ${escapeHtml(current.po)}<br>Date: ${escapeHtml(current.date)}</p></div><div><h4>Bill to</h4><p><b>AAPICO Group</b><br>${escapeHtml(current.customerAddress)}<br>Tax ID: ${escapeHtml(current.customerTax)}</p></div><div class="right"><h4>Payment</h4><p>${escapeHtml(current.terms)}<br>Receive No: ${escapeHtml(current.receive)}</p></div></div><table><thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead><tbody>${itemRows}</tbody></table><div class="paper-summary"><div class="sum-row"><span>Subtotal</span><b>${escapeHtml(current.total)}</b></div><div class="sum-row"><span>VAT / Adjustment</span><b>Included</b></div><div class="sum-row total"><span>Total</span><span>${escapeHtml(current.total)}</span></div></div><div class="paper-footer"><span>Generated via Central Document Service<br>Mock document for interface preview</span><div class="signature"><div class="scribble">${escapeHtml(current.receiverSign)}</div><div class="signature-line">Authorized receiver</div></div></div>` }
+        function closeDetail() { closeDocBrowser(); $('#detail').classList.remove('open'); $('#detail').setAttribute('aria-hidden', 'true'); document.body.style.overflow = '' }
+        function toast(text) { let t = $('#toast'); t.textContent = text; t.classList.add('show'); clearTimeout(t.timer); t.timer = setTimeout(() => t.classList.remove('show'), 1800) }
+        $('#columnButton').onclick = e => { e.stopPropagation(); let m = $('#columnMenu'), open = !m.classList.contains('open'); m.classList.toggle('open', open); $('#columnButton').setAttribute('aria-expanded', String(open)) }; $('#columnMenu').onclick = e => e.stopPropagation(); document.addEventListener('click', () => $('#columnMenu').classList.remove('open')); $('#resetColumns').onclick = () => { visible = new Set(columns.filter(c => c.default).map(c => c.key)); saveAndRender(); toast('กลับสู่คอลัมน์เริ่มต้นแล้ว') }; $('#search').oninput = renderTable; $$('.tab').forEach(t => t.onclick = () => { $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); filter = t.dataset.filter; renderTable() }); $('#closeDetail').onclick = closeDetail; document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#detail').classList.contains('open')) closeDetail() }); $('#copyNumber').onclick = () => { navigator.clipboard?.writeText(current.invoice); toast('คัดลอกเลข Invoice แล้ว') }; $('#approveButton').onclick = () => { current.status = 'pass'; $('#detailStatus').className = 'status pass detail-status'; $('#detailStatus').textContent = 'ตรวจสอบผ่าน'; $('#approveButton').style.display = 'none'; renderTable(); toast('ยืนยันข้อมูลเรียบร้อยแล้ว') }; $('#refresh').onclick = () => { let b = $('#refresh'); b.disabled = true; b.textContent = 'กำลังดึงข้อมูล...'; setTimeout(() => { b.disabled = false; b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 0 0-15-3M4 4v5h5M4 13a8 8 0 0 0 15 3M20 20v-5h-5"/></svg>ดึงข้อมูลล่าสุด'; toast('ข้อมูลเป็นเวอร์ชันล่าสุดแล้ว') }, 800) }; $('#zoomIn').onclick = () => { zoom = Math.min(1.3, zoom + .1); renderPaper() }; $('#zoomOut').onclick = () => { zoom = Math.max(.7, zoom - .1); renderPaper() }; $('#zoomLabel').onclick = () => { zoom = 1; renderPaper() }; $('#openDoc').onclick = () => toast('Mockup: เปิดเอกสารในหน้าต่างแยก');
+        $('#columnButton').onclick = e => { e.stopPropagation(); let m = $('#columnMenu'), open = !m.classList.contains('open'); m.classList.toggle('open', open); $('#columnButton').setAttribute('aria-expanded', String(open)) }; $('#columnMenu').onclick = e => e.stopPropagation(); document.addEventListener('click', () => $('#columnMenu').classList.remove('open')); $('#resetColumns').onclick = () => { visible = new Set(columns.filter(c => c.default).map(c => c.key)); saveAndRender(); toast('กลับสู่คอลัมน์เริ่มต้นแล้ว') }; $('#search').oninput = renderTable; $$('.tab').forEach(t => t.onclick = () => { $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); filter = t.dataset.filter; renderTable() }); $('#closeDetail').onclick = closeDetail; document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#docBrowserLayer').classList.contains('open')) closeDocBrowser(); else if (e.key === 'Escape' && $('#detail').classList.contains('open')) closeDetail() }); $('#copyNumber').onclick = () => { navigator.clipboard?.writeText(current.invoice); toast('คัดลอกเลข Invoice แล้ว') }; $('#approveButton').onclick = () => { current.status = 'pass'; $('#detailStatus').className = 'status pass detail-status'; $('#detailStatus').textContent = 'ตรวจสอบผ่าน'; $('#approveButton').style.display = 'none'; renderTable(); toast('ยืนยันข้อมูลเรียบร้อยแล้ว') }; $('#refresh').onclick = () => { let b = $('#refresh'); b.disabled = true; b.textContent = 'กำลังดึงข้อมูล...'; setTimeout(() => { b.disabled = false; b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 0 0-15-3M4 4v5h5M4 13a8 8 0 0 0 15 3M20 20v-5h-5"/></svg>ดึงข้อมูลล่าสุด'; toast('ข้อมูลเป็นเวอร์ชันล่าสุดแล้ว') }, 800) }; $('#docAllButton').onclick = openDocBrowser; $('#docBrowserClose').onclick = closeDocBrowser; $('#docBrowser').onclick = e => e.stopPropagation(); $('#docBrowserLayer').onclick = closeDocBrowser; $('#docSearch').oninput = renderDocuments; $('#zoomIn').onclick = () => { zoom = Math.min(1.3, zoom + .1); renderPaper() }; $('#zoomOut').onclick = () => { zoom = Math.max(.7, zoom - .1); renderPaper() }; $('#zoomLabel').onclick = () => { zoom = 1; renderPaper() }; $('#openDoc').onclick = () => toast('Mockup: เปิดเอกสารในหน้าต่างแยก');
+        renderColumns();
+        const previewInvoice = new URLSearchParams(location.search).get('invoice');
+        if (previewInvoice !== null && invoices[Number(previewInvoice)]) {
+            openDetail(Number(previewInvoice));
+            if (new URLSearchParams(location.search).get('documents') === 'open') openDocBrowser();
+        }
+    </script>
+</body>
+
+</html>

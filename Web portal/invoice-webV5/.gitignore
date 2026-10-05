@@ -1,0 +1,5 @@
+# Temporary test and browser check reports
+tmp/
+node_modules/
+*.log
+.DS_Store

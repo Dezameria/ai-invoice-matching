@@ -1,8 +1,42 @@
 # Task และ Plan
 
-Last updated: `2026-10-03T14:25:00+07:00`
+Last updated: `2026-10-03T16:50:00+07:00`
 
 ## Completed Task
+- Task ID: `TASK-20261003-007`
+- Title: พัฒนา web portal เวอร์ชัน V5 (`Web portal/invoice-webV5`) แบบ repo-reference portal (no-build)
+- Status: `completed`
+- Goal: แก้ปัญหา code/data duplication ของ v4 โดย sync ข้อมูลจาก repo โดยตรง (`tools/sync.py`), รวมหน้าจอที่ซ้ำซ้อนเหลือ 6 หน้า, บังคับ view เป็น pure snapshot-driven และใช้ BigInt Decimal
+- Acceptance criteria:
+  - [x] `node tools/smoke-test.mjs` ผ่าน 31/31 (hygiene, provenance, domain, ui)
+  - [x] `node tools/browser-check.mjs` ผ่าน 29/29 (Edge headless)
+  - [x] `python tools/sync.py --check` ผ่าน
+- Result: โฟลเดอร์ `Web portal/invoice-webV5` ครบถ้วนพร้อมเอกสาร `PORTAL-plan.md` และ `as-built-v5.md`
+- Next: commit โฟลเดอร์ V4, V5 และ push ขึ้น git
+
+## Previous Completed Task
+- Task ID: `TASK-20261003-006`
+- Title: สร้าง web portal เวอร์ชัน V4 (`Web portal/invoice-webV4`) แบบ no-build ที่แสดงผลจาก snapshot เท่านั้น + เอกสารพัฒนาครบชุด
+- Status: `completed`
+- Goal: นำตัวอย่างเว็บ/ข้อมูลทั้งหมดใน `Web portal` (mockup v4.4, v1/v2/v3, OCR service rules + master data, skill `aiva-invoice-core`) มาสร้าง portal ที่ "ดูได้จริงและพิสูจน์ข้อห้ามทางสถาปัตยกรรมได้จริง" แทน mockup ที่ผลตรวจเป็นการพิมพ์มือ
+- Plan:
+  - [x] สำรวจของเดิม (v1/v2/v3 + mockup + `rules.py`/`master_data.py` + core-domain) แล้วกำหนดเลเยอร์ `domain/data/engine/ui/views/styles`
+  - [x] engine mirror as-built (`src/engine/rules.js`) ที่ **ใช้เฉพาะ tools** เพื่อ generate ผลตรวจออกมาจริง
+  - [x] receiving contract v1.0 + `validateSnapshot`/`rulesCompleteness` เป็นประตูข้อมูลเดียว (`store.ingest`)
+  - [x] domain 10 ไฟล์แบบ pure (BigInt decimal, company mapping ไม่เดา → `UNMAPPED`, access/workflow/guards 3 ชั้น, audit append-only, store เก็บเฉพาะ overlay)
+  - [x] views 6 หน้า + hash router + ตัวกรอง/action/modal ที่แสดงเหตุผลทุกปุ่มที่ถูกบล็อก
+  - [x] ข้อมูลเดโม generate จาก cases 22 ฉบับ (SoD, evidence missing/stale, outbox, hand-authored, not_evaluated, M4, safety cap, USD, duplicate, terminal, decimal 6 ตำแหน่ง)
+  - [x] `tools/serve.py`, `build-master-data.py`, `build-fixtures.mjs --check` (มี drift detection), `smoke-test.mjs` (9 กลุ่ม 107 การตรวจ), `browser-check.mjs` (Chromium 14 การตรวจ + ข้ามตัวเองเมื่อไม่มี playwright)
+  - [x] เอกสาร `README.md` + `docs/00…07.md` (overview/architecture/data-contract/domain-model/ui-spec/build-and-test/as-built-gaps/demo-script)
+- Acceptance criteria:
+  - [x] `python tools/build-master-data.py` + `node tools/build-fixtures.mjs` + `--check` ผ่าน (เคส 22 · snapshot 24 · error 0 · warning 3) และไม่ drift
+  - [x] `node tools/smoke-test.mjs` ผ่าน 107/107 รวมข้อห้ามสถาปัตยกรรม (no runtime engine import, no DOM ใน domain, ไม่มี parseFloat/toFixed นอก money.js, ผลตรวจห้าม hardcode)
+  - [x] `node tools/browser-check.mjs` ผ่าน 14/14 — console/page error 0, ไม่มี `undefined/NaN/[object Object]` บนจอ, SoD toast ขึ้นเหตุผล, layout 390px ไม่ล้นแนวนอน
+  - [x] ไม่มีอักษรภาษาอื่นปนในโค้ดและ docs (เทสต์group 7 สแกน .js/.mjs/.md; อนุโลม Greek `Σ`)
+  - [x] ไม่แตะ portal เวอร์ชันอื่น/OCR/backend; ปิดรอบด้วย canonical records ครบ
+- Result: โฟลเดอร์ใหม่ `Web portal/invoice-webV4` (untracked) — runtime 3 + domain 10 + data generated 2 + engine mirror 1 + ui 2 + views 6 + css 1 + tools 6 + docs 9/README; session `2026-10-03-006`, changelog `CHG-20261003-017/018`, work-log `WORK-20261003-018/019`, errors `ERR-20261003-009…014`
+- Next: commit โฟลเดอร์นี้ (รอผู้ใช้สั่ง) → ทดสอบกับ snapshot ที่ dump จาก n8n จริง → ตัดสินใจ merge กลับ mockup/v3 หรือเดินต่อที่ V4
+
 - Task ID: `TASK-20261003-005`
 - Title: ยกระดับ mockup v3 ด้วยข้อสังเกตจาก log ทั้งหมด (action parity, revisions, audit, scope/SoD, decimal)
 - Status: `completed`

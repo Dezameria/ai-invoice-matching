@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+  AIVA Invoice Matching Web Portal — v5 (เดโม ไม่มี build step)
+  เปิดผ่าน http:// เท่านั้น (file:// ถูกบล็อก ES modules):  python tools/serve.py
+  เนื้อหา/ตัวเลขทั้งหมดในหน้านี้มาจากไฟล์ generated ใน src/data/ ซึ่ง tools/sync.py +
+  tools/build-snapshots.mjs สร้างจาก repo ai-invoice-matching — ดู #/sources
+-->
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIVA · Portal ตรวจรับใบกำกับภาษี (v5)</title>
+    <meta name="description" content="Portal แสดงผล matching engine + จัดการสถานะงาน — ข้อมูลอ้างอิงจาก repo ai-invoice-matching" />
+    <link rel="stylesheet" href="./src/styles/app.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D274D'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='%2300B5AF' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <a class="skip" href="#main">ข้ามไปที่เนื้อหาหลัก</a>
+
+    <header class="top" id="top">
+      <!-- app.js วาด header (brand/nav/ผู้ใช้) จากข้อมูลจริงของ store -->
+    </header>
+
+    <main id="main" class="wrap" tabindex="-1">
+      <p class="loading">กำลังโหลด snapshot และ master data …</p>
+    </main>
+
+    <footer class="foot" id="foot"></footer>
+
+    <div id="toast" class="toast-host" role="status" aria-live="polite"></div>
+    <div id="modal"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

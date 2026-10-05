@@ -1,6 +1,6 @@
 # Current State
 
-Last verified: `2026-10-03T14:20:00+07:00`
+Last verified: `2026-10-03T15:45:00+07:00`
 
 ## Repository
 - Branch: `invoice-web`
@@ -9,9 +9,27 @@ Last verified: `2026-10-03T14:20:00+07:00`
   - `Web portal/invoice-web1`: สำรองโค้ดเวอร์ชันเดิม
   - `Web portal/invoice-web-9054076`: โค้ดจาก commit 9054076 สำหรับทดสอบเทียบเคียง (พอร์ต 5173 / 8010)
   - `Web portal/invoice-webv3`: mockup ใหม่แบบ no-build (plain classic script ไม่ต้อง build) สำหรับรีวิว UI + business rule
+  - `Web portal/invoice-webV4`: web portal no-build แบบ ES modules ที่แยก layer จริง (domain/data/engine/ui/views) และ**แสดงผลจาก snapshot เท่านั้น** — ยังไม่ต่อ backend (untracked ใน `git status`)
 - Existing OCR service and original HTML mockup remain unchanged this development session.
 - Agent records, central docs and invoice-web working tree are organized; latest pushed commit `94d8cad`; local ahead ด้วย `cd76db0` (invoice-webv3 รอบ 2) ยังไม่ได้ push.
 - Repository-local skill `.agents/skills/aiva-invoice-core` สรุปขอบเขตระบบ field หลัก กฎ V-01–V-09, decision/routing, workflow/audit requirements และความขัดแย้งระหว่าง code, docs และ mockup เพื่อใช้เป็น domain reference ระหว่างพัฒนาต่อ.
+
+## Web Portal V4 (no-build, snapshot-driven) — `Web portal/invoice-webV4`
+
+สถานะ: ใช้งาน/เดโมได้ครบ (22 เอกสาร / 24 snapshot) — `smoke-test` ผ่าน **107/107** และ `browser-check` ผ่าน **14/14** ด้วย Chromium จริง; ยังไม่ต่อ backend/OCR จริง และยังไม่ commit
+
+หลักการที่บังคับด้วยเทสต์ (ไม่ใช่แค่สัญญาในเอกสาร):
+- Portal **ไม่ recompute matching** — `src/engine/rules.js` เป็น as-built mirror ที่ `tools/` ใช้สร้าง fixture เท่านั้น (group 7 ตรวจ import pattern จริง)
+- เงิน/จำนวนคงเป็น **decimal string** + helper BigInt (`src/domain/money.js`) — เคสคุมคือ `600 × 30.666667 = 18400.0002`
+- ทุกอย่างเข้าระบบทาง `store.ingest()` ทางเดียว: `validateSnapshot()` (receiving contract v1.0) → ห้าม `event_id` ซ้ำ → revision ต้องเพิ่มขึ้น → ปิด outbox → audit
+- นโยบาย 3 ชั้นก่อน action: `access` (ใคร) → `workflow` (สถานะงานอนุญาตไหม + optimistic version) → `guards` (หลักฐาน/สัญญาพอไหม) และปุ่มที่ปิดต้องตอบเหตุผลได้
+- ข้อมูลบนจอทั้งหมด **generate ห้ามพิมพ์มือ**: `tools/cases-*.mjs` × engine mirror → `src/data/snapshots.js` (+ golden `expect`/`expectRevisions`) และ `build-fixtures.mjs --check` จับ drift ของไฟล์ generated ได้
+
+ของที่ทำในโฟลเดอร์นี้: domain 10 ไฟล์ (`money schema company exceptions access workflow guards audit store ruleCatalog`), views 6 หน้า (dashboard/queue/detail/master/audit/help) + hash router ใน `app.js`, `src/styles/app.css` (token จาก mockup v4.4 + responsive ≤860px), tools 6 ตัว (`serve.py build-master-data.py build-fixtures.mjs cases-*.mjs smoke-test.mjs browser-check.mjs`), เอกสาร `README.md` + `docs/00…07.md`
+
+เครื่องมือ: `python tools/serve.py --open` · `node tools/build-fixtures.mjs [--check]` · `node tools/smoke-test.mjs` (107 การตรวจ) · `node tools/browser-check.mjs` (14 การตรวจใน Chromium; ข้ามตัวเองเมื่อหา playwright ไม่เจอ)
+
+ช่องที่ยังเปิด (จดใน `docs/05` + `docs/06`): contract test กับ producer จริง, visual regression, accessibility audit, concurrency จริง (จำลองด้วย `expectedVersion`), AP posting ปิดด้วย guard `ap-contract`, PDF เป็น metadata เท่านั้น
 
 ## Mockup v3 (no-build) — `Web portal/invoice-webv3`
 
@@ -63,6 +81,8 @@ Last verified: `2026-10-03T14:20:00+07:00`
 - Local preview runs at `http://127.0.0.1:8010`; API docs at `/api/docs`. One clearly labeled synthetic example with two JSON/PDF revisions was loaded for manual preview.
 
 ## Verified
+- Web Portal V5 (`Web portal/invoice-webV5`): repo-reference portal (no-build ES modules) — `node tools/smoke-test.mjs` ผ่าน **31/31** ข้อ (hygiene, provenance, domain, ui), `node tools/browser-check.mjs` ผ่าน **29/29** ข้อ (Edge headless, console error 0), `python tools/sync.py --check` ผ่าน
+- Web Portal V4 (`Web portal/invoice-webV4`): snapshot-driven portal (no-build ES modules) — `node tools/smoke-test.mjs` ผ่าน **107/107** ข้อ (decimal, contract, policy, architecture), `node tools/browser-check.mjs` ผ่าน **14/14** ข้อ (Chromium, 1440px + 390px no overflow), `tools/build-fixtures.mjs --check` ผ่าน
 - Mockup v3 (รอบ 2): `node --check` ผ่านทั้ง 6 สคริปต์, `node tools/smoke-test.js` ผ่าน **60** การตรวจ (เพิ่ม explain parity, SoD + ล็อกฝั่งบัญชี, on-hold/release_hold, idempotent replay + 422, expected_document_revision 409, revision read-only, audit hash chain + CSV, คิวแบ่งหน้า/sort/งานของฉัน, viewer toolbar + access event)
 - Mockup v3 Chromium จริง (`node tools/browser-check.js`) ผ่าน **14** การตรวจ: 7 ผู้ใช้ × nav ที่เปิดให้ตามสิทธิ์ (EU 3, ACC 3, APR 4 มี audit, ADM 3 ไม่มีคิว = 22 จอ), 17 ฉบับ × 6 แท็บ = 102 จอ, console/page error 0, 390px overflow 0px, pagination 1–8 จาก 17, "งานของฉัน" 5 ฉบับ, CSV พร้อม hash, deep link เปิดเอกสารตรงฉบับ
 - Mockup v3 (รอบแรก): เปิดด้วย Chromium แล้วแก้ first paint (`BOOT.user` ไม่เคยถูกsetค่าใน `<select>`), เพิ่ม STEP 4 "Portal ตรวจซ้ำ", highlight หลักฐานตาม `rule.page` และแถวแจ้งเตือนเมื่อเอกสารที่เปิดอยู่หลุดจากตัวกรอง

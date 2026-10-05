@@ -160,3 +160,29 @@
 - เพิ่ม `.gitignore` ในโฟลเดอร์ mockup: ไฟล์ขึ้นต้นด้วย `_` (สคริปต์/ผลตรวจชั่วคราว), `_shots/`, `node_modules/` เพื่อไม่ให้ไฟล์ชั่วคราวหลุดเข้า repo แบบรอบก่อน
 - ลบสคริปต์ชั่วคราวรอบก่อนหน้าออกจากโฟลเดอร์ส่งมอบ (`_bc.js`, `_dbg*.js/.txt`, `tools/_patch_*.py` — เป็น one-shot patch ที่ apply ลง assets/ ครบแล้ว)
 - แก้ตารางเคสและตัวเลขใน `invoice-webv3/README.md` ให้ตรงกับ `assets/docs.js` จริง (ตารางเดิมยังอ้างสถานะเก่า เช่น 0005/0006/0012, 16 ฉบับ → 17 ฉบับ, 6 ผู้ใช้ 5 บทบาท → 7 ผู้ใช้ 4 บทบาท, KPI 6 → 7 ใบ) และบันทึกข้อจำกัดของ hash chain ที่เป็นการจำลอง
+
+### Added — `CHG-20261003-017`
+- Timestamp: `2026-10-03T15:45:00+07:00`
+- เพิ่ม web portal เวอร์ชันใหม่ `Web portal/invoice-webV4` — **no-build ES modules** แต่แยก layer จริง (ต่างจาก mockup v3 ที่เป็นคลาสสิกสคริปต์ไฟล์เดียว) และยึดหลัก "UI แสดงผลจาก snapshot เท่านั้น ห้าม recompute matching"
+- เลเยอร์ที่บังคับด้วยเทสต์: `src/domain` (pure logic ทดสอบใน node ได้) → `src/data` (generated) → `src/views` (return HTML string) → `app.js` (layer เดียวที่แตะ DOM + hash router) และ `src/engine/rules.js` (as-built mirror V-01…V-09 + M1–M4 + decision + assignment) **ถูกใช้จาก `tools/` เท่านั้น** — group 7 ของ smoke test ตรวจ import pattern จริง ไม่ใช่ grep คำว่า engine
+- domain module ที่เกิดใหม่: `money.js` (Decimal บน BigInt: `dec dAdd dSub dMul dCmp dDiff dWithin dRound fmtMoney validateDecimalString`), `schema.js` (receiving contract v1.0 + `validateSnapshot` + `rulesCompleteness` แยก "ไม่ผ่าน" ออกจาก "ไม่ได้ตรวจ"), `company.js` (`ORG_ID/Tax ID → นิติบุคคล`, ไม่เดา → `UNMAPPED` + เหตุผล), `access.js` (7 ผู้ใช้ 4 บทบาท + SoD), `workflow.js` (state machine + optimistic version + outbox), `guards.js` (16 guard + `blockingFor`/`riskLevel`), `audit.js` (append-only), `store.js` (overlay เดียวที่แตะ localStorage + `ingest()` เป็นประตูข้อมูลเดียว), `exceptions.js`, `ruleCatalog.js`
+- ข้อมูลเดโม 22 เอกสาร / 24 snapshot **generate ทั้งหมดห้ามพิมพ์มือ**: `tools/cases-*.mjs` (input แบบที่ engine จริงได้รับ) × engine mirror → validate contract → golden check (`expect` ของรุ่นล่าสุด + `expectRevisions` รายรุ่น) → `src/data/snapshots.js`; `src/data/master-data.js` รีเจเนอเรตด้วย `tools/build-master-data.py` จาก `OCR service/n8n/app/core/master_data.py` (นิติบุคคล 48 / ACTIVE 45 / exception 15 รหัส / user-task 7 รหัส)
+- เคสสาธิตครบทุก policy ที่ mockup เคยพูดแต่ไม่มีกลไกคุม: SoD (0001), หลักฐาน missing (0004) / stale (0018), outbox ค้าง + จำลองส่งรุ่น (0015), snapshot เขียนมือเพราะ pipeline ล่ม (0016/0020 มีธง `hand_authored`), rules ไม่ครบ → ห้ามแก้เป็น PASS (0020), `not_evaluated` ไม่เท่ากับ PASS (0004), M4/หน้าไม่ครบ (0014), SQL safety cap 50 แถว (0022), USD/no-VAT (0019), ทศนิยม 6 ตำแหน่ง `600 × 30.666667 = 18400.0002` (0017), duplicate pair + terminal REJECTED (0008/0009), `post` ปิดตายด้วย `ap-contract` (0021)
+- ยังไม่แตะ portal เวอร์ชันอื่น (`invoice-web`, `invoice-webV2`, `invoice-webv3`, `invoice-web1`, `invoice-web-9054076`) และไม่ได้แก้ OCR service/backend ใด
+
+### Added — `CHG-20261003-018`
+- Timestamp: `2026-10-03T15:45:00+07:00`
+- เครื่องมือของ `invoice-webV4`: `tools/serve.py` (static server + `Cache-Control: no-store` + reconfigure UTF-8 stdout เพื่อกัน `UnicodeEncodeError` บน console Windows), `tools/build-fixtures.mjs --check` แบบมี **drift detection** (regen แล้วเทียบเนื้อหาโดย normalized `built_at` → exit 1 เมื่อไฟล์ generated ไม่ตรงกับที่ engine ให้ผล), `tools/smoke-test.mjs` (9 กลุ่ม 107 การตรวจ รวม group 9 ที่ render ทุก view ด้วยข้อมูลจริง และ group 7 ที่ตรวจข้อห้ามสถาปัตยกรรม + ห้ามอักษรภาษาอื่นปนใน `.js/.mjs/.md`)
+- เพิ่ม `tools/browser-check.mjs` — ตรวจด้วย Chromium จริง 14 การตรวจ (console/page error ตอน bootstrap, ค่า `undefined/NaN/[object Object]` บนจอ, toast เหตุผล SoD, ขอบเขตงานตอนสลับผู้ใช้, revision tab, layout 390px ไม่ล้นแนวนอน) เริ่ม `tools/serve.py` เองแล้วปิดตอนจบ; หา playwright จาก `PLAYWRIGHT_PATH` → `playwright` → `node_modules` โปรเจกต์ข้างเคียง และ **ข้ามตัวเองแบบ exit 0** เมื่อหาไม่เจอ (คงคุณสมบัติ no-build)
+- เอกสารพัฒนา 9 ไฟล์: `README.md` + `docs/00-overview.md` (ปัญหา/ขอบเขต/role/คำศัพท์) · `01-architecture.md` (เลเยอร์ + วิธีบังคับข้อห้าม) · `02-data-contract.md` (contract v1.0 + ตัวอย่าง JSON + สิ่งที่ยัง integration ไม่ได้) · `03-domain-model.md` (API จริงทุก module พร้อม return shape ที่เปิดโค้ดยืนยันแล้ว) · `04-ui-spec.md` · `05-build-and-test.md` (pipeline, วิธีเพิ่มเคส, exit code, สิ่งที่ **ยังไม่ได้** ทดสอบ) · `06-as-built-gaps.md` (ส่วนต่าง engine ↔ มาตรฐาน 6.2) · `07-demo-script.md` (9 ฉาก + ตารางเคส 22 ฉบับทีละฉบับ)
+- ผลรันจริง: `build-master-data.py` ผ่าน · `build-fixtures.mjs` → `เคส 22 · snapshot 24 · ความผิดพลาด 0 · คำเตือน 3` · `--check` exit 0 · `smoke-test.mjs` **107/107** · `browser-check.mjs` **14/14** (Chromium, 1440px + 390px, console error 0)
+
+### Added — `CHG-20261003-019`
+- Timestamp: `2026-10-03T16:50:00+07:00`
+- เพิ่ม web portal เวอร์ชันใหม่ `Web portal/invoice-webV5` — **repo-reference portal** (no-build ES modules)
+  - ซิงก์ข้อมูลอ้างอิงตรงจาก repo (`tools/sync.py` อ่าน master_data, rules, models, docs, mockup tokens) พร้อม header provenance ตรวจ sha256 drift
+  - portal ทำหน้าที่เป็น view layer แสดงผล snapshot อย่างเดียว ห้าม recompute matching ใน frontend
+  - ยุบรวมหน้าจอที่ซ้ำซ้อนจาก v4 เหลือ 6 หน้า: `work`, `detail`, `rules`, `manual`, `sources`, `audit`
+  - นโยบาย 3 ชั้น `access → workflow → guards` พร้อม BigInt Decimal string สำหรับตัวเลขเงิน
+  - ผลทดสอบจริง: `tools/smoke-test.mjs` ผ่าน **31/31**, `tools/browser-check.mjs` ผ่าน **29/29** (Edge headless), `tools/sync.py --check` ผ่าน
+
